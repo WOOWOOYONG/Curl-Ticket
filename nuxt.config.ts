@@ -8,6 +8,11 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
+  runtimeConfig: {
+    // 僅在 server 端可用
+    databaseUrl: process.env.DATABASE_URL
+  },
+
   routeRules: {
     '/': { prerender: true }
   },
