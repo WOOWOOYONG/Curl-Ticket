@@ -1,4 +1,4 @@
-# 📝 產品需求文件 (PRD) - API Sync Tracker
+# 📝 產品需求文件 (PRD) - Curl Ticket
 
 **Version:** 1.2
 **Last Updated:** 2024-01-26
@@ -8,7 +8,7 @@
 
 ## 1. 專案概述 (Project Overview)
 
-**API Sync Tracker** 是一個專為開發團隊設計的 API 問題追蹤與溝通工具。旨在解決前後端協作（Integration）過程中，資訊傳遞混亂、Payload 格式錯誤難以重現的問題。
+**Curl Ticket** 是一個專為開發團隊設計的 API 問題追蹤與溝通工具。旨在解決前後端協作（Integration）過程中，資訊傳遞混亂、Payload 格式錯誤難以重現的問題。
 
 - **核心痛點：** 前端回報 API 錯誤時，往往只給截圖或模糊描述，後端難以精準重現當下的 Request Header/Body。
 - **核心價值：** 透過解析 cURL 指令，一鍵還原 API 請求現場，大幅降低溝通成本。
