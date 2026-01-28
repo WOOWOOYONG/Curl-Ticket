@@ -48,7 +48,7 @@ graph TD
 
 - **頁面路徑：** `/login`
 - **功能描述：**
-- 提供 Email/Password 登入或 GitHub OAuth (Supabase Auth)。
+- 提供 Email/Password 登入或 Google OAuth (Supabase Auth)。
 - 強制路由守衛 (Route Guard)：未登入訪問受保護頁面，自動重導向至此。
 - 登入成功後跳轉至首頁。
 
@@ -67,7 +67,7 @@ graph TD
 - **功能描述：**
 - **表單欄位：**
 - 專案名稱 (必填)
-- 專案代號 Key (必填，限 3-5 碼大寫英文，全站唯一，如 `MEM`)
+- 專案代號 Key (必填，全站唯一，如 `MEM`)
 - 描述 (選填)
 
 - **驗證 (Zod)：** Key 必須檢查是否重複。
