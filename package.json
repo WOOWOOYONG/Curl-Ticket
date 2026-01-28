@@ -19,6 +19,7 @@
     "@iconify-json/simple-icons": "^1.2.67",
     "@nuxt/ui": "^4.4.0",
     "@nuxtjs/supabase": "2.0.3",
+    "@vueuse/nuxt": "14.1.0",
     "drizzle-orm": "^0.45.1",
     "nuxt": "^4.2.2",
     "postgres": "^3.4.8",
