@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, boolean, integer } from 'drizzle-orm/pg-core'
+import { pgTable, uuid, varchar, timestamp, boolean, integer } from 'drizzle-orm/pg-core'
 import { issues } from './issues'
 
 export const notifications = pgTable('notifications', {
@@ -6,8 +6,8 @@ export const notifications = pgTable('notifications', {
   userId: uuid('user_id').notNull(), // FK to auth.users (接收通知的人)
   issueId: integer('issue_id').references(() => issues.id, { onDelete: 'cascade' }),
 
-  title: text('title').notNull(),
-  content: text('content'),
+  title: varchar('title', { length: 200 }).notNull(),
+  content: varchar('content', { length: 1000 }),
   isRead: boolean('is_read').notNull().default(false),
 
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
