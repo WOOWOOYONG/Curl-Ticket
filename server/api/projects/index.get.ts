@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
   const offset = (page - 1) * pageSize
 
   // 3. 先取得分頁的 projects + 總筆數（不 JOIN issues）
-  const [paginatedProjects, [{ total }]] = await Promise.all([
+  const [paginatedProjects, totalResult] = await Promise.all([
     db
       .select()
       .from(projects)
@@ -25,6 +25,8 @@ export default defineEventHandler(async (event) => {
       .select({ total: count() })
       .from(projects)
   ])
+
+  const total = totalResult[0]?.total ?? 0
 
   // 4. 針對這些 projects 查詢統計資料
   const projectIds = paginatedProjects.map(p => p.id)
