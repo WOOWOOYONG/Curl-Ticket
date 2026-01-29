@@ -9,7 +9,6 @@ definePageMeta({
   layout: 'header-only'
 })
 
-const supabase = useSupabaseClient()
 const toast = useToast()
 
 const loading = ref(false)
@@ -22,31 +21,17 @@ const state = reactive<CreateProjectInput>({
 
 const environmentOptions = environments.map(env => ({
   label: env,
-  value: env,
-  checked: computed({
-    get: () => state.environments.includes(env),
-    set: (checked: boolean) => {
-      if (checked) {
-        state.environments.push(env)
-      } else {
-        const index = state.environments.indexOf(env)
-        if (index > -1) {
-          state.environments.splice(index, 1)
-        }
-      }
-    }
-  })
+  value: env
 }))
 
 async function onSubmit(event: FormSubmitEvent<CreateProjectInput>) {
   loading.value = true
 
   try {
-    const { error } = await supabase
-      .from('projects')
-      .insert(event.data)
-
-    if (error) throw error
+    await $fetch('/api/projects', {
+      method: 'POST',
+      body: event.data
+    })
 
     toast.add({
       title: 'Success',
