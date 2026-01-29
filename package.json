@@ -12,13 +12,15 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "db:types": "supabase gen types typescript --project-id wngvnvceyvqlrebuvsyh > app/types/database.types.ts"
   },
   "dependencies": {
     "@iconify-json/lucide": "^1.2.87",
     "@iconify-json/simple-icons": "^1.2.67",
     "@nuxt/ui": "^4.4.0",
     "@nuxtjs/supabase": "2.0.3",
+    "@supabase/supabase-js": "^2.93.2",
     "@vueuse/nuxt": "14.1.0",
     "drizzle-orm": "^0.45.1",
     "nuxt": "^4.2.2",
@@ -31,6 +33,7 @@
     "@nuxt/eslint": "^1.13.0",
     "drizzle-kit": "^0.31.8",
     "eslint": "^9.39.2",
+    "supabase": "^2.72.9",
     "typescript": "^5.9.3",
     "vue-tsc": "^3.2.4"
   },
