@@ -157,12 +157,14 @@ _(Standard Supabase Auth Ref)_
 
 ### Projects Table
 
-| Column       | Type      | Constraint       | Description       |
-| ------------ | --------- | ---------------- | ----------------- |
-| `id`         | uuid      | PK               | 專案唯一識別碼    |
-| `name`       | text      | Not Null         | 專案名稱          |
-| `key`        | text      | Unique, Not Null | 專案代號 (如 MEM) |
-| `created_at` | timestamp | Default Now()    |                   |
+| Column         | Type      | Constraint       | Description                                  |
+| -------------- | --------- | ---------------- | -------------------------------------------- |
+| `id`           | uuid      | PK               | 專案唯一識別碼                               |
+| `name`         | text      | Not Null         | 專案名稱                                     |
+| `key`          | text      | Unique, Not Null | 專案代號 (如 MEM)                            |
+| `description`  | text      |                  | 專案描述                                     |
+| `environments` | text[]    | Not Null         | 專案可用環境 (Local, Dev, Staging, Prod)     |
+| `created_at`   | timestamp | Default Now()    |                                              |
 
 ### Issues Table
 

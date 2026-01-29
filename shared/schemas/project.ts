@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { environments } from '../constants'
 
 // ============================================
 // Project Schemas
@@ -12,7 +13,8 @@ export const createProjectSchema = z.object({
     .min(2, '專案代號至少 2 個字元')
     .max(10, '專案代號不可超過 10 個字元')
     .regex(/^[A-Z0-9]+$/, '專案代號只能包含大寫字母和數字'),
-  description: z.string().nullish()
+  description: z.string().nullish(),
+  environments: z.array(z.enum(environments as [string, ...string[]])).min(1, '請至少選擇一個環境')
 })
 
 /** 更新專案 */
@@ -24,6 +26,7 @@ export const projectSchema = z.object({
   name: z.string(),
   key: z.string(),
   description: z.string().nullable(),
+  environments: z.array(z.string()),
   createdAt: z.coerce.date()
 })
 

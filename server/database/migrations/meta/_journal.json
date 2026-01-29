@@ -8,6 +8,13 @@
       "when": 1769565310347,
       "tag": "0000_thin_bill_hollister",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1769659010106,
+      "tag": "0001_clear_magdalene",
+      "breakpoints": true
     }
   ]
 }
