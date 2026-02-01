@@ -30,6 +30,12 @@ export const projectSchema = z.object({
   createdAt: z.coerce.date()
 })
 
+/** 專案資料（含統計） */
+export const projectWithStatsSchema = projectSchema.extend({
+  totalIssues: z.number(),
+  openIssues: z.number()
+})
+
 // ============================================
 // Types（從 Schema 推導）
 // ============================================
@@ -37,3 +43,4 @@ export const projectSchema = z.object({
 export type CreateProjectInput = z.infer<typeof createProjectSchema>
 export type UpdateProjectInput = z.infer<typeof updateProjectSchema>
 export type Project = z.infer<typeof projectSchema>
+export type ProjectWithStats = z.infer<typeof projectWithStatsSchema>
