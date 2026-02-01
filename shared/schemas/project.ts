@@ -22,7 +22,7 @@ export const updateProjectSchema = createProjectSchema.partial()
 
 /** 專案資料（完整） */
 export const projectSchema = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
   name: z.string(),
   key: z.string(),
   description: z.string().nullable(),

@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import type { TableColumn } from '@nuxt/ui'
+import { IssueStatus } from '~~/shared/constants'
+import type { IssueListItem } from '~~/shared/schemas'
+
 definePageMeta({
   ssr: false
 })
@@ -7,8 +11,88 @@ const route = useRoute()
 const projectId = computed(() => route.params.id as string)
 
 const { data: response, status } = await useProject(projectId)
-
 const project = computed(() => response.value?.data)
+
+// Issues options
+const issuesOptions = ref({ page: 1, pageSize: 20 })
+
+const { data: issuesResponse, status: issuesStatus } = await useIssues(projectId, issuesOptions)
+
+const goToPage = (page: number) => {
+  issuesOptions.value = { ...issuesOptions.value, page }
+}
+
+const issues = computed(() => issuesResponse.value?.data ?? [])
+const pagination = computed(() => issuesResponse.value?.pagination)
+
+// Table columns
+const columns: TableColumn<IssueListItem>[] = [
+  {
+    accessorKey: 'issueId',
+    header: 'ID',
+    meta: { class: { th: 'w-28', td: 'whitespace-nowrap' } }
+  },
+  {
+    accessorKey: 'title',
+    header: '標題',
+    meta: { class: { td: 'max-w-xs' } }
+  },
+  {
+    accessorKey: 'method',
+    header: '方法',
+    meta: { class: { th: 'w-24 text-center', td: 'text-center' } }
+  },
+  {
+    accessorKey: 'status',
+    header: '狀態',
+    meta: { class: { th: 'w-28 text-center', td: 'text-center' } }
+  },
+  {
+    accessorKey: 'environment',
+    header: '環境',
+    meta: { class: { th: 'w-24 text-center', td: 'text-center' } }
+  },
+  {
+    accessorKey: 'updatedAt',
+    header: '更新時間',
+    meta: { class: { th: 'w-40 text-right', td: 'text-right whitespace-nowrap' } }
+  }
+]
+
+// Status icons
+const statusIcons: Record<string, string> = {
+  [IssueStatus.Open]: 'i-lucide-circle-dot',
+  [IssueStatus.InProgress]: 'i-lucide-loader',
+  [IssueStatus.Done]: 'i-lucide-check-circle'
+}
+
+// HTTP method colors
+const methodColors: Record<string, 'success' | 'info' | 'warning' | 'error' | 'neutral'> = {
+  GET: 'success',
+  POST: 'info',
+  PUT: 'warning',
+  PATCH: 'warning',
+  DELETE: 'error',
+  HEAD: 'neutral',
+  OPTIONS: 'neutral'
+}
+
+// Status colors
+const statusColors: Record<string, 'success' | 'info' | 'warning' | 'error' | 'neutral'> = {
+  [IssueStatus.Open]: 'error',
+  [IssueStatus.InProgress]: 'warning',
+  [IssueStatus.Done]: 'success'
+}
+
+// Format date
+function formatDate(date: Date | string) {
+  return useDateFormat(date, 'YYYY/MM/DD HH:mm').value
+}
+
+// Row click handler
+function onRowSelect(_event: Event, row: { original: IssueListItem }) {
+  navigateTo(`/projects/${projectId.value}/issues/${row.original.id}`)
+}
 </script>
 
 <template>
@@ -128,12 +212,112 @@ const project = computed(() => response.value?.data)
           </UButton>
         </div>
 
-        <!-- Issues List (placeholder for future implementation) -->
+        <!-- Issues List -->
         <div
           v-else
           class="space-y-4"
         >
-          <!-- TODO: Implement issues list -->
+          <!-- Loading -->
+          <template v-if="issuesStatus === 'pending'">
+            <USkeleton class="h-12 w-full" />
+            <USkeleton class="h-12 w-full" />
+            <USkeleton class="h-12 w-full" />
+          </template>
+
+          <!-- Issues Table -->
+          <template v-else>
+            <div class="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
+              <UTable
+                :columns="columns"
+                :data="issues"
+                :ui="{
+                  tr: 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors',
+                  td: 'py-3',
+                  th: 'py-3 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400'
+                }"
+                @select="onRowSelect"
+              >
+                <!-- Issue ID -->
+                <template #issueId-cell="{ row }">
+                  <span class="font-mono text-sm font-medium text-primary-600 dark:text-primary-400">
+                    {{ row.original.projectKey }}-{{ row.original.issueNumber }}
+                  </span>
+                </template>
+
+                <!-- Title -->
+                <template #title-cell="{ row }">
+                  <div class="flex flex-col gap-1">
+                    <span class="font-medium text-gray-900 dark:text-white truncate">
+                      {{ row.original.title }}
+                    </span>
+                    <span class="text-xs text-gray-400 dark:text-gray-500 truncate font-mono">
+                      {{ row.original.url }}
+                    </span>
+                  </div>
+                </template>
+
+                <!-- HTTP Method -->
+                <template #method-cell="{ row }">
+                  <UBadge
+                    :color="methodColors[row.original.method] || 'neutral'"
+                    variant="subtle"
+                    class="font-mono text-xs font-semibold"
+                  >
+                    {{ row.original.method }}
+                  </UBadge>
+                </template>
+
+                <!-- Status -->
+                <template #status-cell="{ row }">
+                  <UBadge
+                    :color="statusColors[row.original.status] || 'neutral'"
+                    variant="soft"
+                    class="gap-1"
+                  >
+                    <UIcon
+                      :name="statusIcons[row.original.status]"
+                      class="size-3"
+                    />
+                    {{ row.original.status }}
+                  </UBadge>
+                </template>
+
+                <!-- Environment -->
+                <template #environment-cell="{ row }">
+                  <UBadge
+                    color="neutral"
+                    variant="outline"
+                    size="sm"
+                  >
+                    {{ row.original.environment }}
+                  </UBadge>
+                </template>
+
+                <!-- Updated At -->
+                <template #updatedAt-cell="{ row }">
+                  <span class="text-sm text-gray-500 dark:text-gray-400">
+                    {{ formatDate(row.original.updatedAt) }}
+                  </span>
+                </template>
+              </UTable>
+            </div>
+
+            <!-- Pagination -->
+            <div
+              v-if="pagination && pagination.totalPages > 1"
+              class="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-800"
+            >
+              <span class="text-sm text-gray-500 dark:text-gray-400">
+                共 <span class="font-medium text-gray-700 dark:text-gray-300">{{ pagination.total }}</span> 筆，第 <span class="font-medium text-gray-700 dark:text-gray-300">{{ pagination.page }}</span> / {{ pagination.totalPages }} 頁
+              </span>
+              <UPagination
+                :model-value="issuesOptions.page"
+                :total="pagination.total"
+                :page-count="issuesOptions.pageSize"
+                @update:model-value="goToPage"
+              />
+            </div>
+          </template>
         </div>
       </template>
     </div>
