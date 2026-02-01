@@ -22,6 +22,7 @@
     "@nuxtjs/supabase": "2.0.3",
     "@supabase/supabase-js": "^2.93.2",
     "@vueuse/nuxt": "14.1.0",
+    "curlconverter": "^4.12.0",
     "drizzle-orm": "^0.45.1",
     "nuxt": "^4.2.2",
     "postgres": "^3.4.8",
