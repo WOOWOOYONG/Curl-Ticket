@@ -4,17 +4,14 @@ import { createProjectSchema } from '~~/shared/schemas'
 export default defineEventHandler(async (event) => {
   const db = useDB()
 
-  // 1. 讀取 request body
   const body = await readBody(event)
-
-  // 2. 使用共用的 Zod schema 驗證
   const result = createProjectSchema.safeParse(body)
 
   if (!result.success) {
     throw createError({
       statusCode: 400,
       statusMessage: 'Validation Error',
-      data: result.error.flatten()
+      data: result.error.issues
     })
   }
 

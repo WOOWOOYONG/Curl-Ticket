@@ -7,7 +7,8 @@
 3. [最終架構](#3-最終架構)
 4. [程式碼範例](#4-程式碼範例)
 5. [常數定義模式](#5-常數定義模式)
-6. [使用指南](#6-使用指南)
+6. [Zod v4 錯誤處理](#6-zod-v4-錯誤處理)
+7. [使用指南](#7-使用指南)
 
 ---
 
@@ -224,7 +225,7 @@ export default defineEventHandler(async (event) => {
     throw createError({
       statusCode: 400,
       statusMessage: 'Validation Error',
-      data: result.error.flatten()
+      data: result.error.issues
     })
   }
 
@@ -257,7 +258,13 @@ async function handleSubmit() {
   const result = createProjectSchema.safeParse(form.value)
 
   if (!result.success) {
-    errors.value = result.error.flatten().fieldErrors
+    // 將 issues 轉換為 fieldErrors 格式
+    errors.value = result.error.issues.reduce((acc, issue) => {
+      const field = issue.path.join('.')
+      if (!acc[field]) acc[field] = []
+      acc[field].push(issue.message)
+      return acc
+    }, {} as Record<string, string[]>)
     return
   }
 
@@ -335,9 +342,87 @@ environment: z
 
 ---
 
-## 6. 使用指南
+## 6. Zod v4 錯誤處理
 
-### 6.1 新增資料表的步驟
+### 6.1 棄用方法說明
+
+在 Zod v4 中，`flatten()` 和 `format()` 方法已被標記為棄用（deprecated）。推薦使用 `result.error.issues` 來處理驗證錯誤。
+
+### 6.2 錯誤處理對照表
+
+| 使用場景 | 舊方法 (已棄用) | 新方法 (推薦) |
+|---------|----------------|--------------|
+| 後端 API 回應 | `result.error.flatten()` | `result.error.issues` |
+| 前端表單錯誤 | `result.error.flatten().fieldErrors` | 手動轉換 `issues` (見下方) |
+
+### 6.3 `result.error.issues` 結構
+
+```ts
+// issues 是一個陣列，每個元素包含：
+[
+  {
+    code: "invalid_type",           // 錯誤類型
+    path: ["name"],                  // 欄位路徑
+    message: "Expected string, received number",  // 錯誤訊息
+    expected: "string",
+    received: "number"
+  },
+  {
+    code: "too_small",
+    path: ["key"],
+    message: "專案代號至少 2 個字元",
+    minimum: 2,
+    type: "string"
+  }
+]
+```
+
+### 6.4 前端錯誤格式轉換
+
+若需要像 `flatten().fieldErrors` 那樣的物件格式，可以手動轉換：
+
+```ts
+// 將 issues 轉換為 { [field]: [errors] } 格式
+const fieldErrors = result.error.issues.reduce((acc, issue) => {
+  const field = issue.path.join('.')  // 將路徑轉為字串，例如：["address", "city"] -> "address.city"
+  if (!acc[field]) acc[field] = []
+  acc[field].push(issue.message)
+  return acc
+}, {} as Record<string, string[]>)
+
+// 結果：
+// {
+//   "name": ["名稱不可為空"],
+//   "key": ["專案代號至少 2 個字元", "只能包含大寫字母和數字"]
+// }
+```
+
+或者建立一個可重用的 helper function：
+
+```ts
+// shared/utils/zod.ts
+import type { ZodIssue } from 'zod'
+
+export function formatZodErrors(issues: ZodIssue[]): Record<string, string[]> {
+  return issues.reduce((acc, issue) => {
+    const field = issue.path.join('.')
+    if (!acc[field]) acc[field] = []
+    acc[field].push(issue.message)
+    return acc
+  }, {} as Record<string, string[]>)
+}
+
+// 使用
+if (!result.success) {
+  errors.value = formatZodErrors(result.error.issues)
+}
+```
+
+---
+
+## 7. 使用指南
+
+### 7.1 新增資料表的步驟
 
 1. **定義常數**（如需要）
    ```ts
@@ -364,13 +449,13 @@ environment: z
    import { createNewTableSchema } from '~~/shared/schemas'
    ```
 
-### 6.2 修改欄位的步驟
+### 7.2 修改欄位的步驟
 
 1. 更新 `shared/schemas/` 中的 Zod schema
 2. 更新 `server/database/schema/` 中的 Drizzle table
 3. 執行 `pnpm db:push` 或 `pnpm db:generate` + `pnpm db:migrate`
 
-### 6.3 drizzle-zod 還需要嗎？
+### 7.3 drizzle-zod 還需要嗎？
 
 **不需要了。** 我們改用手動在 `shared/` 定義 Zod schema，這樣：
 
