@@ -15,26 +15,41 @@ const items = [
 </script>
 
 <template>
-  <UHeader :ui="{ container: 'max-w-full', right: 'gap-6' }">
-    <template #title>
-      <NuxtLink to="/">
-        <span class="text-lg font-bold">Curl Ticket</span>
-      </NuxtLink>
-    </template>
+  <ClientOnly>
+    <UHeader :ui="{ container: 'max-w-full', right: 'gap-6' }">
+      <template #title>
+        <NuxtLink to="/">
+          <span class="text-lg font-bold">Curl Ticket</span>
+        </NuxtLink>
+      </template>
 
-    <template #right>
-      <UColorModeButton />
-      <UDropdownMenu
-        v-if="user"
-        :items="items"
-      >
-        <UAvatar
-          :src="user.user_metadata?.avatar_url"
-          :alt="user.user_metadata?.full_name"
-          size="sm"
-          class="cursor-pointer"
-        />
-      </UDropdownMenu>
+      <template #right>
+        <UColorModeButton />
+        <UDropdownMenu
+          v-if="user"
+          :items="items"
+        >
+          <UAvatar
+            :src="user.user_metadata?.avatar_url"
+            :alt="user.user_metadata?.full_name"
+            size="sm"
+            class="cursor-pointer"
+          />
+        </UDropdownMenu>
+      </template>
+    </UHeader>
+
+    <template #fallback>
+      <header class="bg-default/75 backdrop-blur border-b border-default h-(--ui-header-height) sticky top-0 z-50 ">
+        <div class="w-full mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3 h-full max-w-full">
+          <NuxtLink
+            to="/"
+            class="text-lg font-bold"
+          >
+            Curl Ticket
+          </NuxtLink>
+        </div>
+      </header>
     </template>
-  </UHeader>
+  </ClientOnly>
 </template>
