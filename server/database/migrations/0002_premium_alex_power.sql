@@ -1,0 +1,2 @@
+CREATE INDEX "projects_created_at_idx" ON "projects" USING btree ("created_at" DESC NULLS LAST);--> statement-breakpoint
+CREATE INDEX "issues_project_stats_idx" ON "issues" USING btree ("project_id","status","updated_at");
