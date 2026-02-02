@@ -4,7 +4,7 @@ import { issues } from '~~/server/database/schema'
 import { IssueStatus, type IssueStatus as IssueStatusType, type Environment } from '~~/shared/constants'
 
 export default defineEventHandler(async (event) => {
-  const projectId = getRouterParam(event, 'id')
+  const projectId = getRouterParam(event, 'projectId')
 
   if (!projectId) {
     throw createError({

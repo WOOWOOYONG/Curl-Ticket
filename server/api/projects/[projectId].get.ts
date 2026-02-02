@@ -3,9 +3,9 @@ import { projects, issues } from '../../database/schema'
 import { IssueStatus } from '~~/shared/constants'
 
 export default defineEventHandler(async (event) => {
-  const id = getRouterParam(event, 'id')
+  const projectId = getRouterParam(event, 'projectId')
 
-  if (!id) {
+  if (!projectId) {
     throw createError({
       statusCode: 400,
       statusMessage: 'Project ID is required'
@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
   const [project] = await db
     .select()
     .from(projects)
-    .where(eq(projects.id, id))
+    .where(eq(projects.id, projectId))
     .limit(1)
 
   if (!project) {
@@ -34,7 +34,7 @@ export default defineEventHandler(async (event) => {
       openIssues: sql<number>`count(case when ${issues.status} = ${IssueStatus.Open} then 1 end)`
     })
     .from(issues)
-    .where(eq(issues.projectId, id))
+    .where(eq(issues.projectId, projectId))
 
   return {
     data: {

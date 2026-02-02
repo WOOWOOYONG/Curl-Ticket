@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
   const userId = event.context.userId as string
 
   // 1. 取得專案 ID
-  const projectId = getRouterParam(event, 'id')
+  const projectId = getRouterParam(event, 'projectId')
 
   if (!projectId) {
     throw createError({

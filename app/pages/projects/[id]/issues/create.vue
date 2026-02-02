@@ -4,6 +4,7 @@ import { createIssueSchema, type CreateIssueInput } from '~~/shared/schemas/issu
 import { environments, Environment, HttpMethod, IssueStatus } from '~~/shared/constants'
 import { getHttpMethodColor } from '~/constants/http'
 import type { Environment as EnvironmentType } from '~~/shared/constants'
+import { maskValue, formatJson } from '~/utils/issue'
 
 const issueFormSchema = createIssueSchema.omit({ projectId: true })
 
@@ -71,22 +72,8 @@ const payloadSize = computed(() => {
 // Calculate request body lines for line numbers
 const requestBodyLines = computed(() => {
   if (!state.requestBody) return []
-  const formatted = formatJson(state.requestBody)
-  return formatted.split('\n')
+  return formatJson(state.requestBody).split('\n')
 })
-
-// Mask sensitive header values
-function maskValue(key: string, value: string): string {
-  const sensitiveKeys = ['authorization', 'x-api-key', 'api-key', 'token', 'secret']
-  if (sensitiveKeys.some(k => key.toLowerCase().includes(k))) {
-    const prefix = value.split(' ')[0]
-    if (prefix && value.length > prefix.length + 6) {
-      return `${prefix} ${'*'.repeat(6)}`
-    }
-    return '*'.repeat(6)
-  }
-  return value
-}
 
 // Copy URL to clipboard
 function copyUrl() {
@@ -201,16 +188,6 @@ function discardChanges() {
   state.responseStatus = null
   state.responseBody = null
   isParsed.value = false
-}
-
-// Format JSON for display
-function formatJson(data: unknown): string {
-  if (!data) return ''
-  try {
-    return JSON.stringify(data, null, 2)
-  } catch {
-    return String(data)
-  }
 }
 
 // Parse JSON input

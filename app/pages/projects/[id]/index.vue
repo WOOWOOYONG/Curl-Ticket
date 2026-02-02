@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
-import { IssueStatus } from '~~/shared/constants'
 import type { IssueListItem } from '~~/shared/schemas'
+import { getHttpMethodColor } from '~/constants/http'
+import { IssueStatusColor, IssueStatusIcon } from '~/constants/issue'
 
 definePageMeta({
   ssr: false
@@ -58,31 +59,6 @@ const columns: TableColumn<IssueListItem>[] = [
     meta: { class: { th: 'w-40 text-right', td: 'text-right whitespace-nowrap' } }
   }
 ]
-
-// Status icons
-const statusIcons: Record<string, string> = {
-  [IssueStatus.Open]: 'i-lucide-circle-dot',
-  [IssueStatus.InProgress]: 'i-lucide-loader',
-  [IssueStatus.Done]: 'i-lucide-check-circle'
-}
-
-// HTTP method colors
-const methodColors: Record<string, 'success' | 'info' | 'warning' | 'error' | 'neutral'> = {
-  GET: 'success',
-  POST: 'info',
-  PUT: 'warning',
-  PATCH: 'warning',
-  DELETE: 'error',
-  HEAD: 'neutral',
-  OPTIONS: 'neutral'
-}
-
-// Status colors
-const statusColors: Record<string, 'success' | 'info' | 'warning' | 'error' | 'neutral'> = {
-  [IssueStatus.Open]: 'error',
-  [IssueStatus.InProgress]: 'warning',
-  [IssueStatus.Done]: 'success'
-}
 
 // Format date
 function formatDate(date: Date | string) {
@@ -259,7 +235,7 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
                 <!-- HTTP Method -->
                 <template #method-cell="{ row }">
                   <UBadge
-                    :color="methodColors[row.original.method] || 'neutral'"
+                    :color="getHttpMethodColor(row.original.method)"
                     variant="subtle"
                     class="font-mono text-xs font-semibold"
                   >
@@ -270,12 +246,12 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
                 <!-- Status -->
                 <template #status-cell="{ row }">
                   <UBadge
-                    :color="statusColors[row.original.status] || 'neutral'"
+                    :color="IssueStatusColor[row.original.status] || 'neutral'"
                     variant="soft"
                     class="gap-1"
                   >
                     <UIcon
-                      :name="statusIcons[row.original.status]"
+                      :name="IssueStatusIcon[row.original.status]"
                       class="size-3"
                     />
                     {{ row.original.status }}
