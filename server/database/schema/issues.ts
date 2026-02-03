@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, varchar, timestamp, serial, integer, jsonb, index } from 'drizzle-orm/pg-core'
+import { pgTable, uuid, text, varchar, timestamp, serial, integer, jsonb, index, uniqueIndex } from 'drizzle-orm/pg-core'
 import { projects } from './projects'
 import { Environment, IssueStatus } from '../../../shared/constants'
 import type { Environment as EnvironmentType, IssueStatus as IssueStatusType, HttpMethod as HttpMethodType } from '../../../shared/constants'
@@ -36,5 +36,7 @@ export const issues = pgTable('issues', {
   // 複合索引：加速「找特定專案的 issues」和「統計計算」
   // 包含 projectId, status, updatedAt 三個欄位
   index('issues_project_stats_idx')
-    .on(table.projectId, table.status, table.updatedAt)
+    .on(table.projectId, table.status, table.updatedAt),
+  uniqueIndex('issues_project_issue_number_key')
+    .on(table.projectId, table.issueNumber)
 ])

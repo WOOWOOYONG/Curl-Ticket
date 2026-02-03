@@ -1,6 +1,8 @@
 import { eq, max } from 'drizzle-orm'
-import { projects, issues } from '../../../../database/schema'
+import { projects, issues } from '~~/server/database/schema'
 import { createIssueSchema } from '~~/shared/schemas'
+import { MAX_CREATE_ATTEMPTS, UNIQUE_VIOLATION_CODE } from '~~/server/constants'
+import { badRequest, internalServerError, notFound } from '~~/server/utils/errors'
 
 export default defineEventHandler(async (event) => {
   // 從 middleware 取得已驗證的 userId
@@ -10,13 +12,15 @@ export default defineEventHandler(async (event) => {
   const projectId = getRouterParam(event, 'projectId')
 
   if (!projectId) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'Project ID is required'
-    })
+    badRequest('Project ID is required')
   }
 
   const db = useDB()
+
+  function isUniqueViolation(error: unknown) {
+    const err = error as { code?: string, cause?: { code?: string } }
+    return err?.code === UNIQUE_VIOLATION_CODE || err?.cause?.code === UNIQUE_VIOLATION_CODE
+  }
 
   // 3. 驗證專案存在並取得 key
   const [project] = await db
@@ -26,10 +30,7 @@ export default defineEventHandler(async (event) => {
     .limit(1)
 
   if (!project) {
-    throw createError({
-      statusCode: 404,
-      statusMessage: 'Project not found'
-    })
+    notFound('Project not found')
   }
 
   // 4. 讀取並驗證 request body
@@ -37,41 +38,60 @@ export default defineEventHandler(async (event) => {
   const result = createIssueSchema.omit({ projectId: true }).safeParse(body)
 
   if (!result.success) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'Validation Error',
-      data: result.error.issues
-    })
+    badRequest('Validation Error', result.error.issues)
   }
 
-  // 5. 計算該專案的下一個 issue_number
-  const [maxResult] = await db
-    .select({ maxNumber: max(issues.issueNumber) })
-    .from(issues)
-    .where(eq(issues.projectId, projectId))
+  // 5. 計算該專案的下一個 issue_number，若遇到唯一性衝突則重試
+  const issueBase = {
+    projectId,
+    projectKey: project.key,
+    title: result.data.title,
+    description: result.data.description ?? null,
+    method: result.data.method,
+    url: result.data.url,
+    environment: result.data.environment,
+    requestHeaders: result.data.requestHeaders ?? null,
+    requestBody: result.data.requestBody ?? null,
+    responseStatus: result.data.responseStatus ?? null,
+    responseBody: result.data.responseBody ?? null,
+    status: result.data.status,
+    createdBy: userId
+  }
 
-  const nextIssueNumber = (maxResult?.maxNumber ?? 0) + 1
+  let nextIssueNumber = 0
+  let newIssue: typeof issues.$inferSelect | undefined
+  let lastError: unknown
 
-  // 6. 建立 Issue
-  const [newIssue] = await db
-    .insert(issues)
-    .values({
-      projectId,
-      projectKey: project.key,
-      issueNumber: nextIssueNumber,
-      title: result.data.title,
-      description: result.data.description ?? null,
-      method: result.data.method,
-      url: result.data.url,
-      environment: result.data.environment,
-      requestHeaders: result.data.requestHeaders ?? null,
-      requestBody: result.data.requestBody ?? null,
-      responseStatus: result.data.responseStatus ?? null,
-      responseBody: result.data.responseBody ?? null,
-      status: result.data.status,
-      createdBy: userId
-    })
-    .returning()
+  for (let attempt = 1; attempt <= MAX_CREATE_ATTEMPTS; attempt++) {
+    const [maxResult] = await db
+      .select({ maxNumber: max(issues.issueNumber) })
+      .from(issues)
+      .where(eq(issues.projectId, projectId))
+
+    nextIssueNumber = (maxResult?.maxNumber ?? 0) + 1
+
+    try {
+      const created = await db
+        .insert(issues)
+        .values({
+          ...issueBase,
+          issueNumber: nextIssueNumber
+        })
+        .returning()
+      newIssue = created[0]
+      break
+    } catch (error) {
+      lastError = error
+      if (isUniqueViolation(error) && attempt < MAX_CREATE_ATTEMPTS) {
+        continue
+      }
+      throw error
+    }
+  }
+
+  if (!newIssue) {
+    internalServerError('Failed to create issue', lastError)
+  }
 
   return {
     data: newIssue,
