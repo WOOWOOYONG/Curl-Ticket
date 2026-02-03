@@ -1,5 +1,5 @@
 import { count, desc, inArray, max, sql } from 'drizzle-orm'
-import { projects, issues } from '../../database/schema'
+import { projects, issues } from '~~/server/database/schema'
 import { IssueStatus } from '~~/shared/constants'
 
 export default defineEventHandler(async (event) => {
