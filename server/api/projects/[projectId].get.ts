@@ -1,15 +1,13 @@
 import { eq, count, sql } from 'drizzle-orm'
-import { projects, issues } from '../../database/schema'
+import { projects, issues } from '~~/server/database/schema'
 import { IssueStatus } from '~~/shared/constants'
+import { badRequest, notFound } from '~~/server/utils/errors'
 
 export default defineEventHandler(async (event) => {
   const projectId = getRouterParam(event, 'projectId')
 
   if (!projectId) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'Project ID is required'
-    })
+    badRequest('Project ID is required')
   }
 
   const db = useDB()
@@ -21,10 +19,7 @@ export default defineEventHandler(async (event) => {
     .limit(1)
 
   if (!project) {
-    throw createError({
-      statusCode: 404,
-      statusMessage: 'Project not found'
-    })
+    notFound('Project not found')
   }
 
   // 取得 Issue 統計

@@ -1,5 +1,6 @@
-import { projects } from '../../database/schema'
+import { projects } from '~~/server/database/schema'
 import { createProjectSchema } from '~~/shared/schemas'
+import { badRequest } from '~~/server/utils/errors'
 
 export default defineEventHandler(async (event) => {
   const db = useDB()
@@ -8,14 +9,9 @@ export default defineEventHandler(async (event) => {
   const result = createProjectSchema.safeParse(body)
 
   if (!result.success) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'Validation Error',
-      data: result.error.issues
-    })
+    badRequest('Validation Error', result.error.issues)
   }
 
-  // 3. result.data 已經是正確型別，直接寫入資料庫
   const [newProject] = await db
     .insert(projects)
     .values(result.data)

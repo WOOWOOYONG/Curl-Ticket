@@ -2,15 +2,13 @@ import type { SQL } from 'drizzle-orm'
 import { eq, desc, count, and } from 'drizzle-orm'
 import { issues } from '~~/server/database/schema'
 import { IssueStatus, type IssueStatus as IssueStatusType, type Environment } from '~~/shared/constants'
+import { badRequest } from '~~/server/utils/errors'
 
 export default defineEventHandler(async (event) => {
   const projectId = getRouterParam(event, 'projectId')
 
   if (!projectId) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'Project ID is required'
-    })
+    badRequest('Project ID is required')
   }
 
   const db = useDB()

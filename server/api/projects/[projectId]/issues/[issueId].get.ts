@@ -1,5 +1,6 @@
 import { eq, and } from 'drizzle-orm'
-import { projects, issues } from '../../../../database/schema'
+import { projects, issues } from '~~/server/database/schema'
+import { badRequest, notFound } from '~~/server/utils/errors'
 
 export default defineEventHandler(async (event) => {
   // 1. 取得路由參數
@@ -7,17 +8,11 @@ export default defineEventHandler(async (event) => {
   const issueId = getRouterParam(event, 'issueId')
 
   if (!projectId) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'Project ID is required'
-    })
+    badRequest('Project ID is required')
   }
 
   if (!issueId) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'Issue ID is required'
-    })
+    badRequest('Issue ID is required')
   }
 
   const db = useDB()
@@ -30,10 +25,7 @@ export default defineEventHandler(async (event) => {
     .limit(1)
 
   if (!project) {
-    throw createError({
-      statusCode: 404,
-      statusMessage: 'Project not found'
-    })
+    notFound('Project not found')
   }
 
   // 3. 查詢 Issue 詳細資料（確保屬於該專案）
@@ -49,10 +41,7 @@ export default defineEventHandler(async (event) => {
     .limit(1)
 
   if (!issue) {
-    throw createError({
-      statusCode: 404,
-      statusMessage: 'Issue not found'
-    })
+    notFound('Issue not found')
   }
 
   // 4. 回傳完整的 Issue 資料

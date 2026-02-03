@@ -1,13 +1,12 @@
 import { toJsonString } from 'curlconverter'
+import { badRequest } from '~~/server/utils/errors'
+import { HttpMethod } from '~~/shared/constants'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
 
   if (!body?.curl || typeof body.curl !== 'string') {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'cURL command is required'
-    })
+    badRequest('cURL command is required')
   }
 
   try {
@@ -17,15 +16,12 @@ export default defineEventHandler(async (event) => {
     return {
       data: {
         url: parsed.url || '',
-        method: parsed.method?.toUpperCase() || 'GET',
+        method: parsed.method?.toUpperCase() || HttpMethod.GET,
         headers: parsed.headers || null,
         body: parsed.data || parsed.json || null
       }
     }
   } catch (err) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: err instanceof Error ? err.message : 'Failed to parse cURL command'
-    })
+    badRequest(err instanceof Error ? err.message : 'Failed to parse cURL command')
   }
 })
