@@ -55,6 +55,10 @@ const curlInput = ref('')
 const parseError = ref<string | null>(null)
 const isParsed = ref(false)
 
+// Response body input state
+const responseBodyInput = ref('')
+const responseBodyFocused = ref(false)
+
 type IssueFormState = Omit<CreateIssueInput, 'projectId'>
 
 function createDefaultState(): IssueFormState {
@@ -100,7 +104,7 @@ function buildStateFromIssue(currentIssue: Issue): IssueFormState {
   }
 }
 
-watch(issue, (currentIssue) => {
+watch(issue, async (currentIssue) => {
   if (!isEditMode.value || !currentIssue || isInitialized.value) return
   const nextState = buildStateFromIssue(currentIssue)
   Object.assign(state.value, nextState)
@@ -109,6 +113,11 @@ watch(issue, (currentIssue) => {
   curlInput.value = nextRawCurl
   initialRawCurl.value = nextRawCurl
   isParsed.value = Boolean(nextRawCurl)
+  // Initialize response body input and highlight
+  responseBodyInput.value = formatJson(currentIssue.responseBody)
+  if (responseBodyInput.value) {
+    await updateResponseBodyHighlight()
+  }
   isInitialized.value = true
 }, { immediate: true })
 
@@ -116,9 +125,81 @@ watch(curlInput, (value) => {
   state.value.rawCurl = value.trim() ? value : null
 })
 
+// Sync response body input with state
+function handleResponseBodyInput(value: string) {
+  responseBodyInput.value = value
+  if (!value.trim()) {
+    state.value.responseBody = null
+    return
+  }
+  try {
+    state.value.responseBody = JSON.parse(value)
+  } catch {
+    // Keep raw string if not valid JSON
+    state.value.responseBody = value
+  }
+}
+
+function handleResponseBodyFocus() {
+  responseBodyFocused.value = true
+}
+
+async function handleResponseBodyBlur() {
+  responseBodyFocused.value = false
+  // Try to format JSON on blur
+  if (responseBodyInput.value.trim()) {
+    try {
+      const parsed = JSON.parse(responseBodyInput.value)
+      responseBodyInput.value = JSON.stringify(parsed, null, 2)
+      state.value.responseBody = parsed
+      // Update syntax highlighting
+      await updateResponseBodyHighlight()
+    } catch {
+      // Keep as-is if not valid JSON
+    }
+  }
+}
+
+// Response body lines for line numbers
+const responseBodyLines = computed(() => {
+  if (!responseBodyInput.value) return []
+  return responseBodyInput.value.split('\n')
+})
+
+// Shiki syntax highlighting for response body
+const { highlightedHtml: responseBodyHighlightedHtml, highlight: highlightResponseBody } = useShikiHighlighter()
+
+// Update highlighting when input changes (debounced via blur)
+async function updateResponseBodyHighlight() {
+  if (!responseBodyInput.value.trim()) {
+    return
+  }
+  try {
+    // Validate JSON before highlighting
+    JSON.parse(responseBodyInput.value)
+    await highlightResponseBody(responseBodyInput.value, 'json')
+  } catch {
+    // Invalid JSON, skip highlighting
+  }
+}
+
+// Shiki syntax highlighting for request body (read-only)
+const { highlightedHtml: requestBodyHighlightedHtml, highlight: highlightRequestBody } = useShikiHighlighter()
+
+// Watch for request body changes and update highlighting
+watch(() => state.value.requestBody, async (newBody) => {
+  if (newBody) {
+    const json = formatJson(newBody)
+    await highlightRequestBody(json, 'json')
+  } else {
+    requestBodyHighlightedHtml.value = ''
+  }
+}, { immediate: true })
+
 // Collapsible sections state
 const headersExpanded = ref(false)
 const requestBodyExpanded = ref(true)
+const responseExpanded = ref(false)
 
 // Calculate payload size
 const payloadSize = computed(() => {
@@ -248,18 +329,9 @@ function discardChanges() {
   const baseState = isEditMode.value ? initialState.value : createDefaultState()
   Object.assign(state.value, baseState)
   curlInput.value = isEditMode.value ? initialRawCurl.value : ''
+  responseBodyInput.value = formatJson(baseState.responseBody)
   parseError.value = null
   isParsed.value = isEditMode.value ? Boolean(curlInput.value) : false
-}
-
-// Parse JSON input
-function parseJsonInput(value: string): unknown {
-  if (!value.trim()) return null
-  try {
-    return JSON.parse(value)
-  } catch {
-    return value
-  }
 }
 
 // Submit form
@@ -368,22 +440,26 @@ async function onSubmit(event: FormSubmitEvent<IssueFormState>) {
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Left Panel: cURL Input -->
             <div class="space-y-6">
-              <UCard
-                :ui="{
-                  root: 'overflow-hidden',
-                  header: 'bg-gray-100 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800',
-                  body: 'p-0'
-                }"
-              >
-                <template #header>
+              <div class="rounded-xl overflow-hidden shadow-lg border border-gray-200 dark:border-gray-800">
+                <!-- Terminal Header -->
+                <div class="bg-linear-to-r from-gray-800 to-gray-900 dark:from-gray-900 dark:to-gray-950 px-4 py-3">
                   <div class="flex items-center justify-between">
                     <div class="flex items-center gap-3">
-                      <span class="flex items-center justify-center size-7 rounded-full bg-primary text-white text-sm font-semibold">
-                        1
-                      </span>
-                      <h2 class="font-semibold text-gray-900 dark:text-white uppercase tracking-wide text-sm">
-                        Input cURL Command
-                      </h2>
+                      <!-- Terminal window dots -->
+                      <div class="flex items-center gap-1.5">
+                        <span class="size-3 rounded-full bg-red-500" />
+                        <span class="size-3 rounded-full bg-yellow-500" />
+                        <span class="size-3 rounded-full bg-green-500" />
+                      </div>
+                      <div class="flex items-center gap-2 ml-2">
+                        <UIcon
+                          name="i-lucide-terminal"
+                          class="size-4 text-gray-400"
+                        />
+                        <span class="text-sm font-medium text-gray-300">
+                          cURL Input
+                        </span>
+                      </div>
                     </div>
                     <UButton
                       v-if="curlInput"
@@ -391,25 +467,30 @@ async function onSubmit(event: FormSubmitEvent<IssueFormState>) {
                       variant="ghost"
                       color="neutral"
                       icon="i-lucide-trash-2"
+                      class="text-gray-400"
                       @click="clearCurl"
                     >
                       Clear
                     </UButton>
                   </div>
-                </template>
+                </div>
 
                 <!-- cURL Input Area -->
-                <div class="bg-gray-900 dark:bg-gray-950 p-4">
+                <div class="bg-gray-900 dark:bg-gray-900 p-4 relative">
+                  <!-- Prompt indicator -->
+                  <div class="absolute left-4 top-4 text-emerald-400 font-mono text-sm select-none">
+                    $
+                  </div>
                   <textarea
                     v-model="curlInput"
                     :placeholder="curlPlaceholderText"
                     rows="12"
-                    class="w-full bg-transparent text-green-400 font-mono text-sm resize-none focus:outline-none placeholder:text-gray-600"
+                    class="w-full pl-5 bg-transparent text-emerald-300 font-mono text-sm resize-none focus:outline-none placeholder:text-gray-600 leading-relaxed"
                   />
                 </div>
 
                 <!-- Parse Button -->
-                <div class="p-4 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
+                <div class="p-4 bg-gray-100 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-800">
                   <UAlert
                     v-if="parseError"
                     color="error"
@@ -424,32 +505,47 @@ async function onSubmit(event: FormSubmitEvent<IssueFormState>) {
                     :disabled="!curlInput.trim()"
                     :loading="parsing"
                     icon="i-lucide-zap"
+                    class="font-semibold"
                     @click="parseCurl"
                   >
                     Parse and Extract
                   </UButton>
                 </div>
-              </UCard>
+              </div>
 
-              <!-- Response Section -->
-              <UCard
-                :ui="{
-                  header: 'bg-gray-100 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800'
-                }"
-              >
-                <template #header>
+              <!-- Response Section (Collapsible) -->
+              <div class="rounded-xl overflow-hidden shadow-md border border-gray-200 dark:border-gray-800">
+                <button
+                  type="button"
+                  class="w-full flex items-center justify-between px-4 py-3.5 bg-linear-to-r from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-900/80 hover:from-gray-100 hover:to-gray-150 dark:hover:from-gray-800 dark:hover:to-gray-850 transition-all"
+                  @click="responseExpanded = !responseExpanded"
+                >
                   <div class="flex items-center gap-3">
-                    <UIcon
-                      name="i-lucide-arrow-down-left"
-                      class="size-5 text-gray-500"
-                    />
-                    <h2 class="font-semibold text-gray-900 dark:text-white uppercase tracking-wide text-sm">
-                      Response (Optional)
-                    </h2>
+                    <div class="flex items-center justify-center size-8 rounded-lg bg-amber-500/10 dark:bg-amber-500/20">
+                      <UIcon
+                        name="i-lucide-arrow-down-left"
+                        class="size-4 text-amber-600 dark:text-amber-400"
+                      />
+                    </div>
+                    <div class="text-left">
+                      <span class="font-semibold text-gray-900 dark:text-white text-sm block">
+                        Response Data
+                      </span>
+                      <span class="text-xs text-gray-500 dark:text-gray-400">
+                        Optional - Add response details
+                      </span>
+                    </div>
                   </div>
-                </template>
+                  <UIcon
+                    :name="responseExpanded ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
+                    class="size-5 text-gray-400"
+                  />
+                </button>
 
-                <div class="space-y-4">
+                <div
+                  v-if="responseExpanded"
+                  class="p-5 space-y-5 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900"
+                >
                   <UFormField
                     label="Status Code"
                     name="responseStatus"
@@ -468,57 +564,108 @@ async function onSubmit(event: FormSubmitEvent<IssueFormState>) {
                     name="responseBody"
                   >
                     <div class="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800">
-                      <div class="bg-gray-100 dark:bg-gray-900 px-3 py-2 border-b border-gray-200 dark:border-gray-800">
+                      <div class="bg-gray-100 dark:bg-gray-900 px-3 py-2 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
                         <span class="text-xs font-medium text-gray-500 uppercase">JSON</span>
+                        <span
+                          v-if="responseBodyLines.length > 0"
+                          class="text-xs text-gray-400"
+                        >
+                          {{ responseBodyLines.length }} lines
+                        </span>
                       </div>
-                      <textarea
-                        :value="formatJson(state.responseBody)"
-                        placeholder="{&quot;error&quot;: &quot;Something went wrong&quot;}"
-                        rows="5"
-                        class="w-full p-3 bg-white dark:bg-gray-950 font-mono text-sm resize-none focus:outline-none"
-                        @input="state.responseBody = parseJsonInput(($event.target as HTMLTextAreaElement).value)"
-                      />
+                      <div class="relative bg-white dark:bg-gray-900 overflow-x-auto">
+                        <!-- Line numbers -->
+                        <div
+                          v-if="responseBodyLines.length > 0"
+                          class="absolute left-0 top-0 bottom-0 w-10 bg-gray-50 dark:bg-gray-900/50 border-r border-gray-200 dark:border-gray-800 flex flex-col pt-3 text-xs text-gray-400 font-mono select-none text-right pr-2 z-20"
+                        >
+                          <span
+                            v-for="(_, index) in responseBodyLines"
+                            :key="index"
+                            class="leading-relaxed text-sm"
+                          >
+                            {{ index + 1 }}
+                          </span>
+                        </div>
+                        <!-- Syntax highlighted overlay (shown when not focused) -->
+                        <!-- eslint-disable-next-line vue/no-v-html -->
+                        <div
+                          v-if="responseBodyHighlightedHtml && !responseBodyFocused"
+                          class="shiki-container overflow-x-auto pointer-events-none"
+                          :class="responseBodyLines.length > 0 ? 'pl-12' : ''"
+                          v-html="responseBodyHighlightedHtml"
+                        />
+                        <!-- Textarea input -->
+                        <textarea
+                          v-show="responseBodyFocused || !responseBodyHighlightedHtml"
+                          :value="responseBodyInput"
+                          placeholder="{&quot;error&quot;: &quot;Something went wrong&quot;}"
+                          rows="8"
+                          wrap="off"
+                          class="w-full p-3 bg-transparent font-mono text-sm resize-none focus:outline-none leading-relaxed relative z-10 overflow-x-auto"
+                          :class="[
+                            responseBodyLines.length > 0 ? 'pl-12' : '',
+                            responseBodyHighlightedHtml && !responseBodyFocused ? 'text-transparent caret-gray-900 dark:caret-white' : 'text-gray-900 dark:text-white'
+                          ]"
+                          @input="handleResponseBodyInput(($event.target as HTMLTextAreaElement).value)"
+                          @focus="handleResponseBodyFocus"
+                          @blur="handleResponseBodyBlur"
+                        />
+                      </div>
                     </div>
                   </UFormField>
                 </div>
-              </UCard>
+              </div>
             </div>
 
             <!-- Right Panel: Extracted Details -->
             <div class="space-y-6">
               <UCard
                 :ui="{
-                  root: 'overflow-hidden',
-                  header: 'bg-gray-100 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800'
+                  root: 'overflow-hidden shadow-lg',
+                  header: 'bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-900/80 border-b border-gray-200 dark:border-gray-800'
                 }"
               >
                 <template #header>
                   <div class="flex items-center justify-between">
                     <div class="flex items-center gap-3">
-                      <span class="flex items-center justify-center size-7 rounded-full bg-primary text-white text-sm font-semibold">
-                        2
-                      </span>
-                      <h2 class="font-semibold text-gray-900 dark:text-white uppercase tracking-wide text-sm">
-                        Extracted Issue Details
-                      </h2>
+                      <div class="flex items-center justify-center size-8 rounded-lg bg-primary/10 dark:bg-primary/20">
+                        <UIcon
+                          name="i-lucide-file-text"
+                          class="size-4 text-primary"
+                        />
+                      </div>
+                      <div>
+                        <h2 class="font-semibold text-gray-900 dark:text-white text-base">
+                          Issue Details
+                        </h2>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">
+                          Fill in the extracted information
+                        </p>
+                      </div>
                     </div>
                     <UBadge
                       v-if="isReadyToSubmit"
                       color="success"
                       variant="subtle"
-                      class="gap-1"
+                      class="gap-1.5 px-3 py-1"
                     >
                       <UIcon
                         name="i-lucide-check-circle"
-                        class="size-3"
+                        class="size-3.5"
                       />
                       {{ readyLabel }}
                     </UBadge>
                     <UBadge
                       v-else
                       color="neutral"
-                      variant="subtle"
+                      variant="outline"
+                      class="gap-1.5 px-3 py-1"
                     >
+                      <UIcon
+                        name="i-lucide-circle-dashed"
+                        class="size-3.5"
+                      />
                       Incomplete
                     </UBadge>
                   </div>
@@ -572,7 +719,7 @@ async function onSubmit(event: FormSubmitEvent<IssueFormState>) {
                     </div>
 
                     <!-- Method + URL -->
-                    <div class="p-4 bg-white dark:bg-gray-950">
+                    <div class="p-4 bg-white dark:bg-gray-900">
                       <div class="flex items-center gap-3">
                         <UBadge
                           :color="getHttpMethodColor(state.method)"
@@ -683,18 +830,31 @@ async function onSubmit(event: FormSubmitEvent<IssueFormState>) {
                       </div>
                       <div
                         v-if="requestBodyExpanded"
-                        class="mt-3 rounded-lg overflow-hidden border border-gray-700"
+                        class="mt-3 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800"
                       >
-                        <div class="bg-gray-900 dark:bg-gray-950 p-4 relative">
-                          <div class="absolute left-0 top-0 bottom-0 w-10 bg-gray-800 dark:bg-gray-900 flex flex-col items-center pt-4 text-xs text-gray-500 font-mono select-none">
-                            <template
+                        <div class="bg-white dark:bg-gray-900 relative">
+                          <!-- Line numbers -->
+                          <div class="absolute left-0 top-0 bottom-0 w-10 bg-gray-50 dark:bg-gray-900/50 border-r border-gray-200 dark:border-gray-800 flex flex-col pt-4 text-xs text-gray-400 font-mono select-none text-right pr-2 z-10">
+                            <span
                               v-for="(_, index) in requestBodyLines"
                               :key="index"
+                              class="leading-relaxed text-sm"
                             >
-                              <span class="h-5 leading-5">{{ index + 1 }}</span>
-                            </template>
+                              {{ index + 1 }}
+                            </span>
                           </div>
-                          <pre class="w-full pl-8 bg-transparent text-blue-400 font-mono text-sm overflow-x-auto"><code>{{ formatJson(state.requestBody) }}</code></pre>
+                          <!-- Shiki highlighted content -->
+                          <!-- eslint-disable-next-line vue/no-v-html -->
+                          <div
+                            v-if="requestBodyHighlightedHtml"
+                            class="shiki-container pl-10 overflow-x-auto"
+                            v-html="requestBodyHighlightedHtml"
+                          />
+                          <!-- Fallback if no highlighting -->
+                          <pre
+                            v-else
+                            class="w-full pl-10 p-4 bg-transparent text-blue-400 font-mono text-sm overflow-x-auto"
+                          ><code>{{ formatJson(state.requestBody) }}</code></pre>
                         </div>
                       </div>
                     </div>
@@ -769,3 +929,27 @@ async function onSubmit(event: FormSubmitEvent<IssueFormState>) {
     </UContainer>
   </div>
 </template>
+
+<style scoped>
+/* Override Shiki default styles to match textarea */
+.shiki-container :deep(pre) {
+  margin: 0;
+  padding: 0.75rem; /* matches p-3 */
+  background: transparent !important;
+  font-size: 0.875rem; /* matches text-sm */
+  line-height: 1.625; /* matches leading-relaxed */
+}
+
+.shiki-container :deep(code) {
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Monaco, Consolas, monospace;
+  line-height: inherit;
+}
+
+.shiki-container :deep(.shiki) {
+  background: transparent !important;
+}
+
+.shiki-container :deep(.shiki span) {
+  line-height: inherit;
+}
+</style>
