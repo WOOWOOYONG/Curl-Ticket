@@ -15,6 +15,7 @@ export const issues = pgTable('issues', {
   // 基本資訊
   title: varchar('title', { length: 200 }).notNull(),
   description: text('description'),
+  rawCurl: text('raw_curl'),
 
   // API 請求資訊
   method: varchar('method', { length: 10 }).notNull().$type<HttpMethodType>(),
