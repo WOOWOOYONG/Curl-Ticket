@@ -55,10 +55,16 @@ export function useShikiHighlighter() {
     }
   }
 
+  function clear() {
+    highlightedHtml.value = ''
+    error.value = null
+  }
+
   return {
-    highlightedHtml,
-    isLoading,
-    error,
-    highlight
+    highlightedHtml: readonly(highlightedHtml),
+    isLoading: readonly(isLoading),
+    error: readonly(error),
+    highlight,
+    clear
   }
 }

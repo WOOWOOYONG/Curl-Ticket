@@ -184,7 +184,7 @@ async function updateResponseBodyHighlight() {
 }
 
 // Shiki syntax highlighting for request body (read-only)
-const { highlightedHtml: requestBodyHighlightedHtml, highlight: highlightRequestBody } = useShikiHighlighter()
+const { highlightedHtml: requestBodyHighlightedHtml, highlight: highlightRequestBody, clear: clearRequestBodyHighlight } = useShikiHighlighter()
 
 // Watch for request body changes and update highlighting
 watch(() => state.value.requestBody, async (newBody) => {
@@ -192,7 +192,7 @@ watch(() => state.value.requestBody, async (newBody) => {
     const json = formatJson(newBody)
     await highlightRequestBody(json, 'json')
   } else {
-    requestBodyHighlightedHtml.value = ''
+    clearRequestBodyHighlight()
   }
 }, { immediate: true })
 

@@ -260,7 +260,7 @@ function copyResponseBody() {
                         :key="header.key"
                         class="flex items-start gap-2 font-mono text-sm"
                       >
-                        <span class="text-teal-600 dark:text-teal-400 font-medium min-w-[200px]">{{ header.key }}:</span>
+                        <span class="text-teal-600 dark:text-teal-400 font-medium min-w-50">{{ header.key }}:</span>
                         <span class="text-gray-600 dark:text-gray-400 flex-1 break-all">{{ maskValue(header.key, header.value) }}</span>
                       </div>
                     </div>
