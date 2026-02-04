@@ -6,5 +6,5 @@ definePageMeta({
 </script>
 
 <template>
-  <IssueForm mode="create" />
+  <IssueForm mode="edit" />
 </template>

@@ -2,6 +2,7 @@
 import { getHttpMethodColor } from '~/constants/http'
 import { IssueStatusColor, IssueStatusIcon, getHttpStatusCodeColor } from '~/constants/issue'
 import { maskValue, formatJson, getJsonLines } from '~/utils/issue'
+import type { Issue } from '~~/shared/schemas/issue'
 
 definePageMeta({
   layout: 'header-only',
@@ -15,11 +16,16 @@ const projectId = computed(() => route.params.id as string)
 const issueId = computed(() => route.params.issueId as string)
 
 // Fetch issue data
-const { data: issueResponse, status } = await useFetch(
+interface IssueResponse {
+  data: Issue
+  friendlyId: string
+}
+
+const { data: issueResponse, status } = await useFetch<IssueResponse>(
   () => `/api/projects/${projectId.value}/issues/${issueId.value}`
 )
 
-const issue = computed(() => issueResponse.value?.data)
+const issue = computed<Issue | undefined>(() => issueResponse.value?.data)
 const friendlyId = computed(() => issueResponse.value?.friendlyId)
 
 // Collapsible sections
@@ -157,6 +163,16 @@ function copyResponseBody() {
               >
                 {{ issue.description }}
               </p>
+            </div>
+            <div class="flex items-center gap-2">
+              <UButton
+                :to="`/projects/${projectId}/issues/${issueId}/edit`"
+                color="neutral"
+                variant="outline"
+                icon="i-lucide-pencil"
+              >
+                Edit Issue
+              </UButton>
             </div>
           </div>
         </div>
