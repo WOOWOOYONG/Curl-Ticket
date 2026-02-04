@@ -47,6 +47,7 @@ export default defineEventHandler(async (event) => {
     projectKey: project.key,
     title: result.data.title,
     description: result.data.description ?? null,
+    rawCurl: result.data.rawCurl ?? null,
     method: result.data.method,
     url: result.data.url,
     environment: result.data.environment,
