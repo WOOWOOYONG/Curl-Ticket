@@ -12,12 +12,16 @@ definePageMeta({
 const toast = useToast()
 
 const loading = ref(false)
-const state = reactive<CreateProjectInput>({
-  name: '',
-  key: '',
-  description: null,
-  environments: [] as Environment[]
-})
+function createDefaultState(): CreateProjectInput {
+  return {
+    name: '',
+    key: '',
+    description: null,
+    environments: [] as Environment[]
+  }
+}
+
+const state = ref<CreateProjectInput>(createDefaultState())
 
 const environmentOptions = environments.map(env => ({
   label: env,
