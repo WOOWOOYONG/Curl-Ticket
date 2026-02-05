@@ -28,12 +28,12 @@
   }
 
   .page-bg-blob-right {
-    @apply absolute h-[26rem] w-[26rem] rounded-full bg-sky-400/20 blur-3xl dark:bg-sky-500/12;
+    @apply absolute h-104 w-104 rounded-full bg-sky-400/20 blur-3xl dark:bg-sky-500/12;
     animation: float 22s ease-in-out infinite;
   }
 
   .page-bg-blob-right-compact {
-    @apply absolute h-96 w-[24rem] rounded-full bg-sky-400/18 blur-3xl dark:bg-sky-500/10;
+    @apply absolute h-96 w-96 rounded-full bg-sky-400/18 blur-3xl dark:bg-sky-500/10;
     animation: float 22s ease-in-out infinite;
   }
 

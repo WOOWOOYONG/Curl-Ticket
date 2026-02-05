@@ -57,7 +57,6 @@ const isParsed = ref(false)
 
 // Response body input state
 const responseBodyInput = ref('')
-const responseBodyFocused = ref(false)
 
 type IssueFormState = Omit<CreateIssueInput, 'projectId'>
 
@@ -115,9 +114,6 @@ watch(issue, async (currentIssue) => {
   isParsed.value = Boolean(nextRawCurl)
   // Initialize response body input and highlight
   responseBodyInput.value = formatJson(currentIssue.responseBody)
-  if (responseBodyInput.value) {
-    await updateResponseBodyHighlight()
-  }
   isInitialized.value = true
 }, { immediate: true })
 
@@ -127,7 +123,6 @@ watch(curlInput, (value) => {
 
 // Sync response body input with state
 function handleResponseBodyInput(value: string) {
-  responseBodyInput.value = value
   if (!value.trim()) {
     state.value.responseBody = null
     return
@@ -140,61 +135,20 @@ function handleResponseBodyInput(value: string) {
   }
 }
 
-function handleResponseBodyFocus() {
-  responseBodyFocused.value = true
-}
-
-async function handleResponseBodyBlur() {
-  responseBodyFocused.value = false
+function handleResponseBodyBlur() {
   // Try to format JSON on blur
-  if (responseBodyInput.value.trim()) {
-    try {
-      const parsed = JSON.parse(responseBodyInput.value)
-      responseBodyInput.value = JSON.stringify(parsed, null, 2)
-      state.value.responseBody = parsed
-      // Update syntax highlighting
-      await updateResponseBodyHighlight()
-    } catch {
-      // Keep as-is if not valid JSON
-    }
-  }
-}
-
-// Response body lines for line numbers
-const responseBodyLines = computed(() => {
-  if (!responseBodyInput.value) return []
-  return responseBodyInput.value.split('\n')
-})
-
-// Shiki syntax highlighting for response body
-const { highlightedHtml: responseBodyHighlightedHtml, highlight: highlightResponseBody } = useShikiHighlighter()
-
-// Update highlighting when input changes (debounced via blur)
-async function updateResponseBodyHighlight() {
   if (!responseBodyInput.value.trim()) {
+    state.value.responseBody = null
     return
   }
   try {
-    // Validate JSON before highlighting
-    JSON.parse(responseBodyInput.value)
-    await highlightResponseBody(responseBodyInput.value, 'json')
+    const parsed = JSON.parse(responseBodyInput.value)
+    responseBodyInput.value = JSON.stringify(parsed, null, 2)
+    state.value.responseBody = parsed
   } catch {
-    // Invalid JSON, skip highlighting
+    // Keep as-is if not valid JSON
   }
 }
-
-// Shiki syntax highlighting for request body (read-only)
-const { highlightedHtml: requestBodyHighlightedHtml, highlight: highlightRequestBody, clear: clearRequestBodyHighlight } = useShikiHighlighter()
-
-// Watch for request body changes and update highlighting
-watch(() => state.value.requestBody, async (newBody) => {
-  if (newBody) {
-    const json = formatJson(newBody)
-    await highlightRequestBody(json, 'json')
-  } else {
-    clearRequestBodyHighlight()
-  }
-}, { immediate: true })
 
 // Collapsible sections state
 const headersExpanded = ref(false)
@@ -212,11 +166,7 @@ const payloadSize = computed(() => {
   return `${(bytes / 1024).toFixed(1)} KB`
 })
 
-// Calculate request body lines for line numbers
-const requestBodyLines = computed(() => {
-  if (!state.value.requestBody) return []
-  return formatJson(state.value.requestBody).split('\n')
-})
+const requestBodyFormatted = computed(() => formatJson(state.value.requestBody))
 
 // Copy URL to clipboard
 function copyUrl() {
@@ -529,7 +479,7 @@ async function onSubmit(event: FormSubmitEvent<IssueFormState>) {
                     </div>
                     <div class="text-left">
                       <span class="font-semibold text-gray-900 dark:text-white text-sm block">
-                        Response Data
+                        Response
                       </span>
                       <span class="text-xs text-gray-500 dark:text-gray-400">
                         Optional - Add response details
@@ -560,59 +510,16 @@ async function onSubmit(event: FormSubmitEvent<IssueFormState>) {
                   </UFormField>
 
                   <UFormField
-                    label="Response Body"
+                    label="Response"
                     name="responseBody"
                   >
-                    <div class="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800">
-                      <div class="bg-gray-100 dark:bg-gray-900 px-3 py-2 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
-                        <span class="text-xs font-medium text-gray-500 uppercase">JSON</span>
-                        <span
-                          v-if="responseBodyLines.length > 0"
-                          class="text-xs text-gray-400"
-                        >
-                          {{ responseBodyLines.length }} lines
-                        </span>
-                      </div>
-                      <div class="relative bg-white dark:bg-gray-900 overflow-x-auto">
-                        <!-- Line numbers -->
-                        <div
-                          v-if="responseBodyLines.length > 0"
-                          class="absolute left-0 top-0 bottom-0 w-10 bg-gray-50 dark:bg-gray-900/50 border-r border-gray-200 dark:border-gray-800 flex flex-col pt-3 text-xs text-gray-400 font-mono select-none text-right pr-2 z-20"
-                        >
-                          <span
-                            v-for="(_, index) in responseBodyLines"
-                            :key="index"
-                            class="leading-relaxed text-sm"
-                          >
-                            {{ index + 1 }}
-                          </span>
-                        </div>
-                        <!-- Syntax highlighted overlay (shown when not focused) -->
-                        <!-- eslint-disable-next-line vue/no-v-html -->
-                        <div
-                          v-if="responseBodyHighlightedHtml && !responseBodyFocused"
-                          class="shiki-container overflow-x-auto pointer-events-none"
-                          :class="responseBodyLines.length > 0 ? 'pl-12' : ''"
-                          v-html="responseBodyHighlightedHtml"
-                        />
-                        <!-- Textarea input -->
-                        <textarea
-                          v-show="responseBodyFocused || !responseBodyHighlightedHtml"
-                          :value="responseBodyInput"
-                          placeholder="{&quot;error&quot;: &quot;Something went wrong&quot;}"
-                          rows="8"
-                          wrap="off"
-                          class="w-full p-3 bg-transparent font-mono text-sm resize-none focus:outline-none leading-relaxed relative z-10 overflow-x-auto"
-                          :class="[
-                            responseBodyLines.length > 0 ? 'pl-12' : '',
-                            responseBodyHighlightedHtml && !responseBodyFocused ? 'text-transparent caret-gray-900 dark:caret-white' : 'text-gray-900 dark:text-white'
-                          ]"
-                          @input="handleResponseBodyInput(($event.target as HTMLTextAreaElement).value)"
-                          @focus="handleResponseBodyFocus"
-                          @blur="handleResponseBodyBlur"
-                        />
-                      </div>
-                    </div>
+                    <JsonCodeBlock
+                      v-model="responseBodyInput"
+                      placeholder="{&quot;error&quot;: &quot;Something went wrong&quot;}"
+                      :rows="8"
+                      @input="handleResponseBodyInput"
+                      @blur="handleResponseBodyBlur"
+                    />
                   </UFormField>
                 </div>
               </div>
@@ -830,32 +737,16 @@ async function onSubmit(event: FormSubmitEvent<IssueFormState>) {
                       </div>
                       <div
                         v-if="requestBodyExpanded"
-                        class="mt-3 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800"
+                        class="mt-3"
                       >
-                        <div class="bg-white dark:bg-gray-900 relative">
-                          <!-- Line numbers -->
-                          <div class="absolute left-0 top-0 bottom-0 w-10 bg-gray-50 dark:bg-gray-900/50 border-r border-gray-200 dark:border-gray-800 flex flex-col pt-4 text-xs text-gray-400 font-mono select-none text-right pr-2 z-10">
-                            <span
-                              v-for="(_, index) in requestBodyLines"
-                              :key="index"
-                              class="leading-relaxed text-sm"
-                            >
-                              {{ index + 1 }}
-                            </span>
-                          </div>
-                          <!-- Shiki highlighted content -->
-                          <!-- eslint-disable-next-line vue/no-v-html -->
-                          <div
-                            v-if="requestBodyHighlightedHtml"
-                            class="shiki-container pl-10 overflow-x-auto"
-                            v-html="requestBodyHighlightedHtml"
-                          />
-                          <!-- Fallback if no highlighting -->
-                          <pre
-                            v-else
-                            class="w-full pl-10 p-4 bg-transparent text-blue-400 font-mono text-sm overflow-x-auto"
-                          ><code>{{ formatJson(state.requestBody) }}</code></pre>
-                        </div>
+                        <JsonCodeBlock
+                          :content="requestBodyFormatted"
+                          read-only
+                          :show-header="false"
+                          line-number-offset-class="pl-10"
+                          line-number-padding-top-class="pt-4"
+                          content-padding-class="p-4"
+                        />
                       </div>
                     </div>
                   </div>
@@ -929,27 +820,3 @@ async function onSubmit(event: FormSubmitEvent<IssueFormState>) {
     </UContainer>
   </div>
 </template>
-
-<style scoped>
-/* Override Shiki default styles to match textarea */
-.shiki-container :deep(pre) {
-  margin: 0;
-  padding: 0.75rem; /* matches p-3 */
-  background: transparent !important;
-  font-size: 0.875rem; /* matches text-sm */
-  line-height: 1.625; /* matches leading-relaxed */
-}
-
-.shiki-container :deep(code) {
-  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Monaco, Consolas, monospace;
-  line-height: inherit;
-}
-
-.shiki-container :deep(.shiki) {
-  background: transparent !important;
-}
-
-.shiki-container :deep(.shiki span) {
-  line-height: inherit;
-}
-</style>
