@@ -17,6 +17,53 @@
   --color-green-950: #052E16;
 }
 
+@layer utilities {
+  .page-bg {
+    @apply pointer-events-none absolute inset-0 -z-10;
+  }
+
+  .page-bg-blob-left {
+    @apply absolute h-72 w-72 rounded-full bg-slate-300/30 blur-3xl dark:bg-slate-700/20;
+    animation: float 18s ease-in-out infinite;
+  }
+
+  .page-bg-blob-right {
+    @apply absolute h-[26rem] w-[26rem] rounded-full bg-sky-400/20 blur-3xl dark:bg-sky-500/12;
+    animation: float 22s ease-in-out infinite;
+  }
+
+  .page-bg-blob-right-compact {
+    @apply absolute h-96 w-[24rem] rounded-full bg-sky-400/18 blur-3xl dark:bg-sky-500/10;
+    animation: float 22s ease-in-out infinite;
+  }
+
+  .page-bg-radial {
+    @apply absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(59,130,246,0.08),transparent_55%)] dark:bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.12),transparent_55%)];
+  }
+
+  .page-bg-grid {
+    @apply absolute inset-0 opacity-60 [background-image:linear-gradient(120deg,rgba(15,23,42,0.05)_1px,transparent_1px),linear-gradient(60deg,rgba(15,23,42,0.04)_1px,transparent_1px)] [background-size:36px_36px] dark:[background-image:linear-gradient(120deg,rgba(148,163,184,0.08)_1px,transparent_1px),linear-gradient(60deg,rgba(148,163,184,0.06)_1px,transparent_1px)];
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -16px, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-bg-blob-left,
+  .page-bg-blob-right,
+  .page-bg-blob-right-compact {
+    animation: none;
+  }
+}
+
 /* Shiki dual theme support for dark mode */
 html.dark .shiki {
   background-color: var(--shiki-dark-bg) !important;

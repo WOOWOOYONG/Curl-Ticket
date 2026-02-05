@@ -16,7 +16,13 @@ const items = [
 
 <template>
   <ClientOnly>
-    <UHeader :ui="{ container: 'max-w-full', right: 'gap-6' }">
+    <UHeader
+      :ui="{
+        root: 'bg-slate-50/85 dark:bg-slate-950/70 border-b border-slate-200/80 dark:border-white/10 backdrop-blur',
+        container: 'max-w-full',
+        right: 'gap-6'
+      }"
+    >
       <template #title>
         <NuxtLink to="/">
           <span class="text-lg font-bold">Curl Ticket</span>
@@ -40,7 +46,7 @@ const items = [
     </UHeader>
 
     <template #fallback>
-      <header class="bg-default/75 backdrop-blur border-b border-default h-(--ui-header-height) sticky top-0 z-50 ">
+      <header class="bg-slate-50/85 dark:bg-slate-950/70 backdrop-blur border-b border-slate-200/80 dark:border-white/10 h-(--ui-header-height) sticky top-0 z-50 ">
         <div class="w-full mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3 h-full max-w-full">
           <NuxtLink
             to="/"

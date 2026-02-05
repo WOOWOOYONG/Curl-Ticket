@@ -1,7 +1,28 @@
 <script setup lang="ts">
 const { data: response, status } = await useFetch('/api/projects')
 
-const projects = computed(() => response.value?.data ?? [])
+const searchQuery = ref('')
+
+const allProjects = computed(() => response.value?.data ?? [])
+const projects = computed(() => {
+  const query = searchQuery.value.trim().toLowerCase()
+  if (!query) return allProjects.value
+
+  return allProjects.value.filter((project) => {
+    const name = project.name?.toLowerCase() ?? ''
+    const key = project.key?.toLowerCase() ?? ''
+    const description = project.description?.toLowerCase() ?? ''
+    return name.includes(query) || key.includes(query) || description.includes(query)
+  })
+})
+
+const totalProjects = computed(() => allProjects.value.length)
+const totalOpenIssues = computed(() => allProjects.value.reduce((sum, project) => sum + (project.openIssues ?? 0), 0))
+const totalIssues = computed(() => allProjects.value.reduce((sum, project) => sum + (project.totalIssues ?? 0), 0))
+const overallProgress = computed(() => {
+  if (totalIssues.value === 0) return 0
+  return Math.round(((totalIssues.value - totalOpenIssues.value) / totalIssues.value) * 100)
+})
 
 function getTimeAgo(date: string | null) {
   if (!date) return null
@@ -9,134 +30,303 @@ function getTimeAgo(date: string | null) {
 }
 
 function getProgressPercentage(open: number, total: number) {
-  if (total === 0) return 0
-  return Math.round(((total - open) / total) * 100)
+  if (total <= 0) return 0
+  const resolved = Math.max(total - open, 0)
+  return Math.round((resolved / total) * 100)
 }
 </script>
 
 <template>
   <UDashboardPanel>
-    <div class="flex flex-col gap-6 p-6 ">
-      <!-- Header -->
-      <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-bold">
-          Projects
-        </h1>
-        <UButton
-          icon="i-lucide-plus"
-          to="/projects/create"
-        >
-          New Project
-        </UButton>
+    <div class="relative isolate min-h-full overflow-hidden">
+      <div class="page-bg">
+        <div class="page-bg-blob-left -top-32 -left-40" />
+        <div class="page-bg-blob-right top-10 -right-48" />
+        <div class="page-bg-radial" />
+        <div class="page-bg-grid" />
       </div>
 
-      <!-- Loading State -->
-      <div
-        v-if="status === 'pending'"
-        class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
-      >
-        <USkeleton
-          v-for="i in 3"
-          :key="i"
-          class="h-48 rounded-lg"
-        />
-      </div>
+      <div class="relative z-10 flex flex-col gap-8 p-6 sm:p-8 lg:p-10">
+        <header class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div class="space-y-3">
+            <div class="inline-flex items-center gap-2 rounded-full border border-emerald-100/80 bg-emerald-50/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-200">
+              <span class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              Workspace
+            </div>
+            <div class="space-y-2">
+              <h1 class="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl dark:text-white">
+                Projects
+              </h1>
+            </div>
+          </div>
+          <div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+            <UInput
+              v-model="searchQuery"
+              icon="i-lucide-search"
+              size="lg"
+              placeholder="Search projects, keys, descriptions"
+              class="w-full sm:w-80"
+              :ui="{ base: 'bg-white/80 dark:bg-gray-900/60 border-slate-200/70 dark:border-white/10' }"
+            />
+            <UButton
+              icon="i-lucide-plus"
+              to="/projects/create"
+              size="lg"
+              class="shadow-sm shadow-emerald-500/20"
+            >
+              New Project
+            </UButton>
+          </div>
+        </header>
 
-      <!-- Projects Grid -->
-      <div
-        v-else
-        class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
-      >
-        <!-- Project Cards -->
-        <NuxtLink
-          v-for="project in projects"
-          :key="project.id"
-          :to="`/projects/${project.id}`"
-          class="block"
-        >
-          <UCard class="hover:shadow-lg transition-shadow cursor-pointer">
-            <!-- Header: Icon + Title + Key -->
-            <div class="flex items-start gap-3 mb-4">
-              <div class="flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+        <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div class="rounded-2xl border border-white/60 bg-white/75 p-4 shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60">
+            <div class="flex items-start justify-between">
+              <span class="text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400">
+                Total
+              </span>
+              <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100/80 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/20">
                 <UIcon
                   name="i-lucide-folder"
-                  class="size-6 text-primary"
-                />
-              </div>
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-2">
-                  <h3 class="font-semibold text-gray-900 dark:text-white truncate">
-                    {{ project.name }}
-                  </h3>
-                  <UBadge
-                    color="neutral"
-                    variant="subtle"
-                    class="shrink-0 font-mono"
-                  >
-                    {{ project.key }}
-                  </UBadge>
-                </div>
-                <p class="text-sm text-gray-500 dark:text-gray-400 truncate">
-                  {{ project.description || 'No description' }}
-                </p>
-              </div>
-            </div>
-
-            <!-- Stats: Open Issues + Total -->
-            <div class="mb-3">
-              <div class="flex items-center justify-between mb-2">
-                <span class="text-sm font-medium text-gray-900 dark:text-white">
-                  {{ project.openIssues }} Open Issues
-                </span>
-                <span class="text-sm text-gray-500 dark:text-gray-400">
-                  {{ project.totalIssues }} Total
-                </span>
-              </div>
-              <!-- Progress Bar -->
-              <div class="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-700">
-                <div
-                  class="h-2 rounded-full bg-amber-500 transition-all"
-                  :style="{ width: `${getProgressPercentage(project.openIssues, project.totalIssues)}%` }"
-                />
-              </div>
-            </div>
-
-            <!-- Footer: Updated + View Details -->
-            <div class="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-800">
-              <span class="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
-                <UIcon
-                  name="i-lucide-clock"
                   class="size-4"
                 />
-                <template v-if="project.lastUpdated">
-                  Updated {{ getTimeAgo(project.lastUpdated) }}
-                </template>
-                <template v-else>
-                  No issues yet
-                </template>
-              </span>
-              <span class="text-sm font-medium text-primary">
-                View Details →
-              </span>
+              </div>
             </div>
-          </UCard>
-        </NuxtLink>
+            <div class="mt-4 text-2xl font-semibold text-slate-900 dark:text-white">
+              {{ totalProjects }}
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400">
+              Active workspaces
+            </p>
+          </div>
 
-        <!-- Create New Project Card -->
-        <NuxtLink to="/projects/create">
-          <UCard
-            class="flex min-h-48 h-full cursor-pointer items-center justify-center border-2 border-dashed border-gray-300 bg-transparent hover:border-primary hover:bg-primary/5 dark:border-gray-700 dark:hover:border-primary transition-colors"
-            :ui="{ body: 'flex flex-col items-center justify-center gap-4 h-full' }"
-          >
-            <div class="flex size-12 items-center justify-center rounded-full border-2 border-gray-300 dark:border-gray-600">
-              <UIcon
-                name="i-lucide-plus"
-                class="size-6 text-gray-400"
+          <div class="rounded-2xl border border-white/60 bg-white/75 p-4 shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60">
+            <div class="flex items-start justify-between">
+              <span class="text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400">
+                Open
+              </span>
+              <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-50 text-amber-600 ring-1 ring-amber-100/80 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-500/20">
+                <UIcon
+                  name="i-lucide-alert-circle"
+                  class="size-4"
+                />
+              </div>
+            </div>
+            <div class="mt-4 text-2xl font-semibold text-slate-900 dark:text-white">
+              {{ totalOpenIssues }}
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400">
+              Unresolved issues
+            </p>
+          </div>
+
+          <div class="rounded-2xl border border-white/60 bg-white/75 p-4 shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60">
+            <div class="flex items-start justify-between">
+              <span class="text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400">
+                Total Issues
+              </span>
+              <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-700 ring-1 ring-slate-200/80 dark:bg-white/10 dark:text-slate-200 dark:ring-white/10">
+                <UIcon
+                  name="i-lucide-layers"
+                  class="size-4"
+                />
+              </div>
+            </div>
+            <div class="mt-4 text-2xl font-semibold text-slate-900 dark:text-white">
+              {{ totalIssues }}
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400">
+              Logged events
+            </p>
+          </div>
+
+          <div class="rounded-2xl border border-white/60 bg-white/75 p-4 shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60">
+            <div class="flex items-start justify-between">
+              <span class="text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400">
+                Resolution
+              </span>
+              <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100/80 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/20">
+                <UIcon
+                  name="i-lucide-trending-up"
+                  class="size-4"
+                />
+              </div>
+            </div>
+            <div class="mt-4 text-2xl font-semibold text-slate-900 dark:text-white">
+              {{ overallProgress }}%
+            </div>
+            <div class="mt-3 h-2 w-full rounded-full bg-slate-200/70 dark:bg-slate-800">
+              <div
+                class="h-2 rounded-full bg-linear-to-r from-emerald-500 via-emerald-400 to-lime-400 transition-all"
+                :style="{ width: `${overallProgress}%` }"
               />
             </div>
-            <span class="text-sm text-gray-500 dark:text-gray-400">Create New Project</span>
-          </UCard>
-        </NuxtLink>
+          </div>
+        </section>
+
+        <section class="flex flex-col gap-4">
+          <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex items-center gap-3">
+              <h2 class="text-lg font-semibold text-slate-900 dark:text-white">
+                Project Overview
+              </h2>
+              <UBadge
+                color="neutral"
+                variant="subtle"
+                class="font-mono text-xs"
+              >
+                {{ projects.length }} visible
+              </UBadge>
+            </div>
+          </div>
+
+          <div
+            v-if="status === 'pending'"
+            class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
+          >
+            <USkeleton
+              v-for="i in 6"
+              :key="i"
+              class="h-52 rounded-2xl"
+            />
+          </div>
+
+          <div
+            v-else-if="projects.length === 0"
+            class="rounded-3xl border border-dashed border-slate-200/80 bg-white/70 p-10 text-center shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60"
+          >
+            <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300">
+              <UIcon
+                name="i-lucide-folder-plus"
+                class="size-6"
+              />
+            </div>
+            <h3 class="text-lg font-semibold text-slate-900 dark:text-white">
+              Start your first project
+            </h3>
+            <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+              Create a workspace to capture curl requests, logs, and environment-specific issues.
+            </p>
+            <UButton
+              to="/projects/create"
+              class="mt-6"
+              icon="i-lucide-plus"
+            >
+              Create Project
+            </UButton>
+          </div>
+
+          <div
+            v-else
+            class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
+          >
+            <NuxtLink
+              v-for="project in projects"
+              :key="project.id"
+              :to="`/projects/${project.id}`"
+              class="group"
+            >
+              <article class="relative h-full overflow-hidden rounded-2xl border border-slate-200/70 bg-white/80 p-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-white/10 dark:bg-gray-900/60">
+                <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.08),transparent_60%)] opacity-0 transition duration-300 group-hover:opacity-100 dark:bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.12),transparent_60%)]" />
+                <div class="relative z-10 flex h-full flex-col gap-4">
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="flex items-start gap-3">
+                      <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100/80 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/20">
+                        <UIcon
+                          name="i-lucide-folder"
+                          class="size-5"
+                        />
+                      </div>
+                      <div class="min-w-0">
+                        <div class="flex items-center gap-2">
+                          <h3 class="truncate text-base font-semibold text-slate-900 dark:text-white">
+                            {{ project.name }}
+                          </h3>
+                          <span class="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-semibold tracking-wide text-slate-600 dark:border-white/10 dark:bg-white/10 dark:text-slate-200">
+                            {{ project.key }}
+                          </span>
+                        </div>
+                        <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                          {{ project.description || 'No description provided' }}
+                        </p>
+                      </div>
+                    </div>
+                    <span class="text-[11px] text-slate-500 dark:text-slate-400">
+                      <template v-if="project.lastUpdated">
+                        Updated {{ getTimeAgo(project.lastUpdated) }}
+                      </template>
+                      <template v-else>
+                        New project
+                      </template>
+                    </span>
+                  </div>
+
+                  <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                    <span>
+                      <span class="text-sm font-semibold text-slate-900 dark:text-white">{{ project.openIssues }}</span>
+                      Open
+                    </span>
+                    <span>
+                      <span class="text-sm font-semibold text-slate-900 dark:text-white">{{ project.totalIssues }}</span>
+                      Total
+                    </span>
+                  </div>
+
+                  <div class="h-2 w-full rounded-full bg-slate-200/70 dark:bg-slate-800">
+                    <div
+                      class="h-2 rounded-full bg-linear-to-r from-emerald-500 via-emerald-400 to-lime-400 transition-all"
+                      :style="{ width: `${getProgressPercentage(project.openIssues, project.totalIssues)}%` }"
+                    />
+                  </div>
+
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs text-slate-500 dark:text-slate-400">
+                      Resolution rate
+                    </span>
+                    <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                      {{ getProgressPercentage(project.openIssues, project.totalIssues) }}%
+                    </span>
+                  </div>
+
+                  <div class="flex items-center justify-between pt-2 text-sm font-semibold text-slate-900 dark:text-white">
+                    <span class="inline-flex items-center gap-1 text-xs font-medium text-slate-500 dark:text-slate-400">
+                      <UIcon
+                        name="i-lucide-activity"
+                        class="size-3"
+                      />
+                      Activity
+                    </span>
+                    <span class="text-emerald-600 transition group-hover:translate-x-1 dark:text-emerald-400">
+                      View Details →
+                    </span>
+                  </div>
+                </div>
+              </article>
+            </NuxtLink>
+
+            <NuxtLink
+              to="/projects/create"
+              class="group"
+            >
+              <div class="relative flex h-full min-h-52 flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-emerald-200/70 bg-white/60 p-6 text-center shadow-sm transition duration-300 hover:-translate-y-1 hover:border-emerald-300 hover:bg-emerald-50/70 dark:border-emerald-500/30 dark:bg-gray-900/50 dark:hover:bg-emerald-500/10">
+                <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300">
+                  <UIcon
+                    name="i-lucide-plus"
+                    class="size-6"
+                  />
+                </div>
+                <div>
+                  <p class="text-sm font-semibold text-slate-900 dark:text-white">
+                    Create New Project
+                  </p>
+                  <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    Set environments, invite teammates, and start tracking issues.
+                  </p>
+                </div>
+              </div>
+            </NuxtLink>
+          </div>
+        </section>
       </div>
     </div>
   </UDashboardPanel>
