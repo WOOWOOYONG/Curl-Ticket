@@ -3,6 +3,8 @@ import { getHttpMethodColor } from '~/constants/http'
 import { IssueStatusColor, IssueStatusIcon, getHttpStatusCodeColor } from '~/constants/issue'
 import { maskValue, formatJson } from '~/utils/issue'
 import type { Issue } from '~~/shared/schemas/issue'
+import { issueStatuses } from '~~/shared/constants'
+import type { IssueStatus } from '~~/shared/constants'
 
 definePageMeta({
   layout: 'header-only',
@@ -11,6 +13,7 @@ definePageMeta({
 
 const route = useRoute()
 const { copyToClipboard } = useCopy()
+const toast = useToast()
 
 const projectId = computed(() => route.params.id as string)
 const issueId = computed(() => route.params.issueId as string)
@@ -27,6 +30,18 @@ const { data: issueResponse, status } = await useFetch<IssueResponse>(
 
 const issue = computed<Issue | undefined>(() => issueResponse.value?.data)
 const friendlyId = computed(() => issueResponse.value?.friendlyId)
+
+const statusOptions = issueStatuses.map(status => ({
+  label: status,
+  value: status
+}))
+const selectedStatus = ref<IssueStatus | undefined>()
+const updatingStatus = ref(false)
+
+watch(issue, (currentIssue) => {
+  if (!currentIssue) return
+  selectedStatus.value = currentIssue.status
+}, { immediate: true })
 
 // Collapsible sections
 const requestHeadersExpanded = ref(false)
@@ -62,6 +77,46 @@ function copyResponseBody() {
   copyToClipboard(formatJson(issue.value.responseBody), {
     description: 'Response body copied to clipboard'
   })
+}
+
+watch(selectedStatus, async (nextStatus) => {
+  if (!nextStatus || !issue.value) return
+  if (nextStatus === issue.value.status) return
+  await updateIssueStatus(nextStatus)
+})
+
+async function updateIssueStatus(nextStatus: IssueStatus) {
+  if (!issue.value || updatingStatus.value) return
+
+  const previousStatus = issue.value.status
+  updatingStatus.value = true
+
+  try {
+    const response = await $fetch<IssueResponse>(`/api/projects/${projectId.value}/issues/${issueId.value}`, {
+      method: 'PATCH',
+      body: {
+        status: nextStatus
+      }
+    })
+
+    issueResponse.value = response
+
+    toast.add({
+      title: 'Status updated',
+      description: `Issue ${response.friendlyId} status is now ${response.data.status}.`,
+      color: 'success'
+    })
+  } catch (err: unknown) {
+    const error = err as { data?: { message?: string } }
+    selectedStatus.value = previousStatus
+    toast.add({
+      title: 'Error',
+      description: error.data?.message || 'Failed to update issue status',
+      color: 'error'
+    })
+  } finally {
+    updatingStatus.value = false
+  }
 }
 </script>
 
@@ -374,20 +429,22 @@ function copyResponseBody() {
               <div class="space-y-4">
                 <!-- Status -->
                 <div class="rounded-xl border border-slate-200/60 dark:border-slate-800/70 bg-slate-50/70 dark:bg-slate-900/50 p-3">
-                  <label class="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-[0.18em] mb-2 block">
+                  <label class="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-[0.18em] mb-3 block">
                     Status
                   </label>
-                  <UBadge
-                    :color="IssueStatusColor[issue.status]"
-                    variant="soft"
-                    class="gap-1.5 px-3 py-2"
-                  >
-                    <UIcon
-                      :name="IssueStatusIcon[issue.status]"
-                      class="size-3.5"
+                  <div class="flex items-center gap-2">
+                    <USelect
+                      v-model="selectedStatus"
+                      :items="statusOptions"
+                      class="flex-1"
+                      :disabled="updatingStatus"
                     />
-                    {{ issue.status }}
-                  </UBadge>
+                    <UIcon
+                      v-if="updatingStatus"
+                      name="i-lucide-loader-circle"
+                      class="size-4 text-slate-500 animate-spin"
+                    />
+                  </div>
                 </div>
 
                 <!-- Environment -->
