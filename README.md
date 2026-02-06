@@ -1,60 +1,140 @@
-# Nuxt Starter Template
+# Curl Ticket
 
-[![Nuxt UI](https://img.shields.io/badge/Made%20with-Nuxt%20UI-00DC82?logo=nuxt&labelColor=020420)](https://ui.nuxt.com)
+Curl Ticket is an API issue tracking app for engineering teams.
+It helps teams reproduce backend problems by turning pasted cURL commands into structured issue records.
 
-Use this template to get started with [Nuxt UI](https://ui.nuxt.com) quickly.
+## Current Product Scope
 
-- [Live demo](https://starter-template.nuxt.dev/)
-- [Documentation](https://ui.nuxt.com/docs/getting-started/installation/nuxt)
+Implemented in this repository:
 
-<a href="https://starter-template.nuxt.dev/" target="_blank">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://ui.nuxt.com/assets/templates/nuxt/starter-dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="https://ui.nuxt.com/assets/templates/nuxt/starter-light.png">
-    <img alt="Nuxt Starter Template" src="https://ui.nuxt.com/assets/templates/nuxt/starter-light.png">
-  </picture>
-</a>
+- Google OAuth login with Supabase Auth
+- Project creation and project list dashboard
+- Issue creation from parsed cURL
+- Issue detail and edit flows
+- Request/response payload display with JSON highlighting
+- Sensitive header masking in UI (for keys like `Authorization`, `token`, `api-key`)
+- Access control at API level (project owner/member rules)
 
-> The starter template for Vue is on https://github.com/nuxt-ui-templates/starter-vue.
+Planned or partial:
+
+- Notification schema exists, but notification API/UI flow is not fully implemented
+- No automated test suite yet (CI currently runs lint + typecheck)
+
+## Tech Stack
+
+- Nuxt 4 + Vue 3 + TypeScript
+- Nuxt UI + Tailwind CSS
+- Supabase (Auth)
+- PostgreSQL + Drizzle ORM
+- Zod validation
+- `curlconverter` for cURL parsing
+- Shiki for JSON code highlighting
+
+## Requirements
+
+- Node.js `22.x`
+- pnpm `10.x`
+- A Supabase project (Google OAuth enabled)
+- PostgreSQL connection string (`DATABASE_URL`)
+
+## Environment Variables
+
+Copy `.env.example` to `.env` and fill values:
+
+```bash
+cp .env.example .env
+```
+
+Required keys:
+
+- `SUPABASE_URL`
+- `SUPABASE_KEY`
+- `DATABASE_URL`
 
 ## Quick Start
 
-```bash [Terminal]
-npm create nuxt@latest -- -t github:nuxt-ui-templates/starter
-```
-
-## Deploy your own
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-name=starter&repository-url=https%3A%2F%2Fgithub.com%2Fnuxt-ui-templates%2Fstarter&demo-image=https%3A%2F%2Fui.nuxt.com%2Fassets%2Ftemplates%2Fnuxt%2Fstarter-dark.png&demo-url=https%3A%2F%2Fstarter-template.nuxt.dev%2F&demo-title=Nuxt%20Starter%20Template&demo-description=A%20minimal%20template%20to%20get%20started%20with%20Nuxt%20UI.)
-
-## Setup
-
-Make sure to install the dependencies:
+1. Install dependencies:
 
 ```bash
 pnpm install
 ```
 
-## Development Server
+2. Run database migrations:
 
-Start the development server on `http://localhost:3000`:
+```bash
+pnpm db:migrate
+```
+
+3. Start development server:
 
 ```bash
 pnpm dev
 ```
 
-## Production
+4. Open:
 
-Build the application for production:
-
-```bash
-pnpm build
+```text
+http://localhost:3000
 ```
 
-Locally preview production build:
+## Useful Scripts
 
-```bash
-pnpm preview
+### App
+
+- `pnpm dev` - start dev server
+- `pnpm build` - production build
+- `pnpm preview` - preview production build
+- `pnpm lint` - run ESLint
+- `pnpm typecheck` - run Nuxt/Vue type checks
+
+### Database (Drizzle)
+
+- `pnpm db:generate` - generate migration from schema changes
+- `pnpm db:migrate` - apply migrations
+- `pnpm db:push` - push schema directly to DB
+- `pnpm db:studio` - open Drizzle Studio
+- `pnpm db:types` - generate Supabase TS types into `app/types/database.types.ts`
+  - Note: this command currently uses a fixed Supabase project id in `package.json`
+
+### Local utility scripts
+
+- `node scripts/verify-schema.mjs` - print current DB schema from `information_schema`
+- `node scripts/reset-db.mjs` - drop app tables and migration history (destructive)
+
+## API Overview
+
+All `/api/*` routes are protected by server auth middleware (except explicit public paths):
+
+- `POST /api/curl/parse`
+- `GET /api/projects`
+- `POST /api/projects`
+- `GET /api/projects/:projectId`
+- `GET /api/projects/:projectId/issues`
+- `POST /api/projects/:projectId/issues`
+- `GET /api/projects/:projectId/issues/:issueId`
+- `PATCH /api/projects/:projectId/issues/:issueId`
+
+## Project Structure
+
+```text
+app/                  # Nuxt app (pages, components, composables, UI logic)
+server/
+  api/                # Server API routes
+  database/           # Drizzle schema + SQL migrations
+  middleware/         # Server auth middleware
+shared/               # Shared constants and Zod schemas
+docs/prd.md           # Product requirements draft
+scripts/              # Local DB helper scripts
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+## CI
+
+GitHub Actions workflow (`.github/workflows/ci.yml`) currently runs:
+
+- `pnpm install`
+- `pnpm lint`
+- `pnpm typecheck`
+
+## License
+
+MIT (see `LICENSE`).
