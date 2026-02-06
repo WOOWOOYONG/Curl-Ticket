@@ -1,8 +1,9 @@
 import { eq, max } from 'drizzle-orm'
-import { projects, issues } from '~~/server/database/schema'
+import { issues } from '~~/server/database/schema'
 import { createIssueSchema } from '~~/shared/schemas'
 import { MAX_CREATE_ATTEMPTS, UNIQUE_VIOLATION_CODE } from '~~/server/constants'
-import { badRequest, internalServerError, notFound } from '~~/server/utils/errors'
+import { badRequest, internalServerError } from '~~/server/utils/errors'
+import { getAccessibleProject } from '~~/server/utils/project-access'
 
 export default defineEventHandler(async (event) => {
   // 從 middleware 取得已驗證的 userId
@@ -22,16 +23,8 @@ export default defineEventHandler(async (event) => {
     return err?.code === UNIQUE_VIOLATION_CODE || err?.cause?.code === UNIQUE_VIOLATION_CODE
   }
 
-  // 3. 驗證專案存在並取得 key
-  const [project] = await db
-    .select({ id: projects.id, key: projects.key })
-    .from(projects)
-    .where(eq(projects.id, projectId))
-    .limit(1)
-
-  if (!project) {
-    notFound('Project not found')
-  }
+  // 3. 驗證使用者可存取專案，並取得專案 key
+  const project = await getAccessibleProject(db, projectId, userId)
 
   // 4. 讀取並驗證 request body
   const body = await readBody(event)

@@ -1,6 +1,7 @@
 import { eq, and } from 'drizzle-orm'
-import { projects, issues } from '~~/server/database/schema'
+import { issues } from '~~/server/database/schema'
 import { badRequest, notFound } from '~~/server/utils/errors'
+import { getAccessibleProject } from '~~/server/utils/project-access'
 
 export default defineEventHandler(async (event) => {
   // 1. 取得路由參數
@@ -16,17 +17,8 @@ export default defineEventHandler(async (event) => {
   }
 
   const db = useDB()
-
-  // 2. 驗證專案存在
-  const [project] = await db
-    .select({ id: projects.id, key: projects.key })
-    .from(projects)
-    .where(eq(projects.id, projectId))
-    .limit(1)
-
-  if (!project) {
-    notFound('Project not found')
-  }
+  const userId = event.context.userId as string
+  const project = await getAccessibleProject(db, projectId, userId)
 
   // 3. 查詢 Issue 詳細資料（確保屬於該專案）
   const [issue] = await db

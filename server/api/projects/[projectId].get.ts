@@ -1,7 +1,8 @@
 import { eq, count, sql } from 'drizzle-orm'
-import { projects, issues } from '~~/server/database/schema'
+import { issues } from '~~/server/database/schema'
 import { IssueStatus } from '~~/shared/constants'
-import { badRequest, notFound } from '~~/server/utils/errors'
+import { badRequest } from '~~/server/utils/errors'
+import { getAccessibleProject } from '~~/server/utils/project-access'
 
 export default defineEventHandler(async (event) => {
   const projectId = getRouterParam(event, 'projectId')
@@ -11,16 +12,8 @@ export default defineEventHandler(async (event) => {
   }
 
   const db = useDB()
-
-  const [project] = await db
-    .select()
-    .from(projects)
-    .where(eq(projects.id, projectId))
-    .limit(1)
-
-  if (!project) {
-    notFound('Project not found')
-  }
+  const userId = event.context.userId as string
+  const project = await getAccessibleProject(db, projectId, userId)
 
   // 取得 Issue 統計
   const [stats] = await db

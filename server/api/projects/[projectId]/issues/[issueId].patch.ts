@@ -1,7 +1,8 @@
 import { and, eq } from 'drizzle-orm'
-import { projects, issues } from '~~/server/database/schema'
+import { issues } from '~~/server/database/schema'
 import { updateIssueSchema } from '~~/shared/schemas'
 import { badRequest, notFound } from '~~/server/utils/errors'
+import { getAccessibleProject } from '~~/server/utils/project-access'
 
 export default defineEventHandler(async (event) => {
   const projectId = getRouterParam(event, 'projectId')
@@ -16,16 +17,8 @@ export default defineEventHandler(async (event) => {
   }
 
   const db = useDB()
-
-  const [project] = await db
-    .select({ id: projects.id, key: projects.key })
-    .from(projects)
-    .where(eq(projects.id, projectId))
-    .limit(1)
-
-  if (!project) {
-    notFound('Project not found')
-  }
+  const userId = event.context.userId as string
+  const project = await getAccessibleProject(db, projectId, userId)
 
   const body = await readBody(event)
   const result = updateIssueSchema.safeParse(body)

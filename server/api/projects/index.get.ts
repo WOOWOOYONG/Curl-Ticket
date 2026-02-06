@@ -1,9 +1,11 @@
 import { count, desc, inArray, max, sql } from 'drizzle-orm'
 import { projects, issues } from '~~/server/database/schema'
 import { IssueStatus } from '~~/shared/constants'
+import { buildProjectAccessCondition } from '~~/server/utils/project-access'
 
 export default defineEventHandler(async (event) => {
   const db = useDB()
+  const userId = event.context.userId as string
 
   // 1. 讀取查詢參數
   const query = getQuery(event)
@@ -18,12 +20,14 @@ export default defineEventHandler(async (event) => {
     db
       .select()
       .from(projects)
+      .where(buildProjectAccessCondition(userId))
       .orderBy(desc(projects.createdAt))
       .limit(pageSize)
       .offset(offset),
     db
       .select({ total: count() })
       .from(projects)
+      .where(buildProjectAccessCondition(userId))
   ])
 
   const total = totalResult[0]?.total ?? 0

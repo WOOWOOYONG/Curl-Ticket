@@ -3,6 +3,7 @@ import { eq, desc, count, and } from 'drizzle-orm'
 import { issues } from '~~/server/database/schema'
 import { IssueStatus, type IssueStatus as IssueStatusType, type Environment } from '~~/shared/constants'
 import { badRequest } from '~~/server/utils/errors'
+import { getAccessibleProject } from '~~/server/utils/project-access'
 
 export default defineEventHandler(async (event) => {
   const projectId = getRouterParam(event, 'projectId')
@@ -12,6 +13,8 @@ export default defineEventHandler(async (event) => {
   }
 
   const db = useDB()
+  const userId = event.context.userId as string
+  await getAccessibleProject(db, projectId, userId)
 
   // Extract query parameters
   const query = getQuery(event)
