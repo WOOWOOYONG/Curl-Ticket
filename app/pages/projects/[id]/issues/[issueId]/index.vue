@@ -208,9 +208,9 @@ function copyResponseBody() {
                       />
                     </div>
                     <div>
-                    <p class="text-xs uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
-                      HTTP Request
-                    </p>
+                      <p class="text-xs uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+                        HTTP Request
+                      </p>
                       <p class="text-sm font-medium text-slate-900 dark:text-white">
                         Payload overview
                       </p>

@@ -5,6 +5,7 @@ import { pgTable, uuid, varchar, timestamp, text, index } from 'drizzle-orm/pg-c
  */
 export const projects = pgTable('projects', {
   id: uuid('id').primaryKey().defaultRandom(),
+  ownerId: uuid('owner_id'),
   name: varchar('name', { length: 100 }).notNull(),
   key: varchar('key', { length: 10 }).notNull().unique(),
   description: varchar('description', { length: 1000 }),

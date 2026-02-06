@@ -2,3 +2,4 @@
 export * from './projects'
 export * from './issues'
 export * from './notifications'
+export * from './project-members'
