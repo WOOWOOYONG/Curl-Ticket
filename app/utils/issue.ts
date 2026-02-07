@@ -39,3 +39,26 @@ export function getJsonLines(data: unknown): string[] {
   const formatted = formatJson(data)
   return formatted.split('\n')
 }
+
+/**
+ * Build a cURL command string from issue data
+ * @param issue - Issue object with method, url, headers, and body
+ * @returns cURL command string
+ */
+export function buildCurlCommand(issue: {
+  method: string
+  url: string
+  requestHeaders?: Record<string, string> | null
+  requestBody?: unknown
+}): string {
+  let cmd = `curl -X ${issue.method} '${issue.url}'`
+  if (issue.requestHeaders) {
+    for (const [key, value] of Object.entries(issue.requestHeaders)) {
+      cmd += ` -H '${key}: ${value}'`
+    }
+  }
+  if (issue.requestBody) {
+    cmd += ` -d '${JSON.stringify(issue.requestBody)}'`
+  }
+  return cmd
+}

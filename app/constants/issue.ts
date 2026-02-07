@@ -1,4 +1,4 @@
-import { IssueStatus } from '~~/shared/constants'
+import { IssueStatus, Environment } from '~~/shared/constants'
 
 // UBadge 組件支援的顏色類型
 type BadgeColor = 'error' | 'success' | 'primary' | 'secondary' | 'info' | 'warning' | 'neutral'
@@ -10,11 +10,12 @@ export const IssueStatusColor: Record<string, BadgeColor> = {
   [IssueStatus.Done]: 'success'
 } as const
 
-// Issue 狀態對應的圖示
-export const IssueStatusIcon: Record<string, string> = {
-  [IssueStatus.Open]: 'i-lucide-circle-dot',
-  [IssueStatus.InProgress]: 'i-lucide-loader',
-  [IssueStatus.Done]: 'i-lucide-check-circle'
+// Environment 環境對應的顏色（用於 UBadge 組件）
+export const EnvironmentColor: Record<string, BadgeColor> = {
+  [Environment.Local]: 'neutral',
+  [Environment.Dev]: 'info',
+  [Environment.Staging]: 'warning',
+  [Environment.Prod]: 'error'
 } as const
 
 // HTTP 狀態碼對應的顏色（用於 UBadge 組件）

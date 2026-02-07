@@ -2,7 +2,7 @@
 import type { TableColumn } from '@nuxt/ui'
 import type { IssueListItem } from '~~/shared/schemas'
 import { getHttpMethodColor } from '~/constants/http'
-import { IssueStatusColor, IssueStatusIcon } from '~/constants/issue'
+import { IssueStatusColor } from '~/constants/issue'
 
 definePageMeta({
   ssr: false
@@ -71,11 +71,6 @@ const columns: TableColumn<IssueListItem>[] = [
     meta: { class: { th: 'w-40 text-right', td: 'text-right whitespace-nowrap' } }
   }
 ]
-
-// Format date
-function formatDate(date: Date | string) {
-  return useDateFormat(date, 'YYYY/MM/DD HH:mm').value
-}
 
 // Row click handler
 function onRowSelect(_event: Event, row: { original: IssueListItem }) {
@@ -269,34 +264,30 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
 
                       <!-- Status -->
                       <template #status-cell="{ row }">
-                        <UBadge
-                          :color="IssueStatusColor[row.original.status] || 'neutral'"
-                          variant="soft"
-                          class="gap-1"
-                        >
-                          <UIcon
-                            :name="IssueStatusIcon[row.original.status]"
-                            class="size-3"
+                        <div class="inline-flex items-center gap-1.5">
+                          <UChip
+                            :color="IssueStatusColor[row.original.status] || 'neutral'"
+                            inset
+                            standalone
+                            size="xs"
                           />
-                          {{ row.original.status }}
-                        </UBadge>
+                          <span class="text-sm font-medium text-slate-700 dark:text-slate-200">
+                            {{ row.original.status }}
+                          </span>
+                        </div>
                       </template>
 
                       <!-- Environment -->
                       <template #environment-cell="{ row }">
-                        <UBadge
-                          color="neutral"
-                          variant="outline"
-                          size="sm"
-                        >
+                        <span class="text-sm text-slate-500 dark:text-slate-400">
                           {{ row.original.environment }}
-                        </UBadge>
+                        </span>
                       </template>
 
                       <!-- Updated At -->
                       <template #updatedAt-cell="{ row }">
                         <span class="text-sm text-slate-500 dark:text-slate-400">
-                          {{ formatDate(row.original.updatedAt) }}
+                          {{ formatDateTime(row.original.updatedAt) }}
                         </span>
                       </template>
                     </UTable>
