@@ -38,3 +38,26 @@ export const HttpMethod = {
 
 export type HttpMethod = typeof HttpMethod[keyof typeof HttpMethod]
 export const httpMethods = Object.values(HttpMethod)
+
+// ============================================
+// 用戶角色定義
+// ============================================
+export const UserRole = {
+  Admin: 'admin',
+  User: 'user'
+} as const
+
+export type UserRole = typeof UserRole[keyof typeof UserRole]
+export const userRoles = Object.values(UserRole)
+
+// ============================================
+// 邀請狀態定義
+// ============================================
+export const InvitationStatus = {
+  Pending: 'pending',
+  Accepted: 'accepted',
+  Expired: 'expired'
+} as const
+
+export type InvitationStatus = typeof InvitationStatus[keyof typeof InvitationStatus]
+export const invitationStatuses = Object.values(InvitationStatus)
