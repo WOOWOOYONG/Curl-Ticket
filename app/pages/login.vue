@@ -37,16 +37,21 @@ async function signInWithGoogle() {
       </div>
 
       <template #footer>
-        <UButton
-          icon="i-simple-icons-google"
-          color="neutral"
-          variant="solid"
-          block
-          :loading="loading"
-          @click="signInWithGoogle"
-        >
-          使用 Google 登入
-        </UButton>
+        <div class="space-y-3">
+          <UButton
+            icon="i-simple-icons-google"
+            color="neutral"
+            variant="solid"
+            block
+            :loading="loading"
+            @click="signInWithGoogle"
+          >
+            使用 Google 登入
+          </UButton>
+          <p class="text-xs text-center text-slate-400 dark:text-slate-500">
+            尚未有帳號？請向管理員索取邀請連結
+          </p>
+        </div>
       </template>
     </UCard>
   </UContainer>
