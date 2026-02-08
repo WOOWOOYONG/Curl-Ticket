@@ -1,7 +1,7 @@
 # 📝 產品需求文件 (PRD) - Curl Ticket
 
-**Version:** 1.2
-**Last Updated:** 2024-01-26
+**Version:** 1.3
+**Last Updated:** 2026-02-08
 **Status:** Draft
 
 ---
@@ -21,6 +21,10 @@
 
 ```mermaid
 graph TD
+    InviteLink[邀請連結] -->|驗證 Token| InvitePage[邀請頁]
+    InvitePage -->|Google OAuth| Confirm[OAuth Callback]
+    Confirm -->|兌換 Token + 建立 Profile| Dashboard
+
     Login[登入頁] -->|Auth Success| Dashboard[首頁 - Project 列表]
     Dashboard -->|Create| CreateProject[新增專案頁]
     Dashboard -->|Select Project| IssueList[Issue 列表頁]
@@ -36,6 +40,7 @@ graph TD
 
     GlobalNav --> Settings[設定/登出]
     GlobalNav --> Notifications[通知中心 (Realtime)]
+    AdminSidebar[Sidebar - Admin] --> AdminPage[邀請管理頁]
     System --> NotFound[404 錯誤頁]
 
 ```
@@ -48,9 +53,45 @@ graph TD
 
 - **頁面路徑：** `/login`
 - **功能描述：**
-- 提供 Email/Password 登入或 Google OAuth (Supabase Auth)。
+- 提供 Google OAuth 登入 (Supabase Auth)。
 - 強制路由守衛 (Route Guard)：未登入訪問受保護頁面，自動重導向至此。
 - 登入成功後跳轉至首頁。
+- 已有帳號的用戶直接顯示 Google 登入按鈕；無帳號用戶顯示提示「需要邀請連結才能註冊」。
+
+### 3.1.1 邀請連結註冊 (Invitation Link Registration) **[New]**
+
+- **頁面路徑：** `/invite/[token]`
+- **功能描述：**
+  - **僅限受邀用戶註冊**：系統採用封閉註冊制，新用戶必須透過 Admin 產生的邀請連結才能註冊。
+  - **註冊流程：**
+    1. Admin 在邀請管理頁 (`/admin`) 產生邀請連結。
+    2. Admin 透過任意管道（Slack、LINE、Email 等）將連結分享給受邀者。
+    3. 受邀者點擊連結 → 系統驗證 token 有效性（未使用、未過期）。
+    4. 驗證通過 → 顯示 Google 登入按鈕，token 暫存 `sessionStorage`。
+    5. 完成 Google OAuth → `/confirm` 頁自動兌換 token 並建立用戶 Profile。
+    6. 跳轉至首頁。
+  - **驗證失敗情境：** token 無效、已使用、已過期 → 顯示錯誤訊息與返回登入頁按鈕。
+  - **邀請連結為一次性使用**，兌換後即失效。
+
+### 3.1.2 邀請管理 (Invitation Management - Admin) **[New]**
+
+- **頁面路徑：** `/admin`
+- **存取限制：** 僅限 `admin` 角色，透過 Client-side middleware 與 Server-side API 雙重檢查。Sidebar 僅對 Admin 顯示入口。
+- **功能描述：**
+  - **產生邀請連結**：點擊按鈕產生唯一 token，自動組合為完整 URL。
+  - **邀請連結列表**：顯示所有已產生的邀請連結，包含：
+    - Token 路徑（`/invite/{token}`）
+    - 狀態（可使用 / 已使用）
+    - 建立時間、使用時間、過期時間
+  - **一鍵複製**：可使用狀態的連結提供複製按鈕。
+
+### 3.1.3 用戶角色 (User Roles) **[New]**
+
+- **角色定義：**
+  - `admin`：系統管理員，可產生邀請連結、管理用戶。
+  - `user`：一般用戶，可使用系統所有業務功能（專案、Issue 等）。
+- **首位 Admin 設定：** 部署後由開發者透過 SQL 手動將自己的 Profile 設為 `admin`。
+- **Profile 自動建立：** 用戶首次通過 API 驗證時，Server middleware 自動建立 Profile（預設角色為 `user`）。
 
 ### 3.2 專案列表 (Dashboard) - 首頁
 
@@ -155,6 +196,45 @@ _基於 Supabase (PostgreSQL) + Drizzle ORM_
 
 _(Standard Supabase Auth Ref)_
 
+### Profiles Table **[New]**
+
+| Column       | Type         | Constraint       | Description                               |
+| ------------ | ------------ | ---------------- | ----------------------------------------- |
+| `id`         | uuid         | PK               | 對應 Supabase auth.users.id（非自動產生） |
+| `email`      | varchar(255) | Unique, Not Null | 用戶 Email                                |
+| `name`       | varchar(255) |                  | 用戶名稱                                  |
+| `role`       | varchar(20)  | Not Null, Default 'user' | 角色 (admin / user)              |
+| `created_at` | timestamp    | Default Now()    |                                           |
+| `updated_at` | timestamp    | Default Now()    |                                           |
+
+### Invitation Codes Table **[New]**
+
+| Column       | Type         | Constraint       | Description                          |
+| ------------ | ------------ | ---------------- | ------------------------------------ |
+| `id`         | uuid         | PK               | Default gen_random_uuid()            |
+| `code`       | varchar(32)  | Unique, Not Null | 邀請 token（用於組合邀請連結 URL）   |
+| `created_by` | uuid         | Not Null         | 產生此邀請的 Admin                   |
+| `used_by`    | uuid         |                  | 使用此邀請的用戶                     |
+| `is_used`    | boolean      | Default false    | 是否已被使用                         |
+| `expires_at` | timestamp    |                  | 過期時間（可選）                     |
+| `created_at` | timestamp    | Default Now()    |                                      |
+| `used_at`    | timestamp    |                  | 使用時間                             |
+
+### Project Invitations Table **[New - 預留]**
+
+| Column       | Type         | Constraint        | Description                        |
+| ------------ | ------------ | ----------------- | ---------------------------------- |
+| `id`         | uuid         | PK                | Default gen_random_uuid()          |
+| `project_id` | uuid         | FK -> projects.id | 所屬專案（cascade delete）         |
+| `email`      | varchar(255) | Not Null          | 被邀請者 Email                     |
+| `invited_by` | uuid         | Not Null          | 邀請者 ID                          |
+| `status`     | varchar(20)  | Default 'pending' | 狀態 (pending / accepted / expired)|
+| `expires_at` | timestamp    |                   | 過期時間                           |
+| `created_at` | timestamp    | Default Now()     |                                    |
+| `accepted_at`| timestamp    |                   | 接受時間                           |
+
+> **💡 備註：** Project Invitations 為專案層級邀請功能的預留 Schema，功能尚未實作。
+
 ### Projects Table
 
 | Column         | Type      | Constraint       | Description                                  |
@@ -222,6 +302,8 @@ _(Standard Supabase Auth Ref)_
 2. **安全性 (Security)：**
 
 - **Payload 驗證:** API 需驗證 Zod Schema。
+- **封閉註冊制:** 僅持有有效邀請連結的用戶才能完成註冊，防止未授權存取。
+- **角色存取控制:** Admin API 透過 Server-side `requireAdmin()` 檢查，前端透過 middleware 限制頁面存取。
 - **RLS (Row Level Security):**
 - `issues`: 僅專案成員可讀寫。
 - `notifications`: **僅使用者本人 (`auth.uid() = user_id`) 可讀取自己的通知**。
@@ -255,6 +337,15 @@ _(Standard Supabase Auth Ref)_
 - Issue 列表篩選 (Status, Environment)。
 - 狀態變更 (Open -> Done)。
 - **即時通知系統 (Realtime Notifications):** 資料庫 Trigger + WebSocket 前端整合。
+- **邀請連結註冊系統：** Admin 產生邀請連結、封閉式註冊、用戶角色管理。
+- **專案成員存取控制：** Owner / Member 權限區分。
+
+### Phase 2.5: Invitation Enhancement (邀請擴展) **[Planned]**
+
+- **目標：** 擴展邀請機制至專案層級。
+- **功能：**
+- **專案邀請：** 專案 Owner 可透過 Email 邀請已註冊用戶加入專案。
+- **邀請通知：** 被邀請者可在系統內查看並接受專案邀請。
 
 ### Phase 3: Polish (體驗升級)
 
