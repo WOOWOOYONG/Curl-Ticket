@@ -2,11 +2,25 @@
 import { UserRole } from '~~/shared/constants'
 
 const route = useRoute()
+const user = useSupabaseUser()
 
 const isProjectsActive = computed(() => route.path === '/')
 const isAdminActive = computed(() => route.path.startsWith('/admin'))
 
-const { data: profile } = useFetch('/api/auth/me', { server: false })
+const { data: profile, refresh: refreshProfile } = useFetch('/api/auth/me', {
+  server: false,
+  immediate: false
+})
+
+watch(() => user.value?.sub, async (sub) => {
+  if (!sub) {
+    profile.value = null
+    return
+  }
+
+  await refreshProfile()
+}, { immediate: true })
+
 const isAdmin = computed(() => profile.value?.role === UserRole.Admin)
 </script>
 

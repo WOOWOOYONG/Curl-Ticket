@@ -54,7 +54,7 @@ function copyLink(code: string) {
       <div class="relative z-10 flex flex-col gap-8 p-6 sm:p-8 lg:p-10">
         <header class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div class="space-y-3">
-            <div class="inline-flex items-center gap-2 rounded-full border border-violet-100/80 bg-violet-50/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-violet-700 dark:border-violet-500/20 dark:bg-violet-500/10 dark:text-violet-200">
+            <div class="inline-flex items-center gap-2 rounded-full border border-violet-100/80 bg-violet-50/80 px-3 py-1 text-[11px] font-semibold uppercase text-violet-700 dark:border-violet-500/20 dark:bg-violet-500/10 dark:text-violet-200">
               <span class="h-1.5 w-1.5 rounded-full bg-violet-500" />
               Admin
             </div>

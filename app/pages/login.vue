@@ -1,4 +1,8 @@
 <script setup lang="ts">
+definePageMeta({
+  layout: 'header-only'
+})
+
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
 

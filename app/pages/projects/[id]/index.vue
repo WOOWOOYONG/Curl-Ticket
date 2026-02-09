@@ -134,7 +134,7 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
                 />
               </NuxtLink>
               <div class="space-y-2">
-                <div class="inline-flex items-center gap-2 rounded-full border border-emerald-100/80 bg-emerald-50/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-200">
+                <div class="inline-flex items-center gap-2 rounded-full border border-emerald-100/80 bg-emerald-50/80 px-3 py-1 text-[11px] font-semibold uppercase  text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-200">
                   <span class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                   Project
                 </div>
@@ -228,7 +228,7 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
                       :ui="{
                         tr: 'cursor-pointer transition-colors hover:bg-emerald-50/50 dark:hover:bg-emerald-500/10',
                         td: 'py-3 text-slate-700 dark:text-slate-200',
-                        th: 'py-3 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400'
+                        th: 'py-3 text-xs font-semibold uppercase text-slate-500 dark:text-slate-400'
                       }"
                       @select="onRowSelect"
                     >

@@ -49,7 +49,7 @@ function getProgressPercentage(open: number, total: number) {
       <div class="relative z-10 flex flex-col gap-8 p-6 sm:p-8 lg:p-10">
         <header class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div class="space-y-3">
-            <div class="inline-flex items-center gap-2 rounded-full border border-emerald-100/80 bg-emerald-50/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-200">
+            <div class="inline-flex items-center gap-2 rounded-full border border-emerald-100/80 bg-emerald-50/80 px-3 py-1 text-[11px] font-semibold uppercase  text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-200">
               <span class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
               Workspace
             </div>
@@ -82,7 +82,7 @@ function getProgressPercentage(open: number, total: number) {
         <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div class="rounded-2xl border border-white/60 bg-white/75 p-4 shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60">
             <div class="flex items-start justify-between">
-              <span class="text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400">
+              <span class="text-[11px] font-semibold uppercase  text-slate-500 dark:text-slate-400">
                 Total
               </span>
               <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100/80 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/20">
@@ -102,7 +102,7 @@ function getProgressPercentage(open: number, total: number) {
 
           <div class="rounded-2xl border border-white/60 bg-white/75 p-4 shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60">
             <div class="flex items-start justify-between">
-              <span class="text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400">
+              <span class="text-[11px] font-semibold uppercase  text-slate-500 dark:text-slate-400">
                 Open
               </span>
               <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-50 text-amber-600 ring-1 ring-amber-100/80 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-500/20">
@@ -122,7 +122,7 @@ function getProgressPercentage(open: number, total: number) {
 
           <div class="rounded-2xl border border-white/60 bg-white/75 p-4 shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60">
             <div class="flex items-start justify-between">
-              <span class="text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400">
+              <span class="text-[11px] font-semibold uppercase  text-slate-500 dark:text-slate-400">
                 Total Issues
               </span>
               <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-700 ring-1 ring-slate-200/80 dark:bg-white/10 dark:text-slate-200 dark:ring-white/10">
@@ -142,7 +142,7 @@ function getProgressPercentage(open: number, total: number) {
 
           <div class="rounded-2xl border border-white/60 bg-white/75 p-4 shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60">
             <div class="flex items-start justify-between">
-              <span class="text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400">
+              <span class="text-[11px] font-semibold uppercase  text-slate-500 dark:text-slate-400">
                 Resolution
               </span>
               <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100/80 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/20">

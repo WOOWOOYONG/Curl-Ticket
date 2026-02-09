@@ -5,7 +5,7 @@ export const createInvitationCodeSchema = z.object({
 })
 
 export const validateInvitationCodeSchema = z.object({
-  code: z.string().min(1, '請提供邀請 token')
+  code: z.string().min(1, '請提供邀請碼')
 })
 
 export type CreateInvitationCodeInput = z.infer<typeof createInvitationCodeSchema>
