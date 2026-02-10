@@ -1,5 +1,6 @@
 import { pgTable, uuid, varchar, timestamp, index } from 'drizzle-orm/pg-core'
 import { projects } from './projects'
+import { InvitationStatus } from '~~/shared/constants'
 
 /**
  * Project Invitations 資料表
@@ -10,7 +11,7 @@ export const projectInvitations = pgTable('project_invitations', {
   projectId: uuid('project_id').notNull().references(() => projects.id, { onDelete: 'cascade' }),
   email: varchar('email', { length: 255 }).notNull(),
   invitedBy: uuid('invited_by').notNull(),
-  status: varchar('status', { length: 20 }).notNull().default('pending'),
+  status: varchar('status', { length: 20 }).notNull().default(InvitationStatus.Pending),
   expiresAt: timestamp('expires_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   acceptedAt: timestamp('accepted_at', { withTimezone: true })
