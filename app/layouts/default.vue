@@ -1,27 +1,28 @@
 <script setup lang="ts">
 import { UserRole } from '~~/shared/constants'
 
+interface NavItem {
+  to: string
+  icon: string
+  label: string
+}
+
 const route = useRoute()
-const user = useSupabaseUser()
 
-const isProjectsActive = computed(() => route.path === '/')
-const isAdminActive = computed(() => route.path.startsWith('/admin'))
+const navItems = ref<NavItem[]>([
+  { to: '/', icon: 'i-lucide-folder', label: 'Projects' }
+])
 
-const { data: profile, refresh: refreshProfile } = useFetch('/api/auth/me', {
-  server: false,
-  immediate: false
+onMounted(async () => {
+  const profile = await $fetch('/api/auth/me')
+  if (profile?.role === UserRole.Admin) {
+    navItems.value.push({ to: '/admin', icon: 'i-lucide-shield', label: '邀請管理' })
+  }
 })
 
-watch(() => user.value?.sub, async (sub) => {
-  if (!sub) {
-    profile.value = null
-    return
-  }
-
-  await refreshProfile()
-}, { immediate: true })
-
-const isAdmin = computed(() => profile.value?.role === UserRole.Admin)
+function isActive(item: NavItem) {
+  return item.to === '/' ? route.path === '/' : route.path.startsWith(item.to)
+}
 </script>
 
 <template>
@@ -36,23 +37,15 @@ const isAdmin = computed(() => profile.value?.role === UserRole.Admin)
       >
         <nav class="flex flex-col gap-1">
           <UButton
-            to="/"
-            icon="i-lucide-folder"
-            :color="isProjectsActive ? 'primary' : 'neutral'"
-            :variant="isProjectsActive ? 'soft' : 'ghost'"
-            :class="['w-full justify-start', isProjectsActive && 'font-semibold']"
+            v-for="item in navItems"
+            :key="item.to"
+            :to="item.to"
+            :icon="item.icon"
+            :color="isActive(item) ? 'primary' : 'neutral'"
+            :variant="isActive(item) ? 'soft' : 'ghost'"
+            :class="['w-full justify-start', isActive(item) && 'font-semibold']"
           >
-            Projects
-          </UButton>
-          <UButton
-            v-if="isAdmin"
-            to="/admin"
-            icon="i-lucide-shield"
-            :color="isAdminActive ? 'primary' : 'neutral'"
-            :variant="isAdminActive ? 'soft' : 'ghost'"
-            :class="['w-full justify-start', isAdminActive && 'font-semibold']"
-          >
-            邀請管理
+            {{ item.label }}
           </UButton>
         </nav>
       </UDashboardSidebar>

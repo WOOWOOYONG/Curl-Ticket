@@ -9,6 +9,7 @@ definePageMeta({
 })
 
 const route = useRoute()
+const user = useSupabaseUser()
 const projectId = computed(() => route.params.id as string)
 
 const { data: response, status } = await useProject(projectId)
@@ -155,6 +156,15 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
               </div>
             </div>
             <div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+              <UButton
+                v-if="project.ownerId === user?.sub"
+                icon="i-lucide-settings"
+                :to="`/projects/${projectId}/settings`"
+                size="lg"
+                variant="outline"
+              >
+                Settings
+              </UButton>
               <UButton
                 icon="i-lucide-plus"
                 :to="`/projects/${projectId}/issues/create`"

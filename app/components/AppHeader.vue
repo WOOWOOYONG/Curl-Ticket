@@ -1,8 +1,51 @@
 <script setup lang="ts">
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
+const colorMode = useColorMode()
 
-const items = [
+const themePreferenceLabel = computed(() => {
+  if (colorMode.preference === 'dark') return 'Dark'
+  if (colorMode.preference === 'light') return 'Light'
+  return 'System'
+})
+
+const items = computed(() => [
+  {
+    label: `Theme (${themePreferenceLabel.value})`,
+    icon: 'i-lucide-palette',
+    children: [
+      {
+        type: 'checkbox' as const,
+        label: 'Light',
+        icon: 'i-lucide-sun',
+        checked: colorMode.preference === 'light',
+        onSelect: () => {
+          colorMode.preference = 'light'
+        }
+      },
+      {
+        type: 'checkbox' as const,
+        label: 'Dark',
+        icon: 'i-lucide-moon',
+        checked: colorMode.preference === 'dark',
+        onSelect: () => {
+          colorMode.preference = 'dark'
+        }
+      },
+      {
+        type: 'checkbox' as const,
+        label: 'System',
+        icon: 'i-lucide-monitor',
+        checked: colorMode.preference === 'system',
+        onSelect: () => {
+          colorMode.preference = 'system'
+        }
+      }
+    ]
+  },
+  {
+    type: 'separator' as const
+  },
   {
     label: 'Log out',
     icon: 'i-lucide-log-out',
@@ -11,7 +54,7 @@ const items = [
       navigateTo('/login')
     }
   }
-]
+])
 </script>
 
 <template>
@@ -30,7 +73,7 @@ const items = [
       </template>
 
       <template #right>
-        <UColorModeButton />
+        <NotificationBell v-if="user" />
         <UDropdownMenu
           v-if="user"
           :items="items"
