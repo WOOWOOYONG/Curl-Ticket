@@ -56,8 +56,20 @@ export const userRoles = Object.values(UserRole)
 export const InvitationStatus = {
   Pending: 'pending',
   Accepted: 'accepted',
+  Rejected: 'rejected',
   Expired: 'expired'
 } as const
 
 export type InvitationStatus = typeof InvitationStatus[keyof typeof InvitationStatus]
 export const invitationStatuses = Object.values(InvitationStatus)
+
+// ============================================
+// 通知類型定義
+// ============================================
+export const NotificationType = {
+  IssueUpdate: 'issue_update',
+  ProjectInvite: 'project_invite'
+} as const
+
+export type NotificationType = typeof NotificationType[keyof typeof NotificationType]
+export const notificationTypes = Object.values(NotificationType)

@@ -1,0 +1,3 @@
+ALTER TABLE "notifications" ADD COLUMN "type" varchar(30) DEFAULT 'issue_update' NOT NULL;--> statement-breakpoint
+ALTER TABLE "notifications" ADD COLUMN "project_invitation_id" uuid;--> statement-breakpoint
+ALTER TABLE "notifications" ADD CONSTRAINT "notifications_project_invitation_id_project_invitations_id_fk" FOREIGN KEY ("project_invitation_id") REFERENCES "public"."project_invitations"("id") ON DELETE cascade ON UPDATE no action;

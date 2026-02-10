@@ -23,6 +23,7 @@ export const updateProjectSchema = createProjectSchema.partial()
 /** 專案資料（完整） */
 export const projectSchema = z.object({
   id: z.uuid(),
+  ownerId: z.uuid(),
   name: z.string(),
   key: z.string(),
   description: z.string().nullable(),
@@ -36,6 +37,14 @@ export const projectWithStatsSchema = projectSchema.extend({
   openIssues: z.number()
 })
 
+/** 專案成員資料 */
+export const projectMemberSchema = z.object({
+  userId: z.uuid(),
+  createdAt: z.coerce.date(),
+  name: z.string().nullable(),
+  email: z.string().nullable()
+})
+
 // ============================================
 // Types（從 Schema 推導）
 // ============================================
@@ -44,3 +53,4 @@ export type CreateProjectInput = z.infer<typeof createProjectSchema>
 export type UpdateProjectInput = z.infer<typeof updateProjectSchema>
 export type Project = z.infer<typeof projectSchema>
 export type ProjectWithStats = z.infer<typeof projectWithStatsSchema>
+export type ProjectMember = z.infer<typeof projectMemberSchema>
