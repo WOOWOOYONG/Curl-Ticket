@@ -16,17 +16,18 @@ watch(() => user.value?.sub, async (sub) => {
   processedSub.value = sub
 
   if (import.meta.client) {
-    // 檢查是否有待兌換的邀請 token（從邀請連結註冊的流程）
     const pendingToken = sessionStorage.getItem(PENDING_INVITATION_TOKEN_KEY)
 
     if (pendingToken) {
+      await nextTick()
+
       try {
         await $fetch('/api/invitation-codes/redeem', {
           method: 'POST',
           body: { code: pendingToken }
         })
       } catch (e) {
-        console.error('Failed to redeem invitation token:', e)
+        console.error('Failed to redeem invitation code:', e)
       } finally {
         sessionStorage.removeItem(PENDING_INVITATION_TOKEN_KEY)
       }

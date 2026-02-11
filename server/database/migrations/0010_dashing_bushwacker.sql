@@ -1,0 +1,1 @@
+ALTER TABLE "invitation_codes" ALTER COLUMN "code" SET DATA TYPE varchar(6);

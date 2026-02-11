@@ -6,7 +6,7 @@ import { pgTable, uuid, varchar, timestamp, boolean, index } from 'drizzle-orm/p
  */
 export const invitationCodes = pgTable('invitation_codes', {
   id: uuid('id').primaryKey().defaultRandom(),
-  code: varchar('code', { length: 32 }).notNull().unique(),
+  code: varchar('code', { length: 6 }).notNull().unique(),
   createdBy: uuid('created_by').notNull(),
   usedBy: uuid('used_by'),
   isUsed: boolean('is_used').notNull().default(false),

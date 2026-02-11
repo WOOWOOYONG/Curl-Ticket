@@ -10,7 +10,7 @@ const codes = computed(() => response.value?.data ?? [])
 
 const creating = ref(false)
 
-async function createInvitationLink() {
+async function createInvitationCode() {
   creating.value = true
   try {
     await $fetch('/api/invitation-codes', {
@@ -21,7 +21,7 @@ async function createInvitationLink() {
   } catch {
     useToast().add({
       title: '錯誤',
-      description: '產生邀請連結失敗',
+      description: '產生邀請碼失敗',
       color: 'error'
     })
   } finally {
@@ -29,14 +29,10 @@ async function createInvitationLink() {
   }
 }
 
-function getInviteUrl(code: string) {
-  return `${window.location.origin}/invite/${code}`
-}
-
-function copyLink(code: string) {
-  copyToClipboard(getInviteUrl(code), {
+function copyCode(code: string) {
+  copyToClipboard(code, {
     title: '已複製',
-    description: '邀請連結已複製到剪貼簿'
+    description: '邀請碼已複製到剪貼簿'
   })
 }
 </script>
@@ -67,16 +63,16 @@ function copyLink(code: string) {
             size="lg"
             :loading="creating"
             class="shadow-sm shadow-emerald-500/20"
-            @click="createInvitationLink"
+            @click="createInvitationCode"
           >
-            產生邀請連結
+            產生邀請碼
           </UButton>
         </header>
 
         <section class="flex flex-col gap-4">
           <div class="flex items-center gap-3">
             <h2 class="text-lg font-semibold text-slate-900 dark:text-white">
-              邀請連結列表
+              邀請碼列表
             </h2>
             <UBadge
               color="neutral"
@@ -93,15 +89,15 @@ function copyLink(code: string) {
           >
             <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-300">
               <UIcon
-                name="i-lucide-link"
+                name="i-lucide-ticket"
                 class="size-6"
               />
             </div>
             <h3 class="text-lg font-semibold text-slate-900 dark:text-white">
-              尚無邀請連結
+              尚無邀請碼
             </h3>
             <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
-              點擊上方按鈕產生邀請連結，分享給需要註冊的使用者
+              點擊上方按鈕產生邀請碼，提供給需要註冊的使用者
             </p>
           </div>
 
@@ -117,8 +113,8 @@ function copyLink(code: string) {
               <div class="flex items-center justify-between gap-4">
                 <div class="min-w-0 flex-1">
                   <div class="flex items-center gap-3">
-                    <code class="truncate text-sm font-medium text-slate-700 dark:text-slate-300">
-                      /invite/{{ code.code }}
+                    <code class="text-lg font-bold tracking-widest text-slate-700 dark:text-slate-300">
+                      {{ code.code }}
                     </code>
                     <UBadge
                       :color="code.isUsed ? 'neutral' : 'success'"
@@ -144,9 +140,9 @@ function copyLink(code: string) {
                   variant="soft"
                   color="neutral"
                   size="sm"
-                  @click="copyLink(code.code)"
+                  @click="copyCode(code.code)"
                 >
-                  複製連結
+                  複製邀請碼
                 </UButton>
               </div>
             </div>

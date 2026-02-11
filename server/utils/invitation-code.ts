@@ -3,13 +3,13 @@ import { invitationCodes } from '~~/server/database/schema'
 import { badRequest } from '~~/server/utils/errors'
 
 /**
- * 產生 URL-safe 的唯一邀請 token
- * 格式：26 字元大小寫英數字
+ * 產生 6 位大寫英數字邀請碼（排除易混淆字元 0/O、1/I/L）
+ * 例如：A3X9K2
  */
 export function generateInvitationToken(): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
   return Array.from(
-    { length: 26 },
+    { length: 6 },
     () => chars[Math.floor(Math.random() * chars.length)]
   ).join('')
 }
@@ -31,11 +31,11 @@ export async function validateInvitationToken(db: ReturnType<typeof useDB>, toke
     .limit(1)
 
   if (!code) {
-    badRequest('邀請連結無效或已被使用')
+    badRequest('邀請碼無效或已被使用')
   }
 
   if (code.expiresAt && new Date() > code.expiresAt) {
-    badRequest('邀請連結已過期')
+    badRequest('邀請碼已過期')
   }
 
   return code

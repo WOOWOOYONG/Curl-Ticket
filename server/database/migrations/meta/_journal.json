@@ -64,6 +64,20 @@
       "when": 1770688453621,
       "tag": "0008_short_thor",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1739260800000,
+      "tag": "0009_invitation-code-shorten",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1770817738287,
+      "tag": "0010_dashing_bushwacker",
+      "breakpoints": true
     }
   ]
 }
