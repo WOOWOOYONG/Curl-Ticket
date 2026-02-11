@@ -18,7 +18,20 @@ export async function requireAdmin(db: ReturnType<typeof useDB>, userId: string)
 }
 
 /**
- * 取得或建立用戶 Profile（首次登入時自動建立）
+ * 查詢用戶 Profile（只查詢，不建立）
+ */
+export async function getProfile(db: ReturnType<typeof useDB>, userId: string) {
+  const [profile] = await db
+    .select()
+    .from(profiles)
+    .where(eq(profiles.id, userId))
+    .limit(1)
+
+  return profile ?? null
+}
+
+/**
+ * 取得或建立用戶 Profile（僅在 redeem 邀請碼時使用）
  */
 export async function getOrCreateProfile(
   db: ReturnType<typeof useDB>,

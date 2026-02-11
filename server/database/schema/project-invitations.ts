@@ -1,6 +1,6 @@
 import { pgTable, uuid, varchar, timestamp, index } from 'drizzle-orm/pg-core'
 import { projects } from './projects'
-import { InvitationStatus } from '~~/shared/constants'
+import { InvitationStatus } from '../../../shared/constants'
 
 /**
  * Project Invitations 資料表

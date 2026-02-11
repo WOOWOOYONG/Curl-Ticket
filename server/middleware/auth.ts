@@ -1,12 +1,12 @@
 import { serverSupabaseClient } from '#supabase/server'
-import { getOrCreateProfile } from '~~/server/utils/profile'
+import { getProfile } from '~~/server/utils/profile'
 
 /**
  * Server Middleware: 驗證用戶登入狀態
  * - 只處理 /api/ 開頭的請求
  * - 排除公開 API 路由
- * - 使用 auth.getUser() 向 Supabase Server 驗證（非本地 JWT 驗證）
- * - 將 userId、profile 存到 event.context 供後續 API 使用
+ * - 區分「僅需 OAuth」與「需要 profile」的路由
+ * - 未完成註冊（無 profile）的用戶只能存取 authOnlyRoutes
  */
 export default defineEventHandler(async (event) => {
   if (!event.path.startsWith('/api/')) return
@@ -17,12 +17,17 @@ export default defineEventHandler(async (event) => {
     '/api/invitation-codes/validate'
   ]
 
-  // 檢查是否為公開路由（支援前綴匹配）
   const isPublicRoute = publicRoutes.some(route =>
     event.path === route || event.path.startsWith(`${route}/`)
   )
 
   if (isPublicRoute) return
+
+  // 僅需 OAuth 驗證、不需要 profile 的路由
+  const authOnlyRoutes = [
+    '/api/invitation-codes/redeem',
+    '/api/auth/me'
+  ]
 
   // 使用 Supabase Client 進行 Server-side 驗證
   const supabase = await serverSupabaseClient(event)
@@ -38,14 +43,22 @@ export default defineEventHandler(async (event) => {
   // 將用戶資訊存到 context
   event.context.userId = user.id
   event.context.userEmail = user.email ?? undefined
+  event.context.userMetadata = user.user_metadata
 
-  // 取得或建立 Profile
-  const db = useDB()
-  const profile = await getOrCreateProfile(
-    db,
-    user.id,
-    user.email!,
-    user.user_metadata?.full_name
+  const isAuthOnlyRoute = authOnlyRoutes.some(route =>
+    event.path === route || event.path.startsWith(`${route}/`)
   )
+
+  // authOnly 路由不需要 profile，直接放行
+  if (isAuthOnlyRoute) return
+
+  // 其他 API 需要 profile
+  const db = useDB()
+  const profile = await getProfile(db, user.id)
+
+  if (!profile) {
+    forbidden('請先完成註冊')
+  }
+
   event.context.profile = profile
 })

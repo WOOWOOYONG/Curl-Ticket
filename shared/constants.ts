@@ -24,6 +24,19 @@ export type IssueStatus = typeof IssueStatus[keyof typeof IssueStatus]
 export const issueStatuses = Object.values(IssueStatus)
 
 // ============================================
+// HTTP 狀態碼定義
+// ============================================
+export const HttpStatus = {
+  BadRequest: 400,
+  Unauthorized: 401,
+  Forbidden: 403,
+  NotFound: 404,
+  InternalServerError: 500
+} as const
+
+export type HttpStatus = typeof HttpStatus[keyof typeof HttpStatus]
+
+// ============================================
 // HTTP 方法定義
 // ============================================
 export const HttpMethod = {

@@ -10,9 +10,13 @@ export default defineNuxtRouteMiddleware(async () => {
     return navigateTo('/login')
   }
 
-  const { data } = await useFetch('/api/auth/me')
-
-  if (data.value?.role !== UserRole.Admin) {
+  try {
+    const { fetchProfile } = useProfile()
+    const profile = await fetchProfile()
+    if (profile?.role !== UserRole.Admin) {
+      return navigateTo('/')
+    }
+  } catch {
     return navigateTo('/')
   }
 })
