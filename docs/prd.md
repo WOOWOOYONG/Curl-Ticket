@@ -21,9 +21,12 @@
 
 ```mermaid
 graph TD
-    InviteLink[邀請連結] -->|驗證 Token| InvitePage[邀請頁]
-    InvitePage -->|Google OAuth| Confirm[OAuth Callback]
-    Confirm -->|兌換 Token + 建立 Profile| Dashboard
+    Register[註冊頁] -->|輸入邀請碼| ValidateCode[驗證邀請碼]
+    ValidateCode -->|未登入| GoogleOAuth[Google OAuth]
+    GoogleOAuth -->|Callback| Confirm[/confirm]
+    Confirm -->|兌換邀請碼 + 建立 Profile| Dashboard
+    ValidateCode -->|已登入| RedeemCode[兌換邀請碼 + 建立 Profile]
+    RedeemCode --> Dashboard
 
     Login[登入頁] -->|Auth Success| Dashboard[首頁 - Project 列表]
     Dashboard -->|Create| CreateProject[新增專案頁]
@@ -62,40 +65,41 @@ graph TD
 - 登入成功後跳轉至首頁。
 - 已有帳號的用戶直接顯示 Google 登入按鈕；無帳號用戶顯示提示「需要邀請連結才能註冊」。
 
-### 3.1.1 邀請連結註冊 (Invitation Link Registration) **[New]**
+### 3.1.1 邀請碼註冊 (Invitation Code Registration) **[New]**
 
-- **頁面路徑：** `/invite/[token]`
+- **頁面路徑：** `/register`
 - **功能描述：**
-  - **僅限受邀用戶註冊**：系統採用封閉註冊制，新用戶必須透過 Admin 產生的邀請連結才能註冊。
+  - **僅限受邀用戶註冊**：系統採用封閉註冊制，新用戶必須透過 Admin 產生的 6 位邀請碼才能註冊。
   - **註冊流程：**
-    1. Admin 在邀請管理頁 (`/admin`) 產生邀請連結。
-    2. Admin 透過任意管道（Slack、LINE、Email 等）將連結分享給受邀者。
-    3. 受邀者點擊連結 → 系統驗證 token 有效性（未使用、未過期）。
-    4. 驗證通過 → 顯示 Google 登入按鈕，token 暫存 `sessionStorage`。
-    5. 完成 Google OAuth → `/confirm` 頁自動兌換 token 並建立用戶 Profile。
-    6. 跳轉至首頁。
-  - **驗證失敗情境：** token 無效、已使用、已過期 → 顯示錯誤訊息與返回登入頁按鈕。
-  - **邀請連結為一次性使用**，兌換後即失效。
+    1. Admin 在邀請管理頁 (`/admin`) 產生 6 位邀請碼（例如 `A3X9K2`）。
+    2. Admin 透過任意管道（Slack、LINE、Email 等）將邀請碼分享給受邀者。
+    3. 受邀者前往 `/register` 頁面，手動輸入 6 位邀請碼。
+    4. 系統驗證邀請碼有效性（未使用、未過期）。
+    5. **未登入用戶**：驗證通過 → 顯示 Google 登入按鈕，邀請碼暫存 `sessionStorage` → 完成 OAuth 後在 `/confirm` 頁自動兌換並建立 Profile → 跳轉首頁。
+    6. **已登入用戶**：驗證通過 → 直接兌換邀請碼並建立 Profile → 跳轉首頁。
+  - **驗證失敗情境：** 邀請碼無效、已使用、已過期 → 顯示錯誤訊息。
+  - **邀請碼為一次性使用**，兌換後即失效。
+  - **邀請碼格式：** 6 位大寫英數字，排除易混淆字元（0/O、1/I/L）。
 
 ### 3.1.2 邀請管理 (Invitation Management - Admin) **[New]**
 
 - **頁面路徑：** `/admin`
 - **存取限制：** 僅限 `admin` 角色，透過 Client-side middleware 與 Server-side API 雙重檢查。Sidebar 僅對 Admin 顯示入口。
 - **功能描述：**
-  - **產生邀請連結**：點擊按鈕產生唯一 token，自動組合為完整 URL。
-  - **邀請連結列表**：顯示所有已產生的邀請連結，包含：
-    - Token 路徑（`/invite/{token}`）
-    - 狀態（可使用 / 已使用）
+  - **產生邀請碼**：點擊按鈕產生唯一的 6 位邀請碼（格式：大寫英數字，排除易混淆字元）。
+  - **邀請碼列表**：顯示所有已產生的邀請碼，包含：
+    - 邀請碼（例如 `A3X9K2`）
+    - 狀態 Badge（可使用 / 已使用）
     - 建立時間、使用時間、過期時間
-  - **一鍵複製**：可使用狀態的連結提供複製按鈕。
+  - **一鍵複製**：可使用狀態的邀請碼提供複製按鈕。
 
 ### 3.1.3 用戶角色 (User Roles) **[New]**
 
 - **角色定義：**
-  - `admin`：系統管理員，可產生邀請連結、管理用戶。
+  - `admin`：系統管理員，可產生邀請碼、管理用戶。
   - `user`：一般用戶，可使用系統所有業務功能（專案、Issue 等）。
 - **首位 Admin 設定：** 部署後由開發者透過 SQL 手動將自己的 Profile 設為 `admin`。
-- **Profile 自動建立：** 用戶首次通過 API 驗證時，Server middleware 自動建立 Profile（預設角色為 `user`）。
+- **Profile 建立時機：** 用戶兌換邀請碼時自動建立 Profile（預設角色為 `user`）。
 
 ### 3.2 專案列表 (Dashboard) - 首頁
 
@@ -247,7 +251,7 @@ _(Standard Supabase Auth Ref)_
 | Column       | Type         | Constraint       | Description                          |
 | ------------ | ------------ | ---------------- | ------------------------------------ |
 | `id`         | uuid         | PK               | Default gen_random_uuid()            |
-| `code`       | varchar(32)  | Unique, Not Null | 邀請 token（用於組合邀請連結 URL）   |
+| `code`       | varchar(6)   | Unique, Not Null | 6 位邀請碼（大寫英數字，排除易混淆字元） |
 | `created_by` | uuid         | Not Null         | 產生此邀請的 Admin                   |
 | `used_by`    | uuid         |                  | 使用此邀請的用戶                     |
 | `is_used`    | boolean      | Default false    | 是否已被使用                         |
@@ -383,7 +387,7 @@ _(Standard Supabase Auth Ref)_
 - Issue 列表篩選 (Status, Environment)。
 - 狀態變更 (Open -> Done)。
 - **即時通知系統 (Realtime Notifications):** 資料庫 Trigger + WebSocket 前端整合。
-- **邀請連結註冊系統：** Admin 產生邀請連結、封閉式註冊、用戶角色管理。
+- **邀請碼註冊系統：** Admin 產生 6 位邀請碼、封閉式註冊、用戶角色管理。
 - **專案成員存取控制：** Owner / Member 權限區分。
 
 ### Phase 2.5: Invitation Enhancement (邀請擴展) **[Done]**
