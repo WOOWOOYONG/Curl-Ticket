@@ -31,11 +31,11 @@ const { data: issueResponse, status } = await useFetch<IssueResponse>(
 const issue = computed<Issue | undefined>(() => issueResponse.value?.data)
 const friendlyId = computed(() => issueResponse.value?.friendlyId)
 
-const statusOptions = issueStatuses.map(s => ({
-  label: s,
-  value: s,
+const statusOptions = issueStatuses.map(status => ({
+  label: status,
+  value: status,
   chip: {
-    color: IssueStatusColor[s] as 'error' | 'warning' | 'success'
+    color: IssueStatusColor[status]
   }
 }))
 const selectedStatus = ref<IssueStatus | undefined>()
@@ -221,7 +221,6 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
                     v-bind="getStatusChip(modelValue as string)"
                     inset
                     standalone
-                    :size="(ui.itemLeadingChipSize() as any)"
                     :class="ui.itemLeadingChip()"
                   />
                 </template>
