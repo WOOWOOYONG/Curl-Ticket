@@ -18,8 +18,9 @@ export default defineEventHandler(async (event) => {
     forbidden('Only the project owner can delete this project')
   }
 
-  // Related data (issues, project_members, project_invitations, notifications)
-  // will be deleted automatically via ON DELETE CASCADE
+  // TODO: 改為軟刪除 — 在 projects 表新增 deletedAt 欄位，
+  // 將 DELETE 改為 UPDATE SET deleted_at = NOW()，
+  // 並在 project-access.ts 和 projects/index.get.ts 加上 deletedAt IS NULL 過濾
   await db.delete(projects).where(eq(projects.id, projectId))
 
   return { success: true }

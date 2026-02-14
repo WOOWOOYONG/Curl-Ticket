@@ -392,7 +392,8 @@ async function confirmDelete() {
     <!-- Delete Confirmation Modal -->
     <UModal
       :open="!!deleteTarget"
-      @update:open="(val: boolean) => { if (!val) deleteTarget = null }"
+      :prevent-close="deleteLoading"
+      @update:open="(val: boolean) => { if (!val && !deleteLoading) deleteTarget = null }"
     >
       <template #header>
         <h3 class="text-lg font-semibold">
@@ -411,6 +412,7 @@ async function confirmDelete() {
           <UButton
             color="neutral"
             variant="outline"
+            :disabled="deleteLoading"
             @click="deleteTarget = null"
           >
             取消

@@ -158,12 +158,12 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
             <div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
               <UButton
                 v-if="project.ownerId === user?.sub"
-                icon="i-lucide-settings"
+                icon="i-lucide-users"
                 :to="`/projects/${projectId}/members`"
                 size="lg"
                 variant="outline"
               >
-                Settings
+                Members
               </UButton>
               <UButton
                 icon="i-lucide-plus"

@@ -117,7 +117,7 @@ function getStatusColor(status: InvitationStatus): BadgeColor {
               無法存取
             </h2>
             <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
-              只有專案擁有者可以存取設定頁面。
+              只有專案擁有者可以存取成員管理頁面。
             </p>
             <UButton
               :to="`/projects/${projectId}`"
