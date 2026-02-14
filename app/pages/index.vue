@@ -1,5 +1,7 @@
 <script setup lang="ts">
-const { data: response, status } = await useFetch('/api/projects')
+const { data: response, status, refresh } = await useFetch('/api/projects')
+const user = useSupabaseUser()
+const toast = useToast()
 
 const searchQuery = ref('')
 
@@ -33,6 +35,48 @@ function getProgressPercentage(open: number, total: number) {
   if (total <= 0) return 0
   const resolved = Math.max(total - open, 0)
   return Math.round((resolved / total) * 100)
+}
+
+// Project dropdown menu
+function getProjectMenuItems(project: { id: string, name: string }) {
+  return [
+    [{
+      label: '邀請成員',
+      icon: 'i-lucide-user-plus',
+      onSelect: () => navigateTo(`/projects/${project.id}/members`)
+    }],
+    [{
+      label: '刪除專案',
+      icon: 'i-lucide-trash-2',
+      color: 'error' as const,
+      onSelect: () => { deleteTarget.value = { id: project.id, name: project.name } }
+    }]
+  ]
+}
+
+// Delete project
+const deleteTarget = ref<{ id: string, name: string } | null>(null)
+const deleteLoading = ref(false)
+
+async function confirmDelete() {
+  if (!deleteTarget.value) return
+
+  deleteLoading.value = true
+  try {
+    await $fetch(`/api/projects/${deleteTarget.value.id}`, { method: 'DELETE' })
+    toast.add({ title: '專案已刪除', color: 'success' })
+    deleteTarget.value = null
+    refresh()
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : '刪除失敗'
+    const fetchError = error as { data?: { statusMessage?: string } }
+    toast.add({
+      title: fetchError.data?.statusMessage || message,
+      color: 'error'
+    })
+  } finally {
+    deleteLoading.value = false
+  }
 }
 </script>
 
@@ -251,14 +295,29 @@ function getProgressPercentage(open: number, total: number) {
                         </p>
                       </div>
                     </div>
-                    <span class="text-[11px] text-slate-500 dark:text-slate-400">
-                      <template v-if="project.lastUpdated">
-                        Updated {{ getTimeAgo(project.lastUpdated) }}
-                      </template>
-                      <template v-else>
-                        New project
-                      </template>
-                    </span>
+                    <div class="flex items-center gap-1">
+                      <span class="text-[11px] text-slate-500 dark:text-slate-400">
+                        <template v-if="project.lastUpdated">
+                          Updated {{ getTimeAgo(project.lastUpdated) }}
+                        </template>
+                        <template v-else>
+                          New project
+                        </template>
+                      </span>
+                      <UDropdownMenu
+                        v-if="project.ownerId === user?.sub"
+                        :items="getProjectMenuItems(project)"
+                      >
+                        <UButton
+                          icon="i-lucide-ellipsis"
+                          variant="ghost"
+                          size="xs"
+                          color="neutral"
+                          aria-label="專案操作"
+                          @click.prevent.stop
+                        />
+                      </UDropdownMenu>
+                    </div>
                   </div>
 
                   <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
@@ -329,5 +388,42 @@ function getProgressPercentage(open: number, total: number) {
         </section>
       </div>
     </div>
+
+    <!-- Delete Confirmation Modal -->
+    <UModal
+      :open="!!deleteTarget"
+      @update:open="(val: boolean) => { if (!val) deleteTarget = null }"
+    >
+      <template #header>
+        <h3 class="text-lg font-semibold">
+          確認刪除專案
+        </h3>
+      </template>
+
+      <template #body>
+        <p class="text-sm text-slate-600 dark:text-slate-300">
+          確定要刪除專案 <span class="font-semibold text-slate-900 dark:text-white">{{ deleteTarget?.name }}</span> 嗎？此操作無法復原，所有相關的 Issues、成員和邀請都會一併刪除。
+        </p>
+      </template>
+
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <UButton
+            color="neutral"
+            variant="outline"
+            @click="deleteTarget = null"
+          >
+            取消
+          </UButton>
+          <UButton
+            color="error"
+            :loading="deleteLoading"
+            @click="confirmDelete"
+          >
+            確認刪除
+          </UButton>
+        </div>
+      </template>
+    </UModal>
   </UDashboardPanel>
 </template>

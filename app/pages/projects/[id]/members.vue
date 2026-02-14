@@ -143,7 +143,7 @@ function getStatusColor(status: InvitationStatus): BadgeColor {
             </NuxtLink>
             <div class="space-y-1">
               <h1 class="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
-                {{ project.name }} — 設定
+                {{ project.name }} — 成員管理
               </h1>
               <p class="text-sm text-slate-500 dark:text-slate-400">
                 管理專案成員與邀請

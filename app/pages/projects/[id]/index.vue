@@ -16,7 +16,7 @@ const { data: response, status } = await useProject(projectId)
 const project = computed(() => response.value?.data)
 
 // Issues options
-const issuesOptions = ref({ page: 1, pageSize: 20 })
+const issuesOptions = ref({ page: 1, pageSize: 10 })
 
 const { data: issuesResponse, status: issuesStatus } = await useIssues(projectId, issuesOptions)
 
@@ -81,7 +81,7 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
 
 <template>
   <UDashboardPanel>
-    <div class="relative isolate flex-1 min-h-full overflow-hidden">
+    <div class="relative isolate min-h-full">
       <div class="page-bg">
         <div class="page-bg-blob-left -top-28 -left-32" />
         <div class="page-bg-blob-right-compact top-12 -right-40" />
@@ -89,7 +89,7 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
         <div class="page-bg-grid" />
       </div>
 
-      <div class="relative z-10 flex flex-1 min-h-0 flex-col gap-8 p-6 sm:p-8 lg:p-10">
+      <div class="relative z-10 flex flex-col gap-8 p-6 sm:p-8 lg:p-10">
         <!-- Loading State -->
         <template v-if="status === 'pending'">
           <USkeleton class="h-10 w-48" />
@@ -159,7 +159,7 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
               <UButton
                 v-if="project.ownerId === user?.sub"
                 icon="i-lucide-settings"
-                :to="`/projects/${projectId}/settings`"
+                :to="`/projects/${projectId}/members`"
                 size="lg"
                 variant="outline"
               >
@@ -176,7 +176,7 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
             </div>
           </header>
 
-          <section class="flex min-h-0 flex-1 flex-col gap-4">
+          <section class="flex flex-col gap-4">
             <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div class="flex items-center gap-3">
                 <h2 class="text-lg font-semibold text-slate-900 dark:text-white">
@@ -221,106 +221,97 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
             <!-- Issues List -->
             <div
               v-else
-              class="flex min-h-0 flex-1 flex-col"
+              class="overflow-hidden rounded-2xl border border-slate-200/70 bg-white/80 shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60"
             >
-              <template v-if="issuesStatus === 'pending'">
-                <USkeleton class="h-12 w-full rounded-2xl" />
-                <USkeleton class="h-12 w-full rounded-2xl" />
-                <USkeleton class="h-12 w-full rounded-2xl" />
-              </template>
+              <UTable
+                :columns="columns"
+                :data="issues"
+                :loading="issuesStatus === 'pending'"
+                loading-animation="carousel"
+                :ui="{
+                  tr: 'cursor-pointer transition-colors hover:bg-emerald-50/50 dark:hover:bg-emerald-500/10',
+                  td: 'py-3 text-slate-700 dark:text-slate-200',
+                  th: 'py-3 text-xs font-semibold uppercase text-slate-500 dark:text-slate-400'
+                }"
+                class="h-140"
+                @select="onRowSelect"
+              >
+                <!-- Issue ID -->
+                <template #issueId-cell="{ row }">
+                  <span class="font-mono text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                    {{ row.original.projectKey }}-{{ row.original.issueNumber }}
+                  </span>
+                </template>
 
-              <template v-else>
-                <div class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200/70 bg-white/80 shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60">
-                  <div class="flex-1 overflow-auto">
-                    <UTable
-                      :columns="columns"
-                      :data="issues"
-                      :ui="{
-                        tr: 'cursor-pointer transition-colors hover:bg-emerald-50/50 dark:hover:bg-emerald-500/10',
-                        td: 'py-3 text-slate-700 dark:text-slate-200',
-                        th: 'py-3 text-xs font-semibold uppercase text-slate-500 dark:text-slate-400'
-                      }"
-                      @select="onRowSelect"
-                    >
-                      <!-- Issue ID -->
-                      <template #issueId-cell="{ row }">
-                        <span class="font-mono text-sm font-semibold text-emerald-600 dark:text-emerald-400">
-                          {{ row.original.projectKey }}-{{ row.original.issueNumber }}
-                        </span>
-                      </template>
-
-                      <!-- Title -->
-                      <template #title-cell="{ row }">
-                        <div class="flex flex-col gap-1">
-                          <span class="font-medium text-slate-900 dark:text-white truncate">
-                            {{ row.original.title }}
-                          </span>
-                          <span class="text-xs text-slate-400 dark:text-slate-500 truncate font-mono">
-                            {{ row.original.url }}
-                          </span>
-                        </div>
-                      </template>
-
-                      <!-- HTTP Method -->
-                      <template #method-cell="{ row }">
-                        <UBadge
-                          :color="getHttpMethodColor(row.original.method)"
-                          variant="subtle"
-                          class="font-mono text-xs font-semibold"
-                        >
-                          {{ row.original.method }}
-                        </UBadge>
-                      </template>
-
-                      <!-- Status -->
-                      <template #status-cell="{ row }">
-                        <div class="inline-flex items-center gap-1.5">
-                          <UChip
-                            :color="IssueStatusColor[row.original.status] || 'neutral'"
-                            inset
-                            standalone
-                            size="xs"
-                          />
-                          <span class="text-sm font-medium text-slate-700 dark:text-slate-200">
-                            {{ row.original.status }}
-                          </span>
-                        </div>
-                      </template>
-
-                      <!-- Environment -->
-                      <template #environment-cell="{ row }">
-                        <span class="text-sm text-slate-500 dark:text-slate-400">
-                          {{ row.original.environment }}
-                        </span>
-                      </template>
-
-                      <!-- Updated At -->
-                      <template #updatedAt-cell="{ row }">
-                        <span class="text-sm text-slate-500 dark:text-slate-400">
-                          {{ formatDateTime(row.original.updatedAt) }}
-                        </span>
-                      </template>
-                    </UTable>
-                  </div>
-
-                  <div
-                    v-if="pagination"
-                    class="flex flex-col gap-3 border-t border-slate-200/70 bg-white/70 px-4 py-3 text-sm text-slate-500 dark:border-white/10 dark:bg-gray-900/60 dark:text-slate-400 sm:flex-row sm:items-center sm:justify-between"
-                  >
-                    <span>
-                      Showing <span class="font-medium text-slate-700 dark:text-slate-300">{{ pageStart }}</span>
-                      to <span class="font-medium text-slate-700 dark:text-slate-300">{{ pageEnd }}</span>
-                      of <span class="font-medium text-slate-700 dark:text-slate-300">{{ pagination.total }}</span> results
+                <!-- Title -->
+                <template #title-cell="{ row }">
+                  <div class="flex flex-col gap-1">
+                    <span class="font-medium text-slate-900 dark:text-white truncate">
+                      {{ row.original.title }}
                     </span>
-                    <UPagination
-                      :model-value="issuesOptions.page"
-                      :total="pagination.total"
-                      :page-count="issuesOptions.pageSize"
-                      @update:model-value="goToPage"
-                    />
+                    <span class="text-xs text-slate-400 dark:text-slate-500 truncate font-mono">
+                      {{ row.original.url }}
+                    </span>
                   </div>
-                </div>
-              </template>
+                </template>
+
+                <!-- HTTP Method -->
+                <template #method-cell="{ row }">
+                  <UBadge
+                    :color="getHttpMethodColor(row.original.method)"
+                    variant="subtle"
+                    class="font-mono text-xs font-semibold"
+                  >
+                    {{ row.original.method }}
+                  </UBadge>
+                </template>
+
+                <!-- Status -->
+                <template #status-cell="{ row }">
+                  <div class="inline-flex items-center gap-1.5">
+                    <UChip
+                      :color="IssueStatusColor[row.original.status] || 'neutral'"
+                      inset
+                      standalone
+                      size="xs"
+                    />
+                    <span class="text-sm font-medium text-slate-700 dark:text-slate-200">
+                      {{ row.original.status }}
+                    </span>
+                  </div>
+                </template>
+
+                <!-- Environment -->
+                <template #environment-cell="{ row }">
+                  <span class="text-sm text-slate-500 dark:text-slate-400">
+                    {{ row.original.environment }}
+                  </span>
+                </template>
+
+                <!-- Updated At -->
+                <template #updatedAt-cell="{ row }">
+                  <span class="text-sm text-slate-500 dark:text-slate-400">
+                    {{ formatDateTime(row.original.updatedAt) }}
+                  </span>
+                </template>
+              </UTable>
+
+              <div
+                v-if="pagination"
+                class="flex flex-col gap-3 border-t border-slate-200/70 bg-white/70 px-4 py-3 text-sm text-slate-500 dark:border-white/10 dark:bg-gray-900/60 dark:text-slate-400 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <span>
+                  Showing <span class="font-medium text-slate-700 dark:text-slate-300">{{ pageStart }}</span>
+                  to <span class="font-medium text-slate-700 dark:text-slate-300">{{ pageEnd }}</span>
+                  of <span class="font-medium text-slate-700 dark:text-slate-300">{{ pagination.total }}</span> results
+                </span>
+                <UPagination
+                  :page="issuesOptions.page"
+                  :total="pagination.total"
+                  :items-per-page="issuesOptions.pageSize"
+                  @update:page="goToPage"
+                />
+              </div>
             </div>
           </section>
         </template>
