@@ -345,6 +345,16 @@ The packaging script will:
 
 If validation fails, the script will report the errors and exit without creating a package. Fix any validation errors and run the packaging command again.
 
+### Step 5.5: Sync Symlinks
+
+After creating or deleting a skill in `.agents/skills/`, run the sync script to update `.claude/skills` and `.codex/skills` symlinks:
+
+```bash
+bash scripts/sync-skills.sh
+```
+
+This ensures all agent platforms pick up the new skill. The script automatically creates missing symlinks and removes broken ones.
+
 ### Step 6: Iterate
 
 After testing the skill, users may request improvements. Often this happens right after using the skill, with fresh context of how the skill performed.
