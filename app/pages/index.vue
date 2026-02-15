@@ -1,30 +1,42 @@
 <script setup lang="ts">
-const { data: response, status, refresh } = await useFetch('/api/projects')
 const user = useSupabaseUser()
 const toast = useToast()
 
 const searchQuery = ref('')
+const debouncedSearch = refDebounced(searchQuery, 300)
 
-const allProjects = computed(() => response.value?.data ?? [])
-const projects = computed(() => {
-  const query = searchQuery.value.trim().toLowerCase()
-  if (!query) return allProjects.value
+const projectsOptions = ref<UseProjectsOptions>({ page: 1, pageSize: 12 })
 
-  return allProjects.value.filter((project) => {
-    const name = project.name?.toLowerCase() ?? ''
-    const key = project.key?.toLowerCase() ?? ''
-    const description = project.description?.toLowerCase() ?? ''
-    return name.includes(query) || key.includes(query) || description.includes(query)
-  })
+watch(debouncedSearch, (val) => {
+  projectsOptions.value = { ...projectsOptions.value, search: val, page: 1 }
 })
 
-const totalProjects = computed(() => allProjects.value.length)
-const totalOpenIssues = computed(() => allProjects.value.reduce((sum, project) => sum + (project.openIssues ?? 0), 0))
-const totalIssues = computed(() => allProjects.value.reduce((sum, project) => sum + (project.totalIssues ?? 0), 0))
+const { data: response, status, refresh } = await useProjects(projectsOptions)
+
+const projects = computed(() => response.value?.data ?? [])
+const pagination = computed(() => response.value?.pagination)
+const summary = computed(() => response.value?.summary)
+
+const totalProjects = computed(() => summary.value?.totalProjects ?? 0)
+const totalOpenIssues = computed(() => summary.value?.openIssues ?? 0)
+const totalIssues = computed(() => summary.value?.totalIssues ?? 0)
 const overallProgress = computed(() => {
   if (totalIssues.value === 0) return 0
   return Math.round(((totalIssues.value - totalOpenIssues.value) / totalIssues.value) * 100)
 })
+
+const pageStart = computed(() => {
+  if (!pagination.value || pagination.value.total === 0) return 0
+  return (pagination.value.page - 1) * pagination.value.pageSize + 1
+})
+const pageEnd = computed(() => {
+  if (!pagination.value || pagination.value.total === 0) return 0
+  return Math.min(pagination.value.page * pagination.value.pageSize, pagination.value.total)
+})
+
+function goToPage(page: number) {
+  projectsOptions.value = { ...projectsOptions.value, page }
+}
 
 function getTimeAgo(date: string | null) {
   if (!date) return null
@@ -219,7 +231,7 @@ async function confirmDelete() {
                 variant="subtle"
                 class="font-mono text-xs"
               >
-                {{ projects.length }} visible
+                {{ pagination?.total ?? 0 }} visible
               </UBadge>
             </div>
           </div>
@@ -384,6 +396,23 @@ async function confirmDelete() {
                 </div>
               </div>
             </NuxtLink>
+          </div>
+
+          <div
+            v-if="pagination && pagination.totalPages > 1"
+            class="flex flex-col gap-3 rounded-2xl border border-white/60 bg-white/75 px-4 py-3 text-sm text-slate-500 shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60 dark:text-slate-400 sm:flex-row sm:items-center sm:justify-between"
+          >
+            <span>
+              Showing <span class="font-medium text-slate-700 dark:text-slate-300">{{ pageStart }}</span>
+              to <span class="font-medium text-slate-700 dark:text-slate-300">{{ pageEnd }}</span>
+              of <span class="font-medium text-slate-700 dark:text-slate-300">{{ pagination.total }}</span> results
+            </span>
+            <UPagination
+              :page="projectsOptions.page"
+              :total="pagination.total"
+              :items-per-page="projectsOptions.pageSize"
+              @update:page="goToPage"
+            />
           </div>
         </section>
       </div>
