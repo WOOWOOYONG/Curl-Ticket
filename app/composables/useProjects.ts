@@ -1,4 +1,5 @@
 import type { ProjectWithStats } from '~~/shared/schemas'
+import type { PaginationMeta } from '~~/shared/types'
 
 type ProjectListItem = ProjectWithStats & {
   lastUpdated: string | null
@@ -6,12 +7,7 @@ type ProjectListItem = ProjectWithStats & {
 
 interface ProjectsResponse {
   data: ProjectListItem[]
-  pagination: {
-    page: number
-    pageSize: number
-    total: number
-    totalPages: number
-  }
+  pagination: PaginationMeta
   summary: {
     totalProjects: number
     totalIssues: number

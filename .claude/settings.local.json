@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "mcp__ide__getDiagnostics",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm typecheck:*)"
     ]
   }
 }

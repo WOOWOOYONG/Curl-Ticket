@@ -15,8 +15,16 @@ const projectId = computed(() => route.params.id as string)
 const { data: response, status } = await useProject(projectId)
 const project = computed(() => response.value?.data)
 
-// Issues options
-const issuesOptions = ref({ page: 1, pageSize: 10 })
+// Issues search & options
+const searchQuery = ref('')
+const debouncedSearch = refDebounced(searchQuery, 300)
+
+const DEFAULT_PAGE_SIZE = 10
+const issuesOptions = ref<UseIssuesOptions>({ page: 1, pageSize: DEFAULT_PAGE_SIZE })
+
+watch(debouncedSearch, (val) => {
+  issuesOptions.value = { ...issuesOptions.value, search: val, page: 1 }
+})
 
 const { data: issuesResponse, status: issuesStatus } = await useIssues(projectId, issuesOptions)
 
@@ -30,12 +38,12 @@ const pagination = computed(() => issuesResponse.value?.pagination)
 const totalIssuesCount = computed(() => pagination.value?.total ?? issues.value.length)
 const pageStart = computed(() => {
   if (!pagination.value || pagination.value.total === 0) return 0
-  const pageSize = pagination.value.pageSize || issuesOptions.value.pageSize
+  const pageSize = pagination.value.pageSize || issuesOptions.value.pageSize || DEFAULT_PAGE_SIZE
   return (pagination.value.page - 1) * pageSize + 1
 })
 const pageEnd = computed(() => {
   if (!pagination.value || pagination.value.total === 0) return 0
-  const pageSize = pagination.value.pageSize || issuesOptions.value.pageSize
+  const pageSize = pagination.value.pageSize || issuesOptions.value.pageSize || DEFAULT_PAGE_SIZE
   return Math.min(pagination.value.page * pageSize, pagination.value.total)
 })
 
@@ -190,6 +198,14 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
                   {{ totalIssuesCount }} total
                 </UBadge>
               </div>
+              <UInput
+                v-model="searchQuery"
+                icon="i-lucide-search"
+                size="lg"
+                placeholder="Search issues by title or URL"
+                class="w-full sm:w-80"
+                :ui="{ base: 'bg-white/80 dark:bg-gray-900/60 border-slate-200/70 dark:border-white/10' }"
+              />
             </div>
 
             <!-- Empty State -->

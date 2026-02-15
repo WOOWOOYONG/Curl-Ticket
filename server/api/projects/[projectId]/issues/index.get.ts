@@ -1,9 +1,10 @@
 import type { SQL } from 'drizzle-orm'
-import { eq, desc, count, and } from 'drizzle-orm'
+import { eq, desc, count, and, or, ilike } from 'drizzle-orm'
 import { issues } from '~~/server/database/schema'
 import { IssueStatus, type IssueStatus as IssueStatusType, type Environment } from '~~/shared/constants'
 import { badRequest } from '~~/server/utils/errors'
 import { getAccessibleProject } from '~~/server/utils/project-access'
+import { sanitizeSearchQuery, escapeLikePattern } from '~~/server/utils/search'
 
 export default defineEventHandler(async (event) => {
   const projectId = getRouterParam(event, 'projectId')
@@ -34,6 +35,17 @@ export default defineEventHandler(async (event) => {
 
   if (environment) {
     conditions.push(eq(issues.environment, environment))
+  }
+
+  const search = sanitizeSearchQuery(query.search)
+  if (search) {
+    const escaped = escapeLikePattern(search)
+    conditions.push(
+      or(
+        ilike(issues.title, `%${escaped}%`),
+        ilike(issues.url, `%${escaped}%`)
+      )!
+    )
   }
 
   const whereClause = and(...conditions)

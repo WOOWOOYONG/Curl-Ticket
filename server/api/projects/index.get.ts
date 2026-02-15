@@ -2,6 +2,7 @@ import { and, or, count, desc, ilike, inArray, max, sql } from 'drizzle-orm'
 import { projects, issues } from '~~/server/database/schema'
 import { IssueStatus } from '~~/shared/constants'
 import { buildProjectAccessCondition } from '~~/server/utils/project-access'
+import { sanitizeSearchQuery, escapeLikePattern } from '~~/server/utils/search'
 
 export default defineEventHandler(async (event) => {
   const db = useDB()
@@ -11,7 +12,7 @@ export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const page = Math.max(1, Number(query.page) || 1)
   const pageSize = Math.min(100, Math.max(1, Number(query.pageSize) || 12))
-  const search = typeof query.search === 'string' ? query.search.trim() : ''
+  const search = sanitizeSearchQuery(query.search)
 
   // 2. 計算 offset
   const offset = (page - 1) * pageSize
