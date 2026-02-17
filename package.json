@@ -13,7 +13,10 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "db:types": "supabase gen types typescript --project-id wngvnvceyvqlrebuvsyh > app/types/database.types.ts"
+    "db:types": "supabase gen types typescript --project-id wngvnvceyvqlrebuvsyh > app/types/database.types.ts",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@iconify-json/lucide": "^1.2.87",
@@ -33,10 +36,12 @@
   },
   "devDependencies": {
     "@nuxt/eslint": "^1.13.0",
+    "@vitest/coverage-v8": "^4.0.18",
     "drizzle-kit": "^0.31.8",
     "eslint": "^9.39.2",
     "supabase": "^2.72.9",
     "typescript": "^5.9.3",
+    "vitest": "^4.0.18",
     "vue-tsc": "^3.2.4"
   },
   "packageManager": "pnpm@10.28.1"
