@@ -97,162 +97,164 @@ function getStatusColor(status: InvitationStatus): BadgeColor {
         <div class="page-bg-grid" />
       </div>
 
-      <div class="relative z-10 flex flex-1 min-h-0 flex-col gap-8 p-6 sm:p-8 lg:p-10">
-        <!-- Loading State -->
-        <template v-if="status === 'pending'">
-          <USkeleton class="h-10 w-48" />
-          <USkeleton class="h-64 rounded-2xl" />
-        </template>
+      <div class="relative z-10 flex flex-1 min-h-0 flex-col items-center p-6 sm:p-8 lg:p-10">
+        <div class="w-full max-w-xl flex flex-col gap-6">
+          <!-- Loading State -->
+          <template v-if="status === 'pending'">
+            <USkeleton class="h-10 w-48" />
+            <USkeleton class="h-64 rounded-2xl" />
+          </template>
 
-        <!-- Not Found / Not Owner -->
-        <template v-else-if="!project || !isOwner">
-          <div class="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-200/80 bg-white/70 py-16 text-center shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60">
-            <div class="mb-4 flex size-14 items-center justify-center rounded-2xl bg-rose-50 text-rose-500 dark:bg-rose-500/10 dark:text-rose-300">
-              <UIcon
-                name="i-lucide-alert-circle"
-                class="size-6"
-              />
-            </div>
-            <h2 class="text-lg font-semibold text-slate-900 dark:text-white">
-              無法存取
-            </h2>
-            <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
-              只有專案擁有者可以存取成員管理頁面。
-            </p>
-            <UButton
-              :to="`/projects/${projectId}`"
-              variant="outline"
-              class="mt-6"
-            >
-              返回專案
-            </UButton>
-          </div>
-        </template>
-
-        <!-- Content -->
-        <template v-else>
-          <header class="flex items-start gap-4">
-            <NuxtLink
-              :to="`/projects/${projectId}`"
-              class="flex size-10 items-center justify-center rounded-xl border border-slate-200/70 bg-white/80 text-slate-500 transition hover:-translate-x-0.5 hover:text-slate-900 dark:border-white/10 dark:bg-gray-900/60 dark:text-slate-300"
-            >
-              <UIcon
-                name="i-lucide-arrow-left"
-                class="size-4"
-              />
-            </NuxtLink>
-            <div class="space-y-1">
-              <h1 class="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
-                {{ project.name }} — 成員管理
-              </h1>
-              <p class="text-sm text-slate-500 dark:text-slate-400">
-                管理專案成員與邀請
+          <!-- Not Found / Not Owner -->
+          <template v-else-if="!project || !isOwner">
+            <div class="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-200/80 bg-white/70 py-16 text-center shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60">
+              <div class="mb-4 flex size-14 items-center justify-center rounded-2xl bg-rose-50 text-rose-500 dark:bg-rose-500/10 dark:text-rose-300">
+                <UIcon
+                  name="i-lucide-alert-circle"
+                  class="size-6"
+                />
+              </div>
+              <h2 class="text-lg font-semibold text-slate-900 dark:text-white">
+                無法存取
+              </h2>
+              <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                只有專案擁有者可以存取成員管理頁面。
               </p>
-            </div>
-          </header>
-
-          <!-- 邀請成員 -->
-          <section class="rounded-2xl border border-slate-200/70 bg-white/80 p-6 shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60">
-            <h2 class="mb-4 text-lg font-semibold text-slate-900 dark:text-white">
-              邀請成員
-            </h2>
-            <form
-              class="flex gap-3"
-              @submit.prevent="sendInvitation"
-            >
-              <UInput
-                v-model="inviteEmail"
-                type="email"
-                placeholder="輸入 Email 地址"
-                class="flex-1"
-              />
               <UButton
-                type="submit"
-                :loading="inviteLoading"
-                :disabled="!inviteEmail.trim()"
+                :to="`/projects/${projectId}`"
+                variant="outline"
+                class="mt-6"
               >
-                發送邀請
+                返回專案
               </UButton>
-            </form>
+            </div>
+          </template>
 
-            <!-- Pending invitations -->
-            <div
-              v-if="invitations.length > 0"
-              class="mt-6"
-            >
-              <h3 class="mb-3 text-sm font-medium text-slate-500 dark:text-slate-400">
-                邀請記錄
-              </h3>
+          <!-- Content -->
+          <template v-else>
+            <header class="flex items-start gap-3">
+              <NuxtLink
+                :to="`/projects/${projectId}`"
+                class="flex size-9 shrink-0 items-center justify-center rounded-xl border border-slate-200/70 bg-white/80 text-slate-500 transition hover:-translate-x-0.5 hover:text-slate-900 dark:border-white/10 dark:bg-gray-900/60 dark:text-slate-300"
+              >
+                <UIcon
+                  name="i-lucide-arrow-left"
+                  class="size-4"
+                />
+              </NuxtLink>
+              <div class="space-y-0.5">
+                <h1 class="text-xl font-semibold tracking-tight text-slate-900 dark:text-white">
+                  {{ project.name }} — 成員管理
+                </h1>
+                <p class="text-sm text-slate-500 dark:text-slate-400">
+                  管理專案成員與邀請
+                </p>
+              </div>
+            </header>
+
+            <!-- 邀請成員 -->
+            <section class="rounded-2xl border border-slate-200/70 bg-white/80 p-5 shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60">
+              <h2 class="mb-3 text-base font-semibold text-slate-900 dark:text-white">
+                邀請成員
+              </h2>
+              <form
+                class="flex gap-2"
+                @submit.prevent="sendInvitation"
+              >
+                <UInput
+                  v-model="inviteEmail"
+                  type="email"
+                  placeholder="輸入 Email 地址"
+                  class="flex-1"
+                />
+                <UButton
+                  type="submit"
+                  :loading="inviteLoading"
+                  :disabled="!inviteEmail.trim()"
+                >
+                  發送邀請
+                </UButton>
+              </form>
+
+              <!-- Pending invitations -->
+              <div
+                v-if="invitations.length > 0"
+                class="mt-5"
+              >
+                <h3 class="mb-2 text-sm font-medium text-slate-500 dark:text-slate-400">
+                  邀請記錄
+                </h3>
+                <div class="divide-y divide-slate-100 rounded-lg border border-slate-200/70 dark:divide-white/5 dark:border-white/10">
+                  <div
+                    v-for="inv in invitations"
+                    :key="inv.id"
+                    class="flex items-center justify-between px-3 py-2.5"
+                  >
+                    <div class="min-w-0">
+                      <p class="truncate text-sm font-medium text-slate-900 dark:text-white">
+                        {{ inv.email }}
+                      </p>
+                      <p class="text-xs text-slate-400">
+                        {{ formatDateTime(inv.createdAt) }}
+                      </p>
+                    </div>
+                    <UBadge
+                      :color="getStatusColor(inv.status)"
+                      variant="subtle"
+                      class="ml-3 shrink-0 text-xs"
+                    >
+                      {{ inv.status }}
+                    </UBadge>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- 成員列表 -->
+            <section class="rounded-2xl border border-slate-200/70 bg-white/80 p-5 shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60">
+              <h2 class="mb-3 text-base font-semibold text-slate-900 dark:text-white">
+                成員列表
+              </h2>
               <div class="divide-y divide-slate-100 rounded-lg border border-slate-200/70 dark:divide-white/5 dark:border-white/10">
                 <div
-                  v-for="inv in invitations"
-                  :key="inv.id"
-                  class="flex items-center justify-between px-4 py-3"
+                  v-for="member in members"
+                  :key="member.userId"
+                  class="flex items-center justify-between px-3 py-2.5"
                 >
-                  <div>
-                    <p class="text-sm font-medium text-slate-900 dark:text-white">
-                      {{ inv.email }}
+                  <div class="min-w-0">
+                    <p class="truncate text-sm font-medium text-slate-900 dark:text-white">
+                      {{ member.name || member.email }}
                     </p>
-                    <p class="text-xs text-slate-400">
-                      {{ formatDateTime(inv.createdAt) }}
+                    <p class="truncate text-xs text-slate-400">
+                      {{ member.email }}
                     </p>
                   </div>
-                  <UBadge
-                    :color="getStatusColor(inv.status)"
-                    variant="subtle"
-                    class="text-xs"
-                  >
-                    {{ inv.status }}
-                  </UBadge>
+                  <div class="ml-3 flex shrink-0 items-center gap-2">
+                    <UBadge
+                      v-if="member.userId === project.ownerId"
+                      color="primary"
+                      variant="subtle"
+                      class="text-xs"
+                    >
+                      Owner
+                    </UBadge>
+                    <UButton
+                      v-if="member.userId !== user?.sub && member.userId !== project.ownerId"
+                      color="error"
+                      variant="ghost"
+                      size="xs"
+                      icon="i-lucide-user-minus"
+                      :loading="removingUserId === member.userId"
+                      @click="removeMember(member.userId)"
+                    >
+                      移除
+                    </UButton>
+                  </div>
                 </div>
               </div>
-            </div>
-          </section>
-
-          <!-- 成員列表 -->
-          <section class="rounded-2xl border border-slate-200/70 bg-white/80 p-6 shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60">
-            <h2 class="mb-4 text-lg font-semibold text-slate-900 dark:text-white">
-              成員列表
-            </h2>
-            <div class="divide-y divide-slate-100 rounded-lg border border-slate-200/70 dark:divide-white/5 dark:border-white/10">
-              <div
-                v-for="member in members"
-                :key="member.userId"
-                class="flex items-center justify-between px-4 py-3"
-              >
-                <div>
-                  <p class="text-sm font-medium text-slate-900 dark:text-white">
-                    {{ member.name || member.email }}
-                  </p>
-                  <p class="text-xs text-slate-400">
-                    {{ member.email }}
-                  </p>
-                </div>
-                <div class="flex items-center gap-2">
-                  <UBadge
-                    v-if="member.userId === project.ownerId"
-                    color="primary"
-                    variant="subtle"
-                    class="text-xs"
-                  >
-                    Owner
-                  </UBadge>
-                  <UButton
-                    v-if="member.userId !== user?.sub && member.userId !== project.ownerId"
-                    color="error"
-                    variant="ghost"
-                    size="xs"
-                    icon="i-lucide-user-minus"
-                    :loading="removingUserId === member.userId"
-                    @click="removeMember(member.userId)"
-                  >
-                    移除
-                  </UButton>
-                </div>
-              </div>
-            </div>
-          </section>
-        </template>
+            </section>
+          </template>
+        </div>
       </div>
     </div>
   </UDashboardPanel>
