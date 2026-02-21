@@ -7,7 +7,7 @@ export default defineConfig({
     globals: true,
     coverage: {
       provider: 'v8',
-      include: ['shared/**/*.ts', 'server/**/*.ts', 'app/utils/**/*.ts'],
+      include: ['shared/**/*.ts', 'server/**/*.ts', 'app/utils/**/*.ts', 'app/constants/**/*.ts'],
       exclude: ['**/*.test.ts', '**/*.d.ts', 'server/database/migrations/**']
     }
   },

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { maskValue, formatJson, getJsonLines, buildCurlCommand } from './issue'
+import { maskValue, formatJson, getJsonLines, buildCurlCommand, detectEnvironment } from './issue'
 
 describe('maskValue', () => {
   it('masks authorization header values', () => {
@@ -147,5 +147,51 @@ describe('buildCurlCommand', () => {
     expect(cmd).toBe(
       'curl -X PUT \'https://api.example.com/users/1\' -H \'Content-Type: application/json\' -d \'{"name":"updated"}\''
     )
+  })
+})
+
+describe('detectEnvironment', () => {
+  it('returns Local for localhost', () => {
+    expect(detectEnvironment('http://localhost:3000/api')).toBe('Local')
+  })
+
+  it('returns Local for 127.0.0.1', () => {
+    expect(detectEnvironment('http://127.0.0.1:8080/test')).toBe('Local')
+  })
+
+  it('returns Local for 192.168.x.x', () => {
+    expect(detectEnvironment('http://192.168.1.100:3000/api')).toBe('Local')
+  })
+
+  it('returns Staging for staging.example.com', () => {
+    expect(detectEnvironment('https://staging.example.com/api')).toBe('Staging')
+  })
+
+  it('returns Staging for api.stg.example.com', () => {
+    expect(detectEnvironment('https://api.stg.example.com/v1')).toBe('Staging')
+  })
+
+  it('returns Dev for dev.example.com', () => {
+    expect(detectEnvironment('https://dev.example.com/api')).toBe('Dev')
+  })
+
+  it('returns Dev for api.development.example.com', () => {
+    expect(detectEnvironment('https://api.development.example.com/v1')).toBe('Dev')
+  })
+
+  it('returns Prod for prod.example.com', () => {
+    expect(detectEnvironment('https://prod.example.com/api')).toBe('Prod')
+  })
+
+  it('returns Prod for api.production.example.com', () => {
+    expect(detectEnvironment('https://api.production.example.com/v1')).toBe('Prod')
+  })
+
+  it('returns Dev as fallback for invalid URL', () => {
+    expect(detectEnvironment('not-a-url')).toBe('Dev')
+  })
+
+  it('returns Dev as fallback for empty string', () => {
+    expect(detectEnvironment('')).toBe('Dev')
   })
 })
