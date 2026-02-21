@@ -37,6 +37,7 @@
   "devDependencies": {
     "@nuxt/eslint": "^1.13.0",
     "@vitest/coverage-v8": "^4.0.18",
+    "agent-browser": "^0.13.0",
     "drizzle-kit": "^0.31.8",
     "eslint": "^9.39.2",
     "supabase": "^2.72.9",
