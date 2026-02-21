@@ -3,8 +3,7 @@ import type { FormSubmitEvent } from '@nuxt/ui'
 import { createIssueSchema, type CreateIssueInput, type Issue } from '~~/shared/schemas/issue'
 import { environments, Environment, HttpMethod, IssueStatus } from '~~/shared/constants'
 import { getHttpMethodColor } from '~/constants/http'
-import type { Environment as EnvironmentType } from '~~/shared/constants'
-import { maskValue, formatJson } from '~/utils/issue'
+import { maskValue, formatJson, detectEnvironment } from '~/utils/issue'
 
 const issueFormSchema = createIssueSchema.omit({ projectId: true })
 
@@ -196,30 +195,6 @@ const isReadyToSubmit = computed(() => {
   return Boolean(state.value.title.trim() && state.value.url.trim() && state.value.method)
 })
 
-// Auto-detect environment from URL
-function detectEnvironment(url: string): EnvironmentType {
-  try {
-    const urlObj = new URL(url)
-    const host = urlObj.hostname.toLowerCase()
-
-    if (host === 'localhost' || host === '127.0.0.1' || host.startsWith('192.168.')) {
-      return Environment.Local
-    }
-    if (host.includes('staging') || host.includes('stg')) {
-      return Environment.Staging
-    }
-    if (host.includes('dev') || host.includes('development')) {
-      return Environment.Dev
-    }
-    if (host.includes('prod') || host.includes('production') || !host.includes('.')) {
-      return Environment.Prod
-    }
-  } catch {
-    // Invalid URL, keep default
-  }
-  return Environment.Dev
-}
-
 // Parse cURL command
 const parsing = ref(false)
 
@@ -253,7 +228,7 @@ async function parseCurl() {
     state.value.method = (parsed.method || HttpMethod.GET) as typeof state.value.method
     state.value.requestHeaders = parsed.headers || null
     state.value.requestBody = parsed.body || null
-    state.value.environment = detectEnvironment(state.value.url) as typeof state.value.environment
+    state.value.environment = detectEnvironment(state.value.url)
     isParsed.value = true
 
     toast.add({

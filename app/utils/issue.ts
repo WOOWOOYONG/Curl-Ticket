@@ -1,3 +1,5 @@
+import { Environment, type Environment as EnvironmentType } from '~~/shared/constants'
+
 /**
  * Mask sensitive header values for display
  * @param key - Header key name
@@ -61,4 +63,31 @@ export function buildCurlCommand(issue: {
     cmd += ` -d '${JSON.stringify(issue.requestBody)}'`
   }
   return cmd
+}
+
+/**
+ * Auto-detect environment from URL hostname
+ * @param url - Full URL string
+ * @returns Detected environment string
+ */
+export function detectEnvironment(url: string): EnvironmentType {
+  try {
+    const urlObj = new URL(url)
+    const host = urlObj.hostname.toLowerCase()
+    if (host === 'localhost' || host === '127.0.0.1' || host.startsWith('192.168.')) {
+      return Environment.Local
+    }
+    if (host.includes('staging') || host.includes('stg')) {
+      return Environment.Staging
+    }
+    if (host.includes('dev') || host.includes('development')) {
+      return Environment.Dev
+    }
+    if (host.includes('prod') || host.includes('production') || !host.includes('.')) {
+      return Environment.Prod
+    }
+  } catch {
+    // Invalid URL, keep default
+  }
+  return Environment.Dev
 }
