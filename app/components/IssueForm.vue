@@ -448,7 +448,7 @@ async function onSubmit(event: FormSubmitEvent<IssueFormState>) {
                   <div class="flex items-center gap-3">
                     <div class="flex items-center justify-center size-8 rounded-lg bg-amber-500/10 dark:bg-amber-500/20">
                       <UIcon
-                        name="i-lucide-arrow-down-left"
+                        name="i-lucide-reply"
                         class="size-4 text-amber-600 dark:text-amber-400"
                       />
                     </div>
@@ -477,10 +477,10 @@ async function onSubmit(event: FormSubmitEvent<IssueFormState>) {
                   >
                     <UInput
                       v-model.number="state.responseStatus"
-                      type="number"
+                      inputmode="numeric"
+                      pattern="[0-9]*"
+                      class="w-1/4"
                       placeholder="e.g., 400, 500"
-                      :min="100"
-                      :max="599"
                     />
                   </UFormField>
 
