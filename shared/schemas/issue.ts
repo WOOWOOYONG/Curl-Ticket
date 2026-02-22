@@ -16,7 +16,7 @@ export const createIssueSchema = z.object({
   environment: z.enum(environments).default(Environment.Dev),
   requestHeaders: z.record(z.string(), z.string()).nullish(),
   requestBody: z.unknown().nullish(),
-  responseStatus: z.number().int().min(100).max(599).nullish(),
+  responseStatus: z.number('無效的狀態碼').int().min(100, '無效的狀態碼').max(599, '無效的狀態碼').nullish(),
   responseBody: z.unknown().nullish(),
   status: z.enum(issueStatuses).default(IssueStatus.Open)
 })
