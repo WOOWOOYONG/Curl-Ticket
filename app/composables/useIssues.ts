@@ -16,6 +16,8 @@ export interface UseIssuesOptions {
   search?: string
 }
 
+export const getIssuesCacheKey = (projectId: string) => `project-${projectId}-issues`
+
 /**
  * 取得專案的 Issues 列表
  * @param projectId - 專案 ID (Ref 或 ComputedRef)
@@ -37,6 +39,7 @@ export function useIssues(
 
     return `/api/projects/${projectId.value}/issues?${params.toString()}`
   }, {
+    key: getIssuesCacheKey(projectId.value),
     watch: [projectId, options],
     deep: true
   })

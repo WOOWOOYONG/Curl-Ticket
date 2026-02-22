@@ -287,6 +287,8 @@ async function onSubmit(event: FormSubmitEvent<IssueFormState>) {
       color: 'success'
     })
 
+    clearNuxtData(getIssuesCacheKey(projectId.value))
+    clearNuxtData(getProjectCacheKey(projectId.value))
     navigateTo(isEditMode.value
       ? `/projects/${projectId.value}/issues/${issueId.value}`
       : `/projects/${projectId.value}`)
