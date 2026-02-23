@@ -1,0 +1,2 @@
+-- Backfill missing migration file referenced by meta/_journal.json.
+-- The invitation code length change is applied in 0010_dashing_bushwacker.sql.
