@@ -239,78 +239,79 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
               v-else
               class="overflow-hidden rounded-2xl border border-slate-200/70 bg-white/80 shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60"
             >
-              <UTable
-                :columns="columns"
-                :data="issues"
-                :loading="issuesStatus === 'pending'"
-                loading-animation="carousel"
-                :ui="{
-                  tr: 'cursor-pointer transition-colors hover:bg-emerald-50/50 dark:hover:bg-emerald-500/10',
-                  td: 'py-3 text-slate-700 dark:text-slate-200',
-                  th: 'py-3 text-xs font-semibold uppercase text-slate-500 dark:text-slate-400'
-                }"
-                class="h-140"
-                @select="onRowSelect"
-              >
-                <!-- Issue ID -->
-                <template #issueId-cell="{ row }">
-                  <span class="font-mono text-sm font-semibold text-emerald-600 dark:text-emerald-400">
-                    {{ row.original.projectKey }}-{{ row.original.issueNumber }}
-                  </span>
-                </template>
-
-                <!-- Title -->
-                <template #title-cell="{ row }">
-                  <div class="flex flex-col gap-1">
-                    <span class="font-medium text-slate-900 dark:text-white truncate">
-                      {{ row.original.title }}
+              <div class="max-h-[50vh] overflow-auto sm:max-h-[58vh]">
+                <UTable
+                  :columns="columns"
+                  :data="issues"
+                  :loading="issuesStatus === 'pending'"
+                  loading-animation="carousel"
+                  :ui="{
+                    tr: 'cursor-pointer transition-colors hover:bg-emerald-50/50 dark:hover:bg-emerald-500/10',
+                    td: 'py-3 text-slate-700 dark:text-slate-200',
+                    th: 'py-3 text-xs font-semibold uppercase text-slate-500 dark:text-slate-400'
+                  }"
+                  @select="onRowSelect"
+                >
+                  <!-- Issue ID -->
+                  <template #issueId-cell="{ row }">
+                    <span class="font-mono text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                      {{ row.original.projectKey }}-{{ row.original.issueNumber }}
                     </span>
-                    <span class="text-xs text-slate-400 dark:text-slate-500 truncate font-mono">
-                      {{ row.original.url }}
+                  </template>
+
+                  <!-- Title -->
+                  <template #title-cell="{ row }">
+                    <div class="flex flex-col gap-1">
+                      <span class="font-medium text-slate-900 dark:text-white truncate">
+                        {{ row.original.title }}
+                      </span>
+                      <span class="text-xs text-slate-400 dark:text-slate-500 truncate font-mono">
+                        {{ row.original.url }}
+                      </span>
+                    </div>
+                  </template>
+
+                  <!-- HTTP Method -->
+                  <template #method-cell="{ row }">
+                    <UBadge
+                      :color="getHttpMethodColor(row.original.method)"
+                      variant="subtle"
+                      class="font-mono text-xs font-semibold"
+                    >
+                      {{ row.original.method }}
+                    </UBadge>
+                  </template>
+
+                  <!-- Status -->
+                  <template #status-cell="{ row }">
+                    <div class="inline-flex items-center gap-1.5">
+                      <UChip
+                        :color="IssueStatusColor[row.original.status] || 'neutral'"
+                        inset
+                        standalone
+                        size="xs"
+                      />
+                      <span class="text-sm font-medium text-slate-700 dark:text-slate-200">
+                        {{ IssueStatusLabel[row.original.status] || row.original.status }}
+                      </span>
+                    </div>
+                  </template>
+
+                  <!-- Environment -->
+                  <template #environment-cell="{ row }">
+                    <span class="text-sm text-slate-500 dark:text-slate-400">
+                      {{ row.original.environment }}
                     </span>
-                  </div>
-                </template>
+                  </template>
 
-                <!-- HTTP Method -->
-                <template #method-cell="{ row }">
-                  <UBadge
-                    :color="getHttpMethodColor(row.original.method)"
-                    variant="subtle"
-                    class="font-mono text-xs font-semibold"
-                  >
-                    {{ row.original.method }}
-                  </UBadge>
-                </template>
-
-                <!-- Status -->
-                <template #status-cell="{ row }">
-                  <div class="inline-flex items-center gap-1.5">
-                    <UChip
-                      :color="IssueStatusColor[row.original.status] || 'neutral'"
-                      inset
-                      standalone
-                      size="xs"
-                    />
-                    <span class="text-sm font-medium text-slate-700 dark:text-slate-200">
-                      {{ IssueStatusLabel[row.original.status] || row.original.status }}
+                  <!-- Updated At -->
+                  <template #updatedAt-cell="{ row }">
+                    <span class="text-sm text-slate-500 dark:text-slate-400">
+                      {{ formatDateTime(row.original.updatedAt) }}
                     </span>
-                  </div>
-                </template>
-
-                <!-- Environment -->
-                <template #environment-cell="{ row }">
-                  <span class="text-sm text-slate-500 dark:text-slate-400">
-                    {{ row.original.environment }}
-                  </span>
-                </template>
-
-                <!-- Updated At -->
-                <template #updatedAt-cell="{ row }">
-                  <span class="text-sm text-slate-500 dark:text-slate-400">
-                    {{ formatDateTime(row.original.updatedAt) }}
-                  </span>
-                </template>
-              </UTable>
+                  </template>
+                </UTable>
+              </div>
 
               <div
                 v-if="pagination"
