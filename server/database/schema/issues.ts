@@ -1,4 +1,5 @@
-import { pgTable, uuid, text, varchar, timestamp, serial, integer, jsonb, index, uniqueIndex } from 'drizzle-orm/pg-core'
+import { sql } from 'drizzle-orm'
+import { pgTable, uuid, text, varchar, timestamp, serial, integer, jsonb, index, uniqueIndex, check } from 'drizzle-orm/pg-core'
 import { projects } from './projects'
 import { Environment, IssueStatus } from '../../../shared/constants'
 import type { Environment as EnvironmentType, IssueStatus as IssueStatusType, HttpMethod as HttpMethodType } from '../../../shared/constants'
@@ -34,6 +35,7 @@ export const issues = pgTable('issues', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
 }, table => [
+  check('issues_status_check', sql`${table.status} in ('Open', 'In Progress', 'Done', 'Close')`),
   // 複合索引：加速「找特定專案的 issues」和「統計計算」
   // 包含 projectId, status, updatedAt 三個欄位
   index('issues_project_stats_idx')
