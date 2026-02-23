@@ -10,7 +10,10 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     // 僅在 server 端可用
-    databaseUrl: process.env.DATABASE_URL
+    databaseUrl: process.env.DATABASE_URL,
+    devLoginEmail: process.env.DEV_LOGIN_EMAIL,
+    devLoginPassword: process.env.DEV_LOGIN_PASSWORD,
+    devLoginKey: process.env.DEV_LOGIN_KEY
   },
 
   routeRules: {
@@ -25,6 +28,17 @@ export default defineNuxtConfig({
         commaDangle: 'never',
         braceStyle: '1tbs'
       }
+    }
+  },
+
+  supabase: {
+    cookieOptions: {
+      secure: process.env.NODE_ENV === 'production'
+    },
+    redirectOptions: {
+      login: '/login',
+      callback: '/confirm',
+      exclude: ['/api/*']
     }
   }
 })

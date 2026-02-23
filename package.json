@@ -5,6 +5,8 @@
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
+    "dev:login": "bash ./scripts/dev-login-agent.sh",
+    "dev:login-required": "bash ./scripts/dev-login-required-agent.sh",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "lint": "eslint .",

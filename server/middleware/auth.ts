@@ -9,7 +9,9 @@ import { getProfile } from '~~/server/utils/profile'
  * - 未完成註冊（無 profile）的用戶只能存取 authOnlyRoutes
  */
 export default defineEventHandler(async (event) => {
-  if (!event.path.startsWith('/api/')) return
+  const pathname = event.path.split('?')[0]
+
+  if (!pathname.startsWith('/api/')) return
 
   // 公開路由（不需要驗證）
   const publicRoutes = [
@@ -17,8 +19,12 @@ export default defineEventHandler(async (event) => {
     '/api/invitation-codes/validate'
   ]
 
+  if (import.meta.dev) {
+    publicRoutes.push('/api/dev/login')
+  }
+
   const isPublicRoute = publicRoutes.some(route =>
-    event.path === route || event.path.startsWith(`${route}/`)
+    pathname === route || pathname.startsWith(`${route}/`)
   )
 
   if (isPublicRoute) return
@@ -46,7 +52,7 @@ export default defineEventHandler(async (event) => {
   event.context.userMetadata = user.user_metadata
 
   const isAuthOnlyRoute = authOnlyRoutes.some(route =>
-    event.path === route || event.path.startsWith(`${route}/`)
+    pathname === route || pathname.startsWith(`${route}/`)
   )
 
   // authOnly 路由不需要 profile，直接放行
