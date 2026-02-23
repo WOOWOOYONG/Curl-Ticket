@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { getHttpMethodColor } from '~/constants/http'
-import { IssueStatusColor, EnvironmentColor } from '~/constants/issue'
+import { IssueStatusColor, IssueStatusLabel, EnvironmentColor } from '~/constants/issue'
 import { maskValue, formatJson, buildCurlCommand } from '~/utils/issue'
 import type { Issue } from '~~/shared/schemas/issue'
 import { issueStatuses } from '~~/shared/constants'
@@ -32,7 +32,7 @@ const issue = computed<Issue | undefined>(() => issueResponse.value?.data)
 const friendlyId = computed(() => issueResponse.value?.friendlyId)
 
 const statusOptions = issueStatuses.map(status => ({
-  label: status,
+  label: IssueStatusLabel[status],
   value: status,
   chip: {
     color: IssueStatusColor[status]
@@ -115,7 +115,7 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
 
     toast.add({
       title: 'Status updated',
-      description: `Issue ${response.friendlyId} status is now ${response.data.status}.`,
+      description: `Issue ${response.friendlyId} status is now ${IssueStatusLabel[response.data.status] || response.data.status}.`,
       color: 'success'
     })
   } catch (err: unknown) {

@@ -4,14 +4,23 @@ import { IssueStatus, Environment } from '~~/shared/constants'
 type BadgeColor = 'error' | 'success' | 'primary' | 'secondary' | 'info' | 'warning' | 'neutral'
 
 // Issue 狀態對應的顏色（用於 UBadge 組件）
-export const IssueStatusColor: Record<string, BadgeColor> = {
+export const IssueStatusColor: Record<IssueStatus, BadgeColor> = {
   [IssueStatus.Open]: 'error',
   [IssueStatus.InProgress]: 'warning',
-  [IssueStatus.Done]: 'success'
+  [IssueStatus.Done]: 'success',
+  [IssueStatus.Close]: 'neutral'
+} as const
+
+// Issue 狀態顯示文案
+export const IssueStatusLabel: Record<IssueStatus, string> = {
+  [IssueStatus.Open]: 'Open',
+  [IssueStatus.InProgress]: 'In Progress',
+  [IssueStatus.Done]: 'Done',
+  [IssueStatus.Close]: 'Close'
 } as const
 
 // Environment 環境對應的顏色（用於 UBadge 組件）
-export const EnvironmentColor: Record<string, BadgeColor> = {
+export const EnvironmentColor: Record<Environment, BadgeColor> = {
   [Environment.Local]: 'neutral',
   [Environment.Dev]: 'info',
   [Environment.Staging]: 'warning',

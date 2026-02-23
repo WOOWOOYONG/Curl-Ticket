@@ -2,7 +2,7 @@
 import type { TableColumn } from '@nuxt/ui'
 import type { IssueListItem } from '~~/shared/schemas'
 import { getHttpMethodColor } from '~/constants/http'
-import { IssueStatusColor } from '~/constants/issue'
+import { IssueStatusColor, IssueStatusLabel } from '~/constants/issue'
 
 definePageMeta({
   ssr: false
@@ -292,7 +292,7 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
                       size="xs"
                     />
                     <span class="text-sm font-medium text-slate-700 dark:text-slate-200">
-                      {{ row.original.status }}
+                      {{ IssueStatusLabel[row.original.status] || row.original.status }}
                     </span>
                   </div>
                 </template>

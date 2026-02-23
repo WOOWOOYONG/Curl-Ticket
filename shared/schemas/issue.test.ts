@@ -97,6 +97,14 @@ describe('createIssueSchema', () => {
       expect(result.success).toBe(true)
     }
   })
+
+  it('accepts all valid issue statuses', () => {
+    const statuses = ['Open', 'In Progress', 'Done', 'Close']
+    for (const status of statuses) {
+      const result = createIssueSchema.safeParse({ ...validInput, status })
+      expect(result.success).toBe(true)
+    }
+  })
 })
 
 describe('updateIssueSchema', () => {

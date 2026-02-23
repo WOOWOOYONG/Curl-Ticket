@@ -132,7 +132,7 @@ All API request/response validation uses Zod schemas defined in `shared/schemas/
 ### Constants & Enums
 
 **Shared constants** (`shared/constants.ts`):
-- `IssueStatus`: 'Open' | 'In Progress' | 'Done'
+- `IssueStatus`: 'Open' | 'In Progress' | 'Done' | 'Close'
 - `Environment`: 'Local' | 'Dev' | 'Staging' | 'Prod'
 - `HttpMethod`: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS'
 - `UserRole`: 'admin' | 'user'

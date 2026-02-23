@@ -17,7 +17,8 @@ export const environments = Object.values(Environment)
 export const IssueStatus = {
   Open: 'Open',
   InProgress: 'In Progress',
-  Done: 'Done'
+  Done: 'Done',
+  Close: 'Close'
 } as const
 
 export type IssueStatus = typeof IssueStatus[keyof typeof IssueStatus]

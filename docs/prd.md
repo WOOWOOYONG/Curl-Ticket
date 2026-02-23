@@ -154,14 +154,14 @@ graph TD
 - **欄位定義：**
 - **ID:** 專案代號 + 流水號 (例如 `MEM-12`)。
 - **環境 (Env):** 顯示 Badge (Local, Dev, Staging, Prod)，以顏色區分。
-- **狀態 (Status):** Icon 顯示 (Open, In Progress, Done)。
+- **狀態 (Status):** Icon 顯示 (`Open`, `In Progress`, `Done`, `Close`)。
 - **Method:** Colored Badge (GET, POST, PUT, DELETE)。
 - **標題 (Title):** 簡述問題。
 - **URL:** 顯示 API Endpoint。
 - **建立者 / 時間**。
 
 - **篩選功能：**
-- Status (Open/Closed)
+- Status (`Open` / `In Progress` / `Done` / `Close`)
 - **Environment (Local/Dev/Prod)**
 
 - **搜尋功能：** 針對標題進行關鍵字搜尋。
@@ -311,7 +311,7 @@ _(Standard Supabase Auth Ref)_
 | `request_headers` | jsonb     |                   | 請求 Headers                  |
 | `response_status` | int       |                   | HTTP Status Code (e.g., 500)  |
 | `response_body`   | jsonb     |                   | 錯誤回傳 Payload              |
-| `status`          | text      | Default 'Open'    | Open, In Progress, Done       |
+| `status`          | text      | Default 'Open'    | Open, In Progress, Done, Close |
 | `created_by`      | uuid      | FK -> users.id    | 建立者                        |
 | `created_at`      | timestamp | Default Now()     |                               |
 
@@ -385,7 +385,7 @@ _(Standard Supabase Auth Ref)_
 - **目標：** 提升團隊管理與溝通效率。
 - **功能：**
 - Issue 列表篩選 (Status, Environment)。
-- 狀態變更 (Open -> Done)。
+- 狀態變更 (`Open` -> `In Progress` / `Done` / `Close`)。
 - **即時通知系統 (Realtime Notifications):** 資料庫 Trigger + WebSocket 前端整合。
 - **邀請碼註冊系統：** Admin 產生 6 位邀請碼、封閉式註冊、用戶角色管理。
 - **專案成員存取控制：** Owner / Member 權限區分。
