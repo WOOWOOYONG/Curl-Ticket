@@ -131,7 +131,7 @@ graph TD
   - **成員列表：** 顯示所有專案成員（名稱、Email），Owner 顯示 Badge 標示。
   - **移除成員：** Owner 可移除非自己的成員（不可移除自己）。
   - **邀請成員：** 透過 Email 邀請已註冊用戶加入專案（詳見 3.3.2）。
-  - **邀請記錄：** 顯示所有邀請歷史，包含 Email、狀態 Badge（pending / accepted / rejected / expired）、建立時間。
+  - **邀請記錄：** 顯示所有邀請歷史，包含 Email、狀態 Badge（pending / accepted / expired）、建立時間。
 
 ### 3.3.2 專案邀請 (Project Invitation)
 
@@ -141,8 +141,8 @@ graph TD
     2. 系統驗證：Email 已註冊、非自己、非現有成員、無重複 pending 邀請。
     3. 建立邀請記錄（7 天過期）並發送系統通知給被邀請者。
     4. 被邀請者在通知中心查看邀請，點擊開啟回應 Modal。
-    5. 接受 → 自動加入專案成員、標記通知已讀；拒絕 → 更新邀請狀態、標記通知已讀。
-  - **邀請狀態：** `pending`、`accepted`、`rejected`、`expired`。
+    5. 接受 → 自動加入專案成員、標記通知已讀；未接受則維持 pending，直到過期轉為 expired。
+  - **邀請狀態：** `pending`、`accepted`、`expired`。
   - **權限控制：** 僅邀請對象本人可回應邀請（Server-side 驗證 Email 匹配）。
 
 ### 3.4 Issue 列表頁 (Issue List)
@@ -220,7 +220,7 @@ graph TD
   - **通知列表：** 點擊鈴鐺展開 Popover，顯示最近 50 筆通知，依建立時間降序排列。
   - **點擊行為：**
     - `issue_update`：標記已讀（導航至 Issue 詳細頁待實作）。
-    - `project_invite`：開啟邀請回應 Modal，可接受或拒絕邀請，操作後自動標記已讀。
+    - `project_invite`：開啟邀請回應 Modal，可接受邀請；未接受可稍後處理。
   - **觸發規則：**
     - Issue 狀態被其他人更新時，通知該 Issue 的**建立者 (Created By)**（DB Trigger）。
     - 專案 Owner 發送邀請時，通知被邀請者（Application Logic）。
@@ -267,7 +267,7 @@ _(Standard Supabase Auth Ref)_
 | `project_id` | uuid         | FK -> projects.id | 所屬專案（cascade delete）                     |
 | `email`      | varchar(255) | Not Null          | 被邀請者 Email                                 |
 | `invited_by` | uuid         | Not Null          | 邀請者 ID                                      |
-| `status`     | varchar(20)  | Default 'pending' | 狀態 (pending / accepted / rejected / expired) |
+| `status`     | varchar(20)  | Default 'pending' | 狀態 (pending / accepted / expired) |
 | `expires_at` | timestamp    |                   | 過期時間（預設建立後 7 天）                    |
 | `created_at` | timestamp    | Default Now()     |                                                |
 | `accepted_at`| timestamp    |                   | 接受時間                                       |
@@ -395,7 +395,7 @@ _(Standard Supabase Auth Ref)_
 - **目標：** 擴展邀請機制至專案層級。
 - **功能：**
   - **專案邀請：** 專案 Owner 可透過 Email 邀請已註冊用戶加入專案。
-  - **邀請通知：** 被邀請者可在通知中心查看並接受/拒絕專案邀請。
+  - **邀請通知：** 被邀請者可在通知中心查看並接受專案邀請（未接受可稍後處理）。
   - **專案設定頁：** Owner 可管理成員列表、查看邀請記錄、移除成員。
   - **通知類型擴充：** 新增 `project_invite` 通知類型，支援邀請回應 Modal。
 
