@@ -1,4 +1,4 @@
-import { eq, and } from 'drizzle-orm'
+import { eq, and, lt, isNotNull } from 'drizzle-orm'
 import { projectInvitations, projectMembers, notifications } from '~~/server/database/schema'
 import { createProjectInvitationSchema } from '~~/shared/schemas'
 import { InvitationStatus, NotificationType } from '~~/shared/constants'
@@ -28,6 +28,17 @@ export default defineEventHandler(async (event) => {
   }
 
   const { email } = result.data
+
+  // 將已過期但仍為 pending 的邀請落地為 expired，避免卡住重邀
+  await db.update(projectInvitations)
+    .set({ status: InvitationStatus.Expired })
+    .where(and(
+      eq(projectInvitations.projectId, projectId),
+      eq(projectInvitations.email, email),
+      eq(projectInvitations.status, InvitationStatus.Pending),
+      isNotNull(projectInvitations.expiresAt),
+      lt(projectInvitations.expiresAt, new Date())
+    ))
 
   // 驗證 email 已註冊
   const targetProfile = await getProfileByEmail(db, email)

@@ -1,9 +1,26 @@
-import { eq, desc } from 'drizzle-orm'
-import { notifications, projectInvitations, projects } from '~~/server/database/schema'
+import { eq, desc, and, lt, isNotNull } from 'drizzle-orm'
+import { notifications, projectInvitations, projects, profiles } from '~~/server/database/schema'
+import { InvitationStatus } from '~~/shared/constants'
 
 export default defineEventHandler(async (event) => {
   const db = useDB()
   const userId = event.context.userId as string
+
+  // 同步當前用戶邀請的過期狀態，避免過期邀請仍顯示 pending
+  const [profile] = await db.select({ email: profiles.email }).from(profiles)
+    .where(eq(profiles.id, userId))
+    .limit(1)
+
+  if (profile?.email) {
+    await db.update(projectInvitations)
+      .set({ status: InvitationStatus.Expired })
+      .where(and(
+        eq(projectInvitations.email, profile.email),
+        eq(projectInvitations.status, InvitationStatus.Pending),
+        isNotNull(projectInvitations.expiresAt),
+        lt(projectInvitations.expiresAt, new Date())
+      ))
+  }
 
   const list = await db
     .select({
