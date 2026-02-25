@@ -16,9 +16,7 @@ export default defineNuxtConfig({
     devLoginKey: process.env.DEV_LOGIN_KEY
   },
 
-  routeRules: {
-    '/': { prerender: true }
-  },
+  routeRules: {},
 
   compatibilityDate: '2025-01-15',
 
