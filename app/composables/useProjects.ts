@@ -21,6 +21,8 @@ export interface UseProjectsOptions {
   search?: string
 }
 
+export const PROJECTS_CACHE_KEY = 'projects-list'
+
 /**
  * 取得專案列表（支援分頁與搜尋）
  * @param options - 分頁與搜尋選項 (Ref<UseProjectsOptions>)
@@ -34,6 +36,7 @@ export function useProjects(options: Ref<UseProjectsOptions>) {
     if (search) params.set('search', search)
     return `/api/projects?${params.toString()}`
   }, {
+    key: PROJECTS_CACHE_KEY,
     watch: [options],
     deep: true
   })

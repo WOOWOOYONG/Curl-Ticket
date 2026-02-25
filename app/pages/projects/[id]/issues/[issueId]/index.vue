@@ -25,7 +25,10 @@ interface IssueResponse {
 }
 
 const { data: issueResponse, status } = await useFetch<IssueResponse>(
-  () => `/api/projects/${projectId.value}/issues/${issueId.value}`
+  () => `/api/projects/${projectId.value}/issues/${issueId.value}`,
+  {
+    key: getIssueCacheKey(projectId.value, issueId.value)
+  }
 )
 
 const issue = computed<Issue | undefined>(() => issueResponse.value?.data)

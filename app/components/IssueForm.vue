@@ -39,7 +39,12 @@ const emptyIssueResponse = ref<IssueResponse | null>(null)
 const emptyIssueStatus = ref<'idle' | 'pending' | 'success' | 'error'>('success')
 
 const issueFetch = isEditMode.value
-  ? await useFetch<IssueResponse>(() => `/api/projects/${projectId.value}/issues/${issueId.value}`)
+  ? await useFetch<IssueResponse>(
+      () => `/api/projects/${projectId.value}/issues/${issueId.value}`,
+      {
+        key: getIssueCacheKey(projectId.value, issueId.value || '')
+      }
+    )
   : { data: emptyIssueResponse, status: emptyIssueStatus }
 
 const issueResponse = issueFetch.data
@@ -289,6 +294,10 @@ async function onSubmit(event: FormSubmitEvent<IssueFormState>) {
 
     clearNuxtData(getIssuesCacheKey(projectId.value))
     clearNuxtData(getProjectCacheKey(projectId.value))
+    clearNuxtData(PROJECTS_CACHE_KEY)
+    if (isEditMode.value && issueId.value) {
+      clearNuxtData(getIssueCacheKey(projectId.value, issueId.value))
+    }
     navigateTo(isEditMode.value
       ? `/projects/${projectId.value}/issues/${issueId.value}`
       : `/projects/${projectId.value}`)

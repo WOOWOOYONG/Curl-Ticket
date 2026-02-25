@@ -17,6 +17,7 @@ export interface UseIssuesOptions {
 }
 
 export const getIssuesCacheKey = (projectId: string) => `project-${projectId}-issues`
+export const getIssueCacheKey = (projectId: string, issueId: string) => `project-${projectId}-issue-${issueId}`
 
 /**
  * 取得專案的 Issues 列表
