@@ -19,8 +19,6 @@ export default defineEventHandler(async (event) => {
     badRequest('Validation Error', result.error.issues)
   }
 
-  const { accept } = result.data
-
   // 取得邀請
   const [invitation] = await db.select().from(projectInvitations)
     .where(eq(projectInvitations.id, invitationId))
@@ -31,10 +29,18 @@ export default defineEventHandler(async (event) => {
   }
 
   if (invitation.status !== InvitationStatus.Pending) {
+    if (invitation.status === InvitationStatus.Expired) {
+      badRequest('邀請已過期')
+    }
+
     badRequest('此邀請已被處理')
   }
 
   if (invitation.expiresAt && new Date() > invitation.expiresAt) {
+    await db.update(projectInvitations)
+      .set({ status: InvitationStatus.Expired })
+      .where(eq(projectInvitations.id, invitationId))
+
     badRequest('邀請已過期')
   }
 
@@ -47,34 +53,20 @@ export default defineEventHandler(async (event) => {
     forbidden('你無權回應此邀請')
   }
 
-  if (accept) {
-    // 接受邀請
-    await db.transaction(async (tx) => {
-      await tx.update(projectInvitations)
-        .set({ status: InvitationStatus.Accepted, acceptedAt: new Date() })
-        .where(eq(projectInvitations.id, invitationId))
+  await db.transaction(async (tx) => {
+    await tx.update(projectInvitations)
+      .set({ status: InvitationStatus.Accepted, acceptedAt: new Date() })
+      .where(eq(projectInvitations.id, invitationId))
 
-      await tx.insert(projectMembers).values({
-        projectId: invitation.projectId,
-        userId
-      }).onConflictDoNothing()
+    await tx.insert(projectMembers).values({
+      projectId: invitation.projectId,
+      userId
+    }).onConflictDoNothing()
 
-      await tx.update(notifications)
-        .set({ isRead: true })
-        .where(eq(notifications.projectInvitationId, invitationId))
-    })
-  } else {
-    // 拒絕邀請
-    await db.transaction(async (tx) => {
-      await tx.update(projectInvitations)
-        .set({ status: InvitationStatus.Rejected })
-        .where(eq(projectInvitations.id, invitationId))
-
-      await tx.update(notifications)
-        .set({ isRead: true })
-        .where(eq(notifications.projectInvitationId, invitationId))
-    })
-  }
+    await tx.update(notifications)
+      .set({ isRead: true })
+      .where(eq(notifications.projectInvitationId, invitationId))
+  })
 
   return { success: true }
 })

@@ -6,7 +6,7 @@ export const createProjectInvitationSchema = z.object({
 })
 
 export const respondProjectInvitationSchema = z.object({
-  accept: z.boolean()
+  accept: z.literal(true)
 })
 
 /** 專案邀請資料（列表用） */

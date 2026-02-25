@@ -29,9 +29,9 @@ describe('respondProjectInvitationSchema', () => {
     expect(result.success).toBe(true)
   })
 
-  it('accepts accept: false', () => {
+  it('rejects accept: false', () => {
     const result = respondProjectInvitationSchema.safeParse({ accept: false })
-    expect(result.success).toBe(true)
+    expect(result.success).toBe(false)
   })
 
   it('rejects non-boolean value', () => {

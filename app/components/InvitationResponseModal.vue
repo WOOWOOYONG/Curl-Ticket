@@ -15,14 +15,14 @@ const emit = defineEmits<{
 
 const loading = ref(false)
 
-async function respond(accept: boolean) {
+async function respond() {
   if (!props.invitation?.projectInvitationId) return
 
   loading.value = true
   try {
     await $fetch(`/api/project-invitations/${props.invitation.projectInvitationId}/respond`, {
       method: 'POST',
-      body: { accept }
+      body: { accept: true }
     })
     emit('responded')
     emit('update:open', false)
@@ -73,16 +73,8 @@ async function respond(accept: boolean) {
     <template #footer>
       <div class="flex justify-end gap-3">
         <UButton
-          color="neutral"
-          variant="outline"
           :loading="loading"
-          @click="respond(false)"
-        >
-          拒絕
-        </UButton>
-        <UButton
-          :loading="loading"
-          @click="respond(true)"
+          @click="respond"
         >
           接受邀請
         </UButton>

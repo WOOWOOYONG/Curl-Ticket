@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { NotificationType, InvitationStatus } from '~~/shared/constants'
+import { PROJECTS_CACHE_KEY } from '~/composables/useProjects'
 
 const { notifications, unreadCount, refresh, markAsRead } = useNotifications()
 
@@ -14,17 +15,25 @@ const selectedInvitation = ref<{
 } | null>(null)
 
 function handleNotificationClick(notification: typeof notifications.value[number]) {
-  if (notification.type === NotificationType.ProjectInvite && notification.projectInvitationId) {
-    selectedInvitation.value = {
-      projectInvitationId: notification.projectInvitationId,
-      projectName: notification.projectName,
-      content: notification.content
+  if (notification.type === NotificationType.ProjectInvite) {
+    if (notification.projectInvitationId && notification.invitationStatus === InvitationStatus.Pending) {
+      selectedInvitation.value = {
+        projectInvitationId: notification.projectInvitationId,
+        projectName: notification.projectName,
+        content: notification.content
+      }
+      invitationModalOpen.value = true
+      popoverOpen.value = false
+      if (!notification.isRead) {
+        markAsRead(notification.id)
+      }
+      return
     }
-    invitationModalOpen.value = true
-    popoverOpen.value = false
+
     if (!notification.isRead) {
       markAsRead(notification.id)
     }
+    popoverOpen.value = false
   } else if (notification.issueId) {
     if (!notification.isRead) {
       markAsRead(notification.id)
@@ -35,6 +44,7 @@ function handleNotificationClick(notification: typeof notifications.value[number
 
 function onInvitationResponded() {
   refresh()
+  void refreshNuxtData(PROJECTS_CACHE_KEY)
 }
 </script>
 
