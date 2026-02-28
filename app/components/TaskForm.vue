@@ -12,10 +12,6 @@ const state = defineModel<TaskFormState>('state', { required: true })
 defineProps<{
   isEditMode: boolean
 }>()
-
-const isReadyToSubmit = computed(() => Boolean(state.value.title.trim()))
-
-defineExpose({ isReadyToSubmit })
 </script>
 
 <template>
@@ -44,7 +40,7 @@ defineExpose({ isReadyToSubmit })
           </div>
         </div>
         <UBadge
-          v-if="isReadyToSubmit"
+          v-if="state.title.trim()"
           color="success"
           variant="subtle"
           class="gap-1.5 px-3 py-1"

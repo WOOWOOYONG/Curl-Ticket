@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { Environment, HttpMethod, IssueStatus, IssueType } from '~~/shared/constants'
+import { createApiBugFormSchema, createTaskFormSchema } from '~~/shared/schemas/issue'
 import { formatJson } from '~/utils/issue'
 import { issueTypeTabs } from '~/constants/issue'
+import type { FormSubmitEvent } from '@nuxt/ui'
 import type { IssueResponse } from '~/types/issue'
 import type { ApiBugFormState } from '~/components/ApiBugForm.vue'
 import type { TaskFormState } from '~/components/TaskForm.vue'
@@ -71,8 +73,7 @@ const curlInput = ref('')
 const responseBodyInput = ref('')
 
 // Refs to child components
-const apiBugFormRef = ref<{ isReadyToSubmit: boolean, isParsed: boolean, clearCurl: () => void, initParsedState: (v: boolean) => void } | null>(null)
-const taskFormRef = ref<{ isReadyToSubmit: boolean } | null>(null)
+const apiBugFormRef = ref<{ isParsed: boolean, clearCurl: () => void, initParsedState: (v: boolean) => void } | null>(null)
 
 const loading = ref(false)
 const isInitialized = ref(!isEditMode.value)
@@ -124,12 +125,29 @@ watch(curlInput, (value) => {
   apiBugState.value.rawCurl = value.trim() ? value : null
 })
 
-const isReadyToSubmit = computed(() => {
-  if (isEditMode.value && !isInitialized.value) return false
-  if (activeIssueType.value === IssueType.Task) {
-    return taskFormRef.value?.isReadyToSubmit ?? Boolean(taskState.value.title.trim())
+// Dynamic schema based on issue type
+// 編輯模式也用 create schema 驗證必填欄位，.partial() 的 updateIssueSchema 只給 API PATCH 用
+const activeSchema = computed(() => {
+  return activeIssueType.value === IssueType.Task
+    ? createTaskFormSchema
+    : createApiBugFormSchema
+})
+
+// Active form state for UForm binding
+const activeState = computed(() => {
+  return activeIssueType.value === IssueType.Task
+    ? taskState.value
+    : apiBugState.value
+})
+
+// UForm ref for programmatic error clearing
+const formRef = ref<{ clear: (path?: string) => void } | null>(null)
+
+// 當 url 被 parse 填入後，清除該欄位的驗證錯誤
+watch(() => apiBugState.value.url, (newUrl) => {
+  if (newUrl) {
+    formRef.value?.clear('url')
   }
-  return apiBugFormRef.value?.isReadyToSubmit ?? Boolean(apiBugState.value.title.trim() && apiBugState.value.url.trim() && apiBugState.value.method)
 })
 
 const submitLabel = computed(() => (isEditMode.value ? 'Save Changes' : 'Create Issue'))
@@ -157,7 +175,7 @@ function discardChanges() {
   }
 }
 
-async function onSubmit() {
+async function onSubmit(event: FormSubmitEvent<Record<string, unknown>>) {
   loading.value = true
 
   try {
@@ -171,25 +189,22 @@ async function onSubmit() {
 
     let body: Record<string, unknown>
 
-    if (activeIssueType.value === IssueType.Task) {
+    if (isEditMode.value) {
+      body = { ...event.data }
+    } else if (activeIssueType.value === IssueType.Task) {
       body = {
+        ...event.data,
         issueType: IssueType.Task,
-        title: taskState.value.title,
-        description: taskState.value.description || null,
-        status: taskState.value.status
+        projectId: projectId.value
       }
     } else {
       const rawCurl = curlInput.value.trim()
       body = {
+        ...event.data,
         issueType: IssueType.ApiBug,
-        ...apiBugState.value,
+        projectId: projectId.value,
         rawCurl: rawCurl || null
       }
-    }
-
-    // For PATCH, don't send issueType
-    if (isEditMode.value) {
-      delete body.issueType
     }
 
     const response = await $fetch<IssueResponse>(endpoint, {
@@ -292,7 +307,12 @@ async function onSubmit() {
           />
         </div>
 
-        <form @submit.prevent="onSubmit">
+        <UForm
+          ref="formRef"
+          :schema="activeSchema"
+          :state="activeState"
+          @submit="onSubmit"
+        >
           <!-- API Bug Form -->
           <ApiBugForm
             v-if="activeIssueType === IssueType.ApiBug"
@@ -308,7 +328,6 @@ async function onSubmit() {
           <!-- Task Form -->
           <TaskForm
             v-else
-            ref="taskFormRef"
             v-model:state="taskState"
             :is-edit-mode="isEditMode"
           />
@@ -335,7 +354,6 @@ async function onSubmit() {
               <UButton
                 type="submit"
                 :loading="loading"
-                :disabled="!isReadyToSubmit"
                 :icon="submitIcon"
                 size="lg"
               >
@@ -343,7 +361,7 @@ async function onSubmit() {
               </UButton>
             </div>
           </div>
-        </form>
+        </UForm>
       </template>
     </UContainer>
   </div>
