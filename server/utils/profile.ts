@@ -1,16 +1,14 @@
+import type { H3Event } from 'h3'
 import { eq } from 'drizzle-orm'
 import { profiles } from '~~/server/database/schema'
 import { forbidden } from '~~/server/utils/errors'
 
 /**
  * 檢查用戶是否為 Admin，不是就 throw 403
+ * 優先使用 event.context.profile（middleware 已查詢），避免重複查 DB
  */
-export async function requireAdmin(db: ReturnType<typeof useDB>, userId: string) {
-  const [profile] = await db
-    .select()
-    .from(profiles)
-    .where(eq(profiles.id, userId))
-    .limit(1)
+export async function requireAdmin(db: ReturnType<typeof useDB>, userId: string, event?: H3Event) {
+  const profile = event?.context.profile ?? await getProfile(db, userId)
 
   if (profile?.role !== 'admin') {
     forbidden('需要管理員權限')

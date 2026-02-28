@@ -12,7 +12,7 @@ export default defineEventHandler(async (event) => {
   const db = useDB()
   const userId = event.context.userId as string
 
-  await requireAdmin(db, userId)
+  await requireAdmin(db, userId, event)
 
   const body = await readBody(event)
   const result = createInvitationCodeSchema.safeParse(body)
