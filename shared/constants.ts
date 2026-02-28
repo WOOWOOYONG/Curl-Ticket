@@ -1,4 +1,15 @@
 // ============================================
+// Issue 類型定義
+// ============================================
+export const IssueType = {
+  ApiBug: 'api_bug',
+  Task: 'task'
+} as const
+
+export type IssueType = typeof IssueType[keyof typeof IssueType]
+export const issueTypes = Object.values(IssueType)
+
+// ============================================
 // Environment 環境定義
 // ============================================
 export const Environment = {

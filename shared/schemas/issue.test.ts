@@ -4,6 +4,7 @@ import { createIssueSchema, updateIssueSchema } from './issue'
 const validUUID = '550e8400-e29b-41d4-a716-446655440000'
 
 const validInput = {
+  issueType: 'api_bug' as const,
   projectId: validUUID,
   title: 'Login API returns 500',
   method: 'POST',
@@ -33,13 +34,14 @@ describe('createIssueSchema', () => {
 
   it('applies default values for environment and status', () => {
     const result = createIssueSchema.safeParse({
+      issueType: 'api_bug',
       projectId: validUUID,
       title: 'Test Issue',
       method: 'GET',
       url: 'https://api.example.com/test'
     })
     expect(result.success).toBe(true)
-    if (result.success) {
+    if (result.success && result.data.issueType === 'api_bug') {
       expect(result.data.environment).toBe('Dev')
       expect(result.data.status).toBe('Open')
     }
@@ -104,6 +106,40 @@ describe('createIssueSchema', () => {
       const result = createIssueSchema.safeParse({ ...validInput, status })
       expect(result.success).toBe(true)
     }
+  })
+
+  it('accepts valid task input', () => {
+    const result = createIssueSchema.safeParse({
+      issueType: 'task',
+      projectId: validUUID,
+      title: 'Implement dark mode'
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('accepts task with description', () => {
+    const result = createIssueSchema.safeParse({
+      issueType: 'task',
+      projectId: validUUID,
+      title: 'Implement dark mode',
+      description: 'Add theme toggle to the header'
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('rejects task with empty title', () => {
+    const result = createIssueSchema.safeParse({
+      issueType: 'task',
+      projectId: validUUID,
+      title: ''
+    })
+    expect(result.success).toBe(false)
+  })
+
+  it('rejects input without issueType', () => {
+    const { issueType: _, ...inputWithoutType } = validInput
+    const result = createIssueSchema.safeParse(inputWithoutType)
+    expect(result.success).toBe(false)
   })
 })
 

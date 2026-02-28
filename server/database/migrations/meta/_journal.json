@@ -85,6 +85,13 @@
       "when": 1771810996426,
       "tag": "0011_issue_status_close",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1772190348444,
+      "tag": "0012_sticky_gabe_jones",
+      "breakpoints": true
     }
   ]
 }
