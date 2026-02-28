@@ -1,7 +1,7 @@
 # 📝 產品需求文件 (PRD) - Curl Ticket
 
-**Version:** 1.4
-**Last Updated:** 2026-02-10
+**Version:** 1.5
+**Last Updated:** 2026-02-28
 **Status:** Draft
 
 ---
@@ -11,7 +11,7 @@
 **Curl Ticket** 是一個專為開發團隊設計的 API 問題追蹤與溝通工具。旨在解決前後端協作（Integration）過程中，資訊傳遞混亂、Payload 格式錯誤難以重現的問題。
 
 - **核心痛點：** 前端回報 API 錯誤時，往往只給截圖或模糊描述，後端難以精準重現當下的 Request Header/Body。
-- **核心價值：** 透過解析 cURL 指令，一鍵還原 API 請求現場，大幅降低溝通成本。
+- **核心價值：** 透過解析 cURL 指令，一鍵還原 API 請求現場，大幅降低溝通成本。同時支援一般任務 (Task) 追蹤，滿足團隊多元的 Issue 管理需求。
 - **目標用戶：** 前端工程師、後端工程師、QA 測試人員。
 - **技術棧：** Nuxt 4, Supabase (Auth, DB, **Realtime**), Drizzle ORM, Zod, Tailwind CSS, curlconverter.
 
@@ -151,58 +151,83 @@ graph TD
 - **UI 呈現：** 表格 (Table) 佈局，高密度資訊。
 - **功能描述：**
 - 顯示該專案下的所有 Issues。
+- **Issue 類型切換 (Tabs)：** 頁面頂部提供 `API Bug` / `Task` 兩個 Tab，切換顯示不同類型的 Issue。預設顯示 `API Bug`。Tab 狀態同步至 URL query param (`?type=api_bug` / `?type=task`)。
 - **欄位定義：**
-- **ID:** 專案代號 + 流水號 (例如 `MEM-12`)。
-- **環境 (Env):** 顯示 Badge (Local, Dev, Staging, Prod)，以顏色區分。
+- **ID:** 專案代號 + 流水號 (例如 `MEM-12`)，前方帶有類型圖示（API Bug: 🐛, Task: ✅）。
+- **標題 (Title):** 簡述問題，API Bug 類型在標題下方顯示 URL。
+- **Method:** Colored Badge (GET, POST, PUT, DELETE)。僅 API Bug 類型顯示，Task 類型顯示「—」。
 - **狀態 (Status):** Icon 顯示 (`Open`, `In Progress`, `Done`, `Close`)。
-- **Method:** Colored Badge (GET, POST, PUT, DELETE)。
-- **標題 (Title):** 簡述問題。
-- **URL:** 顯示 API Endpoint。
-- **建立者 / 時間**。
+- **環境 (Env):** 顯示環境名稱。僅 API Bug 類型顯示，Task 類型顯示「—」。
+- **更新時間**。
 
 - **篩選功能：**
-- Status (`Open` / `In Progress` / `Done` / `Close`)
-- **Environment (Local/Dev/Prod)**
-
-- **搜尋功能：** 針對標題進行關鍵字搜尋。
+- Issue Type (`API Bug` / `Task`) — 透過 Tabs 切換
+- **搜尋功能：** 針對標題與 URL 進行關鍵字搜尋。
+- **分頁功能：** 每頁 10 筆，顯示分頁資訊與頁碼導覽。
 
 ### 3.5 新增 / 編輯 Issue (Create/Edit Issue) - 核心功能
 
-- **頁面路徑：** `/projects/[id]/issues/create`
-- **UI 呈現：** 左右分割佈局 (Split View)。
+- **頁面路徑：** `/projects/[id]/issues/create`（新增）、`/projects/[id]/issues/[issueId]/edit`（編輯）
 - **功能描述：**
-  **A. 左側 (Source & Response)：**
+
+#### Issue 類型選擇（新增模式）
+
+- 頁面頂部提供 `API Bug` / `Task` 兩個 Tab，決定建立的 Issue 類型。
+- 選擇後顯示對應的表單。
+- **編輯模式不可切換類型**，根據既有 Issue 的 `issueType` 顯示對應表單。
+
+#### A. API Bug 表單（`issueType: 'api_bug'`）
+
+- **UI 呈現：** 左右分割佈局 (Split View)。
+
+  **左側 (Source & Response)：**
 - **cURL Input:** 大區塊 Textarea (Dark Mode) 供貼上前端 Console 複製的 cURL 指令。
 - **解析按鈕:** 點擊後觸發 `curlconverter`，自動填寫右側表單。
-- **Response Status (選填):** 輸入 HTTP Status Code (如 400, 500)。
-- **Response Body (選填):** Textarea，供貼上後端回傳的 Error JSON，支援 JSON Syntax Highlighting。
+- **Response (可收合)：** 包含 Response Status Code (選填) 與 Response Body (選填，支援 JSON Syntax Highlighting)。
 
-**B. 右側 (Parsed Form)：**
-
+  **右側 (Parsed Form)：**
+- **Issue Title (必填)**
 - **Environment (必填):** 下拉選單 (Local, Dev, Staging, Prod)。
-- _自動判斷邏輯：_ 若解析出的 URL Host 包含 `localhost` 或 `127.0.0.1`，自動選中 `Local`。
+  - _自動判斷邏輯：_ 若解析出的 URL Host 包含 `localhost` 或 `127.0.0.1`，自動選中 `Local`。
+- **Request Preview (唯讀)：** 顯示 Method, URL, Request Headers (可收合，含敏感遮罩), Request Body (可收合)。
+- **Description (選填)**
+- **必填驗證：** Title、URL、Method 皆填寫後方可提交。
 
-- **基本資訊:** Title (必填), Method, URL。
-- **Request Headers / Body:**
-- 自動填入解析後的 JSON。
-- 使用 Code Editor (Monaco/CodeMirror) 顯示，支援格式化 (Prettier)。
+#### B. Task 表單（`issueType: 'task'`）
 
-- **Description (選填):** Markdown 編輯器，用於描述「預期行為 vs 實際行為」。
+- **UI 呈現：** 單欄表單，僅包含：
+  - **Task Title (必填)**
+  - **Description (選填)**
+- **必填驗證：** 僅 Title 填寫後即可提交。
+- Task 類型不包含 cURL、Method、URL、Environment、Request/Response 等 API 相關欄位。
+
+#### 共通行為
+
+- **Footer Actions：** 包含「Discard」重置按鈕與「Create Issue / Save Changes」提交按鈕。
+- **編輯模式：** 提交時不傳送 `issueType` 欄位（不可變更類型）。Server 端針對 Task 類型拒絕 API 專屬欄位的更新。
 
 ### 3.6 Issue 詳細內容頁 (Issue Detail)
 
 - **頁面路徑：** `/projects/[id]/issues/[issueId]`
-- **UI 呈現：** 詳情佈局 (Detail View)。
+- **UI 呈現：** 詳情佈局 (Detail View)，左右雙欄（左側主內容 + 右側 Metadata Sidebar）。
 - **功能描述：**
-- **Header:** 顯示 Friendly ID (`MEM-12`), Title, Status, **Environment Badge**。
-- **Actions:**
-- **"Copy as cURL"**: 一鍵將 Request 資訊還原為 cURL 指令到剪貼簿。
-- 編輯 / 刪除 / 變更狀態。
+- **Header:** 顯示 Friendly ID (`MEM-12`), Issue Type Badge (`API Bug` / `Task`), Title, Description, Status 下拉選單（可直接切換狀態）。
+- **右側 Sidebar：** 顯示 Type、Created 日期、Last Updated 相對時間、Edit Details 按鈕。
 
-- **Request Context:** 唯讀展示 Method, URL, Headers, Request Body (JSON)。
-- **Response Context:**
-- 若有紀錄，顯示 Response Status 與 Response Body (JSON)。
-- 顯示 Description (Markdown 渲染)。
+#### API Bug 類型
+
+- **Actions:** **"Copy as cURL"** 按鈕：一鍵將 Request 資訊還原為 cURL 指令到剪貼簿。
+- **Method + URL Row：** 顯示 HTTP Method Badge 與完整 URL（含複製按鈕）。
+- **Info Row：** 顯示 Response Status Code 與 Environment Badge。
+- **Tabs（Request Body / Request Headers / Response）：**
+  - Request Body：JSON 格式顯示（含複製按鈕）。
+  - Request Headers：Key-Value 列表（敏感欄位自動遮罩為 `***REDACTED***`）。
+  - Response：JSON 格式顯示 Response Body（含複製按鈕）。
+
+#### Task 類型
+
+- **無 API 相關區塊**（不顯示 Method、URL、Headers、Request/Response）。
+- **Description 區塊：** 以獨立卡片顯示 Description 內容（白底，`whitespace-pre-wrap` 格式）。
 
 ### 3.7 設定 / 個人檔案 (Settings)
 
@@ -296,24 +321,37 @@ _(Standard Supabase Auth Ref)_
 
 ### Issues Table
 
-| Column            | Type      | Constraint        | Description                   |
-| ----------------- | --------- | ----------------- | ----------------------------- |
-| `id`              | serial    | PK                | 內部自動遞增 ID               |
-| `project_id`      | uuid      | FK -> projects.id | 所屬專案                      |
-| `issue_number`    | int       | Not Null          | **專案內流水號** (1, 2, 3...) |
-| `project_key`     | text      | Not Null          | **冗餘欄位** (直接顯示 MEM-1) |
-| `title`           | text      | Not Null          | 標題                          |
-| `description`     | text      |                   | 問題詳細描述 (Markdown)       |
-| `method`          | text      | Not Null          | GET, POST, PUT...             |
-| `url`             | text      | Not Null          | 完整的 API Endpoint           |
-| `environment`     | text      | Default 'Dev'     | Local, Dev, Staging, Prod     |
-| `request_body`    | jsonb     |                   | 請求 Payload                  |
-| `request_headers` | jsonb     |                   | 請求 Headers                  |
-| `response_status` | int       |                   | HTTP Status Code (e.g., 500)  |
-| `response_body`   | jsonb     |                   | 錯誤回傳 Payload              |
-| `status`          | text      | Default 'Open'    | Open, In Progress, Done, Close |
-| `created_by`      | uuid      | FK -> users.id    | 建立者                        |
-| `created_at`      | timestamp | Default Now()     |                               |
+| Column            | Type        | Constraint                    | Description                                    |
+| ----------------- | ----------- | ----------------------------- | ---------------------------------------------- |
+| `id`              | serial      | PK                            | 內部自動遞增 ID                                |
+| `project_id`      | uuid        | FK -> projects.id             | 所屬專案                                       |
+| `issue_number`    | int         | Not Null                      | **專案內流水號** (1, 2, 3...)                  |
+| `project_key`     | varchar(10) | Not Null                      | **冗餘欄位** (直接顯示 MEM-1)                  |
+| `issue_type`      | varchar(20) | Not Null, Default 'api_bug'   | Issue 類型 (`api_bug` / `task`)，CHECK 約束    |
+| `title`           | varchar(200)| Not Null                      | 標題                                           |
+| `description`     | text        |                               | 問題詳細描述                                   |
+| `raw_curl`        | text        |                               | 原始 cURL 指令（API Bug 專用）                 |
+| `method`          | varchar(10) |                               | GET, POST, PUT...（API Bug 專用，Task 為 null）|
+| `url`             | text        |                               | 完整的 API Endpoint（API Bug 專用，Task 為 null）|
+| `environment`     | varchar(10) | Default 'Dev'                 | Local, Dev, Staging, Prod（API Bug 專用，Task 為 null）|
+| `request_headers` | jsonb       |                               | 請求 Headers                                   |
+| `request_body`    | jsonb       |                               | 請求 Payload                                   |
+| `response_status` | int         |                               | HTTP Status Code (e.g., 500)                   |
+| `response_body`   | jsonb       |                               | 錯誤回傳 Payload                               |
+| `status`          | varchar(20) | Not Null, Default 'Open'      | Open, In Progress, Done, Close，CHECK 約束     |
+| `created_by`      | uuid        | Not Null                      | 建立者                                         |
+| `created_at`      | timestamp   | Default Now()                 |                                                |
+| `updated_at`      | timestamp   | Default Now()                 |                                                |
+
+> **約束：**
+> - `issues_type_check`: `issue_type IN ('api_bug', 'task')`
+> - `issues_status_check`: `status IN ('Open', 'In Progress', 'Done', 'Close')`
+> - **複合唯一索引：** `(project_id, issue_number)`
+> - **複合索引：** `(project_id, status, updated_at)` 加速篩選與統計
+>
+> **Issue 類型差異：**
+> - `api_bug`：所有欄位皆可填寫，`method`、`url` 為必填（Zod Schema 層級驗證）。
+> - `task`：僅使用 `title`、`description`、`status`，API 相關欄位 (`method`, `url`, `environment`, `raw_curl`, `request_headers`, `request_body`, `response_status`, `response_body`) 均為 null。Server 端拒絕對 Task 類型更新 API 專屬欄位。
 
 ### Notifications Table
 
@@ -398,6 +436,18 @@ _(Standard Supabase Auth Ref)_
   - **邀請通知：** 被邀請者可在通知中心查看並接受專案邀請（未接受可稍後處理）。
   - **專案設定頁：** Owner 可管理成員列表、查看邀請記錄、移除成員。
   - **通知類型擴充：** 新增 `project_invite` 通知類型，支援邀請回應 Modal。
+
+### Phase 2.7: Issue Type (Issue 類型擴展) **[Done]**
+
+- **目標：** 擴展 Issue 系統支援多種類型，滿足非 API 相關的任務追蹤需求。
+- **功能：**
+  - **Issue 類型：** 新增 `issue_type` 欄位，支援 `api_bug`（API Bug）與 `task`（一般任務）兩種類型。
+  - **API Bug 表單：** 保留既有的 cURL 解析、Request/Response 記錄功能，拆分為獨立的 `ApiBugForm` 子元件。
+  - **Task 表單：** 新增輕量的 `TaskForm` 子元件，僅包含 Title 與 Description。
+  - **Issue 列表類型篩選：** 列表頁新增 `API Bug` / `Task` Tab 切換，狀態同步至 URL query param。
+  - **Issue 詳細頁差異化顯示：** API Bug 顯示完整 Request/Response 資訊，Task 僅顯示 Description。
+  - **資料庫遷移：** `method`、`url`、`environment` 改為 nullable，新增 `issue_type` 欄位（含 CHECK 約束）。
+  - **Server 端類型保護：** PATCH API 拒絕對 Task 類型更新 API 專屬欄位。
 
 ### Phase 3: Polish (體驗升級)
 
