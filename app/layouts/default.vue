@@ -9,15 +9,16 @@ interface NavItem {
 
 const route = useRoute()
 
-const navItems = ref<NavItem[]>([
-  { to: '/', icon: 'i-lucide-folder', label: 'Projects' }
-])
+const { profile } = useProfile()
 
-onMounted(async () => {
-  const profile = await $fetch('/api/auth/me')
-  if (profile?.role === UserRole.Admin) {
-    navItems.value.push({ to: '/admin', icon: 'i-lucide-shield', label: '邀請管理' })
+const navItems = computed<NavItem[]>(() => {
+  const items: NavItem[] = [
+    { to: '/', icon: 'i-lucide-folder', label: 'Projects' }
+  ]
+  if (profile.value?.role === UserRole.Admin) {
+    items.push({ to: '/admin', icon: 'i-lucide-shield', label: '邀請管理' })
   }
+  return items
 })
 
 function isActive(item: NavItem) {

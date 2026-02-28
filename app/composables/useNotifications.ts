@@ -3,11 +3,13 @@ export function useNotifications() {
   const user = useSupabaseUser()
 
   const { data: notificationsData, refresh: refreshNotifications } = useFetch('/api/notifications', {
-    key: 'notifications'
+    key: 'notifications',
+    server: false
   })
 
   const { data: unreadCountData, refresh: refreshUnreadCount } = useFetch('/api/notifications/unread-count', {
-    key: 'notifications-unread-count'
+    key: 'notifications-unread-count',
+    server: false
   })
 
   const notifications = computed(() => notificationsData.value?.data ?? [])
