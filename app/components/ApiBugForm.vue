@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { environments, HttpMethod } from '~~/shared/constants'
+import { environments, HttpMethod, Environment } from '~~/shared/constants'
 import type { IssueStatus, HttpMethod as HttpMethodType, Environment as EnvironmentType } from '~~/shared/constants'
 import { getHttpMethodColor } from '~/constants/http'
 import { maskValue, formatJson, detectEnvironment, toHeadersArray, formatPayloadSize } from '~/utils/issue'
@@ -49,6 +49,24 @@ const localResponseBodyInput = computed({
   set: (val: string) => emit('update:responseBodyInput', val)
 })
 
+// 重置 parse 帶入的欄位
+function resetParsedState() {
+  isParsed.value = false
+  parseError.value = null
+  state.value.url = ''
+  state.value.method = HttpMethod.GET
+  state.value.requestHeaders = null
+  state.value.requestBody = null
+  state.value.environment = Environment.Dev
+}
+
+// 監聯 cURL 輸入：清空時一併重置 parsed 欄位（含編輯模式）
+watch(localCurlInput, (value) => {
+  if (!value.trim() && (isParsed.value || state.value.url)) {
+    resetParsedState()
+  }
+})
+
 // Headers as array for display
 const headersArray = computed(() => toHeadersArray(state.value.requestHeaders))
 
@@ -79,10 +97,6 @@ const environmentOptions = environments.map(env => ({
   label: env,
   value: env
 }))
-
-const isReadyToSubmit = computed(() => {
-  return Boolean(state.value.title.trim() && state.value.url.trim() && state.value.method)
-})
 
 // Parse cURL command
 const parseError = ref<string | null>(null)
@@ -137,8 +151,7 @@ async function parseCurl() {
 
 function clearCurl() {
   localCurlInput.value = ''
-  parseError.value = null
-  isParsed.value = false
+  resetParsedState()
 }
 
 // Sync response body input with state
@@ -173,7 +186,7 @@ function initParsedState(hasCurl: boolean) {
   isParsed.value = hasCurl
 }
 
-defineExpose({ isReadyToSubmit, isParsed, clearCurl, initParsedState })
+defineExpose({ isParsed, clearCurl, initParsedState })
 </script>
 
 <template>
@@ -340,7 +353,7 @@ defineExpose({ isReadyToSubmit, isParsed, clearCurl, initParsedState })
               </div>
             </div>
             <UBadge
-              v-if="isReadyToSubmit"
+              v-if="state.title.trim() && state.url.trim()"
               color="success"
               variant="subtle"
               class="gap-1.5 px-3 py-1"
@@ -397,161 +410,163 @@ defineExpose({ isReadyToSubmit, isParsed, clearCurl, initParsedState })
           </UFormField>
 
           <!-- Request Preview (read-only) -->
-          <div
-            v-if="state.url"
-            class="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden"
-          >
-            <!-- Header -->
-            <div class="flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
-              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Request Preview</span>
-              <UBadge
-                color="neutral"
-                variant="outline"
-                size="xs"
-              >
-                Read Only
-              </UBadge>
-            </div>
-
-            <!-- Method + URL -->
-            <div class="p-4 bg-white dark:bg-gray-900">
-              <div class="flex items-center gap-3">
-                <UBadge
-                  :color="getHttpMethodColor(state.method)"
-                  variant="subtle"
-                  class="font-mono font-semibold"
-                >
-                  {{ state.method }}
-                </UBadge>
-                <span class="flex-1 font-mono text-sm text-gray-900 dark:text-white truncate">
-                  {{ state.url }}
-                </span>
-                <UButton
-                  size="xs"
-                  variant="ghost"
-                  color="neutral"
-                  icon="i-lucide-copy"
-                  @click="copyUrl"
-                />
-              </div>
-            </div>
-
-            <!-- Payload Size -->
+          <UFormField name="url">
             <div
-              v-if="payloadSize"
-              class="px-4 py-3 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800"
+              v-if="state.url"
+              class="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden"
             >
-              <div class="flex items-center gap-2.5">
-                <span class="text-sm font-medium text-gray-600 dark:text-gray-300">Payload Size</span>
-                <UBadge
-                  color="info"
-                  variant="subtle"
-                  size="sm"
-                >
-                  {{ payloadSize }}
-                </UBadge>
-              </div>
-            </div>
-
-            <!-- Headers (collapsible) -->
-            <div
-              v-if="headersArray.length > 0"
-              class="px-4 py-3 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800"
-            >
-              <button
-                type="button"
-                class="flex items-center gap-2 text-xs font-medium text-gray-500 uppercase hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
-                @click="headersExpanded = !headersExpanded"
-              >
-                <UIcon
-                  :name="headersExpanded ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'"
-                  class="size-3"
-                />
-                Request Headers
+              <!-- Header -->
+              <div class="flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Request Preview</span>
                 <UBadge
                   color="neutral"
-                  variant="subtle"
+                  variant="outline"
                   size="xs"
                 >
-                  {{ headersArray.length }}
+                  Read Only
                 </UBadge>
-              </button>
-              <div
-                v-if="headersExpanded"
-                class="mt-3 space-y-1.5 pl-5"
-              >
-                <div
-                  v-for="header in headersArray"
-                  :key="header.key"
-                  class="font-mono text-sm"
-                >
-                  <span class="text-teal-600 dark:text-teal-400">{{ header.key }}:</span>
-                  <span class="text-gray-500 dark:text-gray-400 ml-1">{{ maskValue(header.key, header.value) }}</span>
+              </div>
+
+              <!-- Method + URL -->
+              <div class="p-4 bg-white dark:bg-gray-900">
+                <div class="flex items-center gap-3">
+                  <UBadge
+                    :color="getHttpMethodColor(state.method)"
+                    variant="subtle"
+                    class="font-mono font-semibold"
+                  >
+                    {{ state.method }}
+                  </UBadge>
+                  <span class="flex-1 font-mono text-sm text-gray-900 dark:text-white truncate">
+                    {{ state.url }}
+                  </span>
+                  <UButton
+                    size="xs"
+                    variant="ghost"
+                    color="neutral"
+                    icon="i-lucide-copy"
+                    @click="copyUrl"
+                  />
                 </div>
               </div>
-            </div>
 
-            <!-- Request Body (collapsible) -->
-            <div
-              v-if="state.requestBody"
-              class="px-4 py-3 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800"
-            >
-              <div class="flex items-center justify-between">
+              <!-- Payload Size -->
+              <div
+                v-if="payloadSize"
+                class="px-4 py-3 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800"
+              >
+                <div class="flex items-center gap-2.5">
+                  <span class="text-sm font-medium text-gray-600 dark:text-gray-300">Payload Size</span>
+                  <UBadge
+                    color="info"
+                    variant="subtle"
+                    size="sm"
+                  >
+                    {{ payloadSize }}
+                  </UBadge>
+                </div>
+              </div>
+
+              <!-- Headers (collapsible) -->
+              <div
+                v-if="headersArray.length > 0"
+                class="px-4 py-3 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800"
+              >
                 <button
                   type="button"
                   class="flex items-center gap-2 text-xs font-medium text-gray-500 uppercase hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
-                  @click="requestBodyExpanded = !requestBodyExpanded"
+                  @click="headersExpanded = !headersExpanded"
                 >
                   <UIcon
-                    :name="requestBodyExpanded ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'"
+                    :name="headersExpanded ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'"
                     class="size-3"
                   />
-                  Request Body
+                  Request Headers
                   <UBadge
                     color="neutral"
                     variant="subtle"
                     size="xs"
                   >
-                    JSON
+                    {{ headersArray.length }}
                   </UBadge>
                 </button>
-                <UButton
-                  size="xs"
-                  variant="ghost"
-                  color="neutral"
-                  icon="i-lucide-copy"
-                  @click="copyRequestBody"
-                />
+                <div
+                  v-if="headersExpanded"
+                  class="mt-3 space-y-1.5 pl-5"
+                >
+                  <div
+                    v-for="header in headersArray"
+                    :key="header.key"
+                    class="font-mono text-sm"
+                  >
+                    <span class="text-teal-600 dark:text-teal-400">{{ header.key }}:</span>
+                    <span class="text-gray-500 dark:text-gray-400 ml-1">{{ maskValue(header.key, header.value) }}</span>
+                  </div>
+                </div>
               </div>
+
+              <!-- Request Body (collapsible) -->
               <div
-                v-if="requestBodyExpanded"
-                class="mt-3"
+                v-if="state.requestBody"
+                class="px-4 py-3 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800"
               >
-                <JsonCodeBlock
-                  :content="requestBodyFormatted"
-                  read-only
-                  :show-header="false"
-                  line-number-offset-class="pl-10"
-                  line-number-padding-top-class="pt-4"
-                  content-padding-class="p-4"
-                />
+                <div class="flex items-center justify-between">
+                  <button
+                    type="button"
+                    class="flex items-center gap-2 text-xs font-medium text-gray-500 uppercase hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                    @click="requestBodyExpanded = !requestBodyExpanded"
+                  >
+                    <UIcon
+                      :name="requestBodyExpanded ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'"
+                      class="size-3"
+                    />
+                    Request Body
+                    <UBadge
+                      color="neutral"
+                      variant="subtle"
+                      size="xs"
+                    >
+                      JSON
+                    </UBadge>
+                  </button>
+                  <UButton
+                    size="xs"
+                    variant="ghost"
+                    color="neutral"
+                    icon="i-lucide-copy"
+                    @click="copyRequestBody"
+                  />
+                </div>
+                <div
+                  v-if="requestBodyExpanded"
+                  class="mt-3"
+                >
+                  <JsonCodeBlock
+                    :content="requestBodyFormatted"
+                    read-only
+                    :show-header="false"
+                    line-number-offset-class="pl-10"
+                    line-number-padding-top-class="pt-4"
+                    content-padding-class="p-4"
+                  />
+                </div>
               </div>
             </div>
-          </div>
 
-          <!-- No URL placeholder -->
-          <div
-            v-else
-            class="border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-lg p-6 text-center"
-          >
-            <UIcon
-              name="i-lucide-link"
-              class="size-8 text-gray-300 dark:text-gray-600 mx-auto mb-2"
-            />
-            <p class="text-sm text-gray-400">
-              Parse a cURL command to see request preview
-            </p>
-          </div>
+            <!-- No URL placeholder -->
+            <div
+              v-else
+              class="border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-lg p-6 text-center"
+            >
+              <UIcon
+                name="i-lucide-link"
+                class="size-8 text-gray-300 dark:text-gray-600 mx-auto mb-2"
+              />
+              <p class="text-sm text-gray-400">
+                Parse a cURL command to see request preview
+              </p>
+            </div>
+          </UFormField>
 
           <!-- Description -->
           <UFormField
