@@ -123,7 +123,7 @@ server/
   database/           # Drizzle schema + SQL migrations
   middleware/         # Server auth middleware
 shared/               # Shared constants and Zod schemas
-docs/prd.md           # Product requirements draft
+docs/prd/             # Product requirements (modular PRD docs)
 scripts/              # Local DB helper scripts
 ```
 
