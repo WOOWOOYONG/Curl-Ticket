@@ -1,6 +1,7 @@
 import { eq, max } from 'drizzle-orm'
 import { issues } from '~~/server/database/schema'
 import { createIssueSchema } from '~~/shared/schemas'
+import { IssueType } from '~~/shared/constants'
 import { MAX_CREATE_ATTEMPTS, UNIQUE_VIOLATION_CODE } from '~~/server/constants'
 import { badRequest, internalServerError } from '~~/server/utils/errors'
 import { getAccessibleProject } from '~~/server/utils/project-access'
@@ -28,27 +29,31 @@ export default defineEventHandler(async (event) => {
 
   // 4. 讀取並驗證 request body
   const body = await readBody(event)
-  const result = createIssueSchema.omit({ projectId: true }).safeParse(body)
+  const result = createIssueSchema.safeParse({ ...body, projectId })
 
   if (!result.success) {
     badRequest('Validation Error', result.error.issues)
   }
 
+  const data = result.data
+  const isTask = data.issueType === IssueType.Task
+
   // 5. 計算該專案的下一個 issue_number，若遇到唯一性衝突則重試
   const issueBase = {
     projectId,
     projectKey: project.key,
-    title: result.data.title,
-    description: result.data.description ?? null,
-    rawCurl: result.data.rawCurl ?? null,
-    method: result.data.method,
-    url: result.data.url,
-    environment: result.data.environment,
-    requestHeaders: result.data.requestHeaders ?? null,
-    requestBody: result.data.requestBody ?? null,
-    responseStatus: result.data.responseStatus ?? null,
-    responseBody: result.data.responseBody ?? null,
-    status: result.data.status,
+    issueType: data.issueType,
+    title: data.title,
+    description: data.description ?? null,
+    rawCurl: isTask ? null : ('rawCurl' in data ? data.rawCurl ?? null : null),
+    method: isTask ? null : ('method' in data ? data.method : null),
+    url: isTask ? null : ('url' in data ? data.url : null),
+    environment: isTask ? null : ('environment' in data ? data.environment : null),
+    requestHeaders: isTask ? null : ('requestHeaders' in data ? data.requestHeaders ?? null : null),
+    requestBody: isTask ? null : ('requestBody' in data ? data.requestBody ?? null : null),
+    responseStatus: isTask ? null : ('responseStatus' in data ? data.responseStatus ?? null : null),
+    responseBody: isTask ? null : ('responseBody' in data ? data.responseBody ?? null : null),
+    status: data.status,
     createdBy: userId
   }
 

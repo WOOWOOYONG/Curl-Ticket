@@ -1,7 +1,7 @@
 import type { SQL } from 'drizzle-orm'
-import { eq, desc, count, and, or, ilike } from 'drizzle-orm'
+import { eq, desc, count, and, or, ilike, isNotNull } from 'drizzle-orm'
 import { issues } from '~~/server/database/schema'
-import { IssueStatus, type IssueStatus as IssueStatusType, type Environment } from '~~/shared/constants'
+import { IssueStatus, IssueType, type IssueStatus as IssueStatusType, type Environment, type IssueType as IssueTypeType } from '~~/shared/constants'
 import { badRequest } from '~~/server/utils/errors'
 import { getAccessibleProject } from '~~/server/utils/project-access'
 import { sanitizeSearchQuery, escapeLikePattern } from '~~/server/utils/search'
@@ -23,6 +23,7 @@ export default defineEventHandler(async (event) => {
   const pageSize = Math.min(100, Math.max(1, Number(query.pageSize) || 20))
   const status = query.status as IssueStatusType | undefined
   const environment = query.environment as Environment | undefined
+  const issueType = query.issueType as IssueTypeType | undefined
 
   const offset = (page - 1) * pageSize
 
@@ -37,13 +38,17 @@ export default defineEventHandler(async (event) => {
     conditions.push(eq(issues.environment, environment))
   }
 
+  if (issueType && Object.values(IssueType).includes(issueType)) {
+    conditions.push(eq(issues.issueType, issueType))
+  }
+
   const search = sanitizeSearchQuery(query.search)
   if (search) {
     const escaped = escapeLikePattern(search)
     conditions.push(
       or(
         ilike(issues.title, `%${escaped}%`),
-        ilike(issues.url, `%${escaped}%`)
+        and(isNotNull(issues.url), ilike(issues.url, `%${escaped}%`))
       )!
     )
   }
@@ -57,6 +62,7 @@ export default defineEventHandler(async (event) => {
         id: issues.id,
         issueNumber: issues.issueNumber,
         projectKey: issues.projectKey,
+        issueType: issues.issueType,
         title: issues.title,
         method: issues.method,
         url: issues.url,
