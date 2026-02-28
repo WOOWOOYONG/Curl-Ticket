@@ -190,7 +190,7 @@ async function onSubmit(event: FormSubmitEvent<Record<string, unknown>>) {
     let body: Record<string, unknown>
 
     if (isEditMode.value) {
-      body = { ...event.data }
+      body = activeSchema.value.parse(event.data)
     } else if (activeIssueType.value === IssueType.Task) {
       body = {
         ...event.data,

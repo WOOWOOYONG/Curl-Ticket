@@ -41,11 +41,20 @@ export const createIssueSchema = z.discriminatedUnion('issueType', [
 export const createApiBugFormSchema = z.object({ ...issueBaseFields, ...apiBugFields }).omit({ projectId: true, issueType: true })
 export const createTaskFormSchema = z.object({ ...issueBaseFields, ...taskFields }).omit({ projectId: true, issueType: true })
 
-/** 更新 Issue — flat partial of all possible fields (derived from create fields) */
+/** 更新 Issue — flat partial，移除 default 避免 .partial() 時 Zod 自動填入預設值 */
 export const updateIssueSchema = z.object({
-  ...issueBaseFields,
-  ...apiBugFields
-}).omit({ projectId: true, issueType: true }).partial()
+  title: z.string().min(1, '標題不可為空').max(200, '標題不可超過 200 字'),
+  description: z.string().nullish(),
+  status: z.enum(issueStatuses),
+  rawCurl: z.string().nullish(),
+  method: z.enum(httpMethods, { message: '無效的 HTTP 方法' }),
+  url: z.string().min(1, 'URL 不可為空'),
+  environment: z.enum(environments),
+  requestHeaders: z.record(z.string(), z.string()).nullish(),
+  requestBody: z.unknown().nullish(),
+  responseStatus: z.number('無效的狀態碼').int().min(100, '無效的狀態碼').max(599, '無效的狀態碼').nullish(),
+  responseBody: z.unknown().nullish()
+}).partial()
 
 /** Issue 資料（完整） */
 export const issueSchema = z.object({
