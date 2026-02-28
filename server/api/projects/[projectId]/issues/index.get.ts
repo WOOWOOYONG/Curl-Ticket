@@ -1,10 +1,10 @@
 import type { SQL } from 'drizzle-orm'
 import { eq, desc, count, and, or, ilike, isNotNull } from 'drizzle-orm'
 import { issues } from '~~/server/database/schema'
-import { IssueStatus, IssueType, type IssueStatus as IssueStatusType, type Environment, type IssueType as IssueTypeType } from '~~/shared/constants'
 import { badRequest } from '~~/server/utils/errors'
 import { getAccessibleProject } from '~~/server/utils/project-access'
 import { sanitizeSearchQuery, escapeLikePattern } from '~~/server/utils/search'
+import { issueQuerySchema } from '~~/shared/schemas/query'
 
 export default defineEventHandler(async (event) => {
   const projectId = getRouterParam(event, 'projectId')
@@ -17,20 +17,19 @@ export default defineEventHandler(async (event) => {
   const userId = event.context.userId as string
   await getAccessibleProject(db, projectId, userId)
 
-  // Extract query parameters
-  const query = getQuery(event)
-  const page = Math.max(1, Number(query.page) || 1)
-  const pageSize = Math.min(100, Math.max(1, Number(query.pageSize) || 20))
-  const status = query.status as IssueStatusType | undefined
-  const environment = query.environment as Environment | undefined
-  const issueType = query.issueType as IssueTypeType | undefined
+  // Validate and extract query parameters
+  const parsed = issueQuerySchema.safeParse(getQuery(event))
+  if (!parsed.success) {
+    badRequest('Invalid query parameters')
+  }
+  const { page, pageSize, status, environment, issueType } = parsed.data
 
   const offset = (page - 1) * pageSize
 
   // Build filter conditions
   const conditions: SQL[] = [eq(issues.projectId, projectId)]
 
-  if (status && Object.values(IssueStatus).includes(status)) {
+  if (status) {
     conditions.push(eq(issues.status, status))
   }
 
@@ -38,11 +37,11 @@ export default defineEventHandler(async (event) => {
     conditions.push(eq(issues.environment, environment))
   }
 
-  if (issueType && Object.values(IssueType).includes(issueType)) {
+  if (issueType) {
     conditions.push(eq(issues.issueType, issueType))
   }
 
-  const search = sanitizeSearchQuery(query.search)
+  const search = sanitizeSearchQuery(parsed.data.search)
   if (search) {
     const escaped = escapeLikePattern(search)
     conditions.push(

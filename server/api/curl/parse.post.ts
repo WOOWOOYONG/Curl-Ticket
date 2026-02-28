@@ -1,24 +1,26 @@
 import { toJsonString } from 'curlconverter'
 import { badRequest } from '~~/server/utils/errors'
 import { HttpMethod } from '~~/shared/constants'
+import { parseCurlSchema } from '~~/shared/schemas/curl'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
 
-  if (!body?.curl || typeof body.curl !== 'string') {
+  const parsed = parseCurlSchema.safeParse(body)
+  if (!parsed.success) {
     badRequest('cURL command is required')
   }
 
   try {
-    const jsonString = toJsonString(body.curl)
-    const parsed = JSON.parse(jsonString)
+    const jsonString = toJsonString(parsed.data.curl)
+    const curlData = JSON.parse(jsonString)
 
     return {
       data: {
-        url: parsed.url || '',
-        method: parsed.method?.toUpperCase() || HttpMethod.GET,
-        headers: parsed.headers || null,
-        body: parsed.data || parsed.json || null
+        url: curlData.url || '',
+        method: curlData.method?.toUpperCase() || HttpMethod.GET,
+        headers: curlData.headers || null,
+        body: curlData.data || curlData.json || null
       }
     }
   } catch (err) {

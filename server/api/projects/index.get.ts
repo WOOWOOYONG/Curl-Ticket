@@ -3,16 +3,20 @@ import { projects, issues } from '~~/server/database/schema'
 import { IssueStatus } from '~~/shared/constants'
 import { buildProjectAccessCondition } from '~~/server/utils/project-access'
 import { sanitizeSearchQuery, escapeLikePattern } from '~~/server/utils/search'
+import { projectQuerySchema } from '~~/shared/schemas/query'
+import { badRequest } from '~~/server/utils/errors'
 
 export default defineEventHandler(async (event) => {
   const db = useDB()
   const userId = event.context.userId as string
 
-  // 1. 讀取查詢參數
-  const query = getQuery(event)
-  const page = Math.max(1, Number(query.page) || 1)
-  const pageSize = Math.min(100, Math.max(1, Number(query.pageSize) || 12))
-  const search = sanitizeSearchQuery(query.search)
+  // 1. 驗證並讀取查詢參數
+  const parsed = projectQuerySchema.safeParse(getQuery(event))
+  if (!parsed.success) {
+    badRequest('Invalid query parameters')
+  }
+  const { page, pageSize } = parsed.data
+  const search = sanitizeSearchQuery(parsed.data.search)
 
   // 2. 計算 offset
   const offset = (page - 1) * pageSize
