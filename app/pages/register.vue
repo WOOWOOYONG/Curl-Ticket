@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { PENDING_INVITATION_TOKEN_KEY } from '~~/app/constants/auth'
+import { validateInvitationCodeSchema, type ValidateInvitationCodeInput } from '~~/shared/schemas/invitation-code'
+import type { FormSubmitEvent } from '@nuxt/ui'
 
 definePageMeta({
   layout: 'header-only'
@@ -8,7 +10,7 @@ definePageMeta({
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
 
-const code = ref('')
+const codeState = ref<ValidateInvitationCodeInput>({ code: '' })
 const loading = ref(false)
 const validating = ref(false)
 const valid = ref(false)
@@ -30,12 +32,8 @@ watch(user, async (val) => {
   }
 }, { immediate: true })
 
-async function validateCode() {
-  const trimmed = code.value.trim().toUpperCase()
-  if (trimmed.length !== 6) {
-    errorMessage.value = '請輸入 6 位邀請碼'
-    return
-  }
+async function validateCode(event: FormSubmitEvent<ValidateInvitationCodeInput>) {
+  const trimmed = event.data.code.trim().toUpperCase()
 
   validating.value = true
   errorMessage.value = ''
@@ -45,7 +43,7 @@ async function validateCode() {
       method: 'POST',
       body: { code: trimmed }
     })
-    code.value = trimmed
+    codeState.value.code = trimmed
     valid.value = true
 
     // 已登入：直接 redeem 並跳轉首頁
@@ -78,7 +76,7 @@ async function redeemAndEnter(invitationCode: string) {
 
 async function signInWithGoogle() {
   loading.value = true
-  sessionStorage.setItem(PENDING_INVITATION_TOKEN_KEY, code.value)
+  sessionStorage.setItem(PENDING_INVITATION_TOKEN_KEY, codeState.value.code)
 
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
@@ -163,30 +161,41 @@ async function signInWithGoogle() {
           </p>
         </div>
 
-        <UInput
-          v-model="code"
-          placeholder="例如：A3X9K2"
-          size="lg"
-          class="w-full max-w-50 text-center font-mono tracking-widest uppercase"
-          :maxlength="6"
-          @keyup.enter="validateCode"
-        />
-
-        <p
-          v-if="errorMessage"
-          class="text-sm text-red-500 dark:text-red-400"
+        <UForm
+          :schema="validateInvitationCodeSchema"
+          :state="codeState"
+          class="flex flex-col items-center gap-4 w-full"
+          @submit="validateCode"
         >
-          {{ errorMessage }}
-        </p>
+          <UFormField
+            name="code"
+            class="w-full flex justify-center"
+          >
+            <UInput
+              v-model="codeState.code"
+              placeholder="例如：A3X9K2"
+              size="lg"
+              class="w-full max-w-50 text-center font-mono tracking-widest uppercase"
+              :maxlength="6"
+            />
+          </UFormField>
 
-        <UButton
-          size="lg"
-          :loading="validating"
-          class="mt-2"
-          @click="validateCode"
-        >
-          驗證邀請碼
-        </UButton>
+          <p
+            v-if="errorMessage"
+            class="text-sm text-red-500 dark:text-red-400"
+          >
+            {{ errorMessage }}
+          </p>
+
+          <UButton
+            type="submit"
+            size="lg"
+            :loading="validating"
+            class="mt-2"
+          >
+            驗證邀請碼
+          </UButton>
+        </UForm>
 
         <NuxtLink
           to="/login"

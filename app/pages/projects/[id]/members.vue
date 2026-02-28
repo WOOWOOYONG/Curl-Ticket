@@ -2,7 +2,8 @@
 import { InvitationStatusColor, type BadgeColor } from '~/constants/invitation'
 import type { InvitationStatus } from '~~/shared/constants'
 import type { ProjectMember } from '~~/shared/schemas/project'
-import type { ProjectInvitation } from '~~/shared/schemas/project-invitation'
+import { createProjectInvitationSchema, type CreateProjectInvitationInput, type ProjectInvitation } from '~~/shared/schemas/project-invitation'
+import type { FormSubmitEvent } from '@nuxt/ui'
 
 definePageMeta({
   ssr: false
@@ -32,20 +33,18 @@ const { data: invitationsResponse, refresh: refreshInvitations } = useFetch<{ da
 const invitations = computed(() => invitationsResponse.value?.data ?? [])
 
 // 邀請表單
-const inviteEmail = ref('')
+const inviteState = ref<CreateProjectInvitationInput>({ email: '' })
 const inviteLoading = ref(false)
 
-async function sendInvitation() {
-  if (!inviteEmail.value.trim()) return
-
+async function sendInvitation(event: FormSubmitEvent<CreateProjectInvitationInput>) {
   inviteLoading.value = true
   try {
     await $fetch(`/api/projects/${projectId.value}/invitations`, {
       method: 'POST',
-      body: { email: inviteEmail.value.trim() }
+      body: event.data
     })
     toast.add({ title: '邀請已發送', color: 'success' })
-    inviteEmail.value = ''
+    inviteState.value.email = ''
     refreshInvitations()
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : '邀請失敗'
@@ -157,24 +156,30 @@ function getStatusColor(status: InvitationStatus): BadgeColor {
               <h2 class="mb-3 text-base font-semibold text-slate-900 dark:text-white">
                 邀請成員
               </h2>
-              <form
-                class="flex gap-2"
-                @submit.prevent="sendInvitation"
+              <UForm
+                :schema="createProjectInvitationSchema"
+                :state="inviteState"
+                class="flex items-start gap-2"
+                @submit="sendInvitation"
               >
-                <UInput
-                  v-model="inviteEmail"
-                  type="email"
-                  placeholder="輸入 Email 地址"
+                <UFormField
+                  name="email"
                   class="flex-1"
-                />
+                >
+                  <UInput
+                    v-model="inviteState.email"
+                    type="email"
+                    placeholder="輸入 Email 地址"
+                    class="w-full"
+                  />
+                </UFormField>
                 <UButton
                   type="submit"
                   :loading="inviteLoading"
-                  :disabled="!inviteEmail.trim()"
                 >
                   發送邀請
                 </UButton>
-              </form>
+              </UForm>
 
               <!-- Pending invitations -->
               <div
