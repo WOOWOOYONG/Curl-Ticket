@@ -3,6 +3,7 @@ import { getHttpMethodColor } from '~/constants/http'
 import { IssueStatusColor, IssueStatusLabel, EnvironmentColor, IssueTypeLabel, IssueTypeIcon, IssueTypeColor } from '~/constants/issue'
 import { maskValue, formatJson, buildCurlCommand, toHeadersArray } from '~/utils/issue'
 import type { IssueResponse } from '~/types/issue'
+import type { Issue } from '~~/shared/schemas/issue'
 import { issueStatuses, IssueType } from '~~/shared/constants'
 import type { IssueStatus } from '~~/shared/constants'
 
