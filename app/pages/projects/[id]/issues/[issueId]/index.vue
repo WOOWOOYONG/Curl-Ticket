@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { getHttpMethodColor } from '~/constants/http'
-import { IssueStatusColor, IssueStatusLabel, EnvironmentColor } from '~/constants/issue'
-import { maskValue, formatJson, buildCurlCommand } from '~/utils/issue'
-import type { Issue } from '~~/shared/schemas/issue'
-import { issueStatuses } from '~~/shared/constants'
+import { IssueStatusColor, IssueStatusLabel, EnvironmentColor, IssueTypeLabel, IssueTypeIcon, IssueTypeColor } from '~/constants/issue'
+import { maskValue, formatJson, buildCurlCommand, toHeadersArray } from '~/utils/issue'
+import type { IssueResponse } from '~/types/issue'
+import { issueStatuses, IssueType } from '~~/shared/constants'
 import type { IssueStatus } from '~~/shared/constants'
 
 definePageMeta({
@@ -17,13 +17,12 @@ const toast = useToast()
 
 const projectId = computed(() => route.params.id as string)
 const issueId = computed(() => route.params.issueId as string)
+const backToListUrl = computed(() => {
+  const type = route.query.type
+  return type ? `/projects/${projectId.value}?type=${type}` : `/projects/${projectId.value}`
+})
 
 // Fetch issue data
-interface IssueResponse {
-  data: Issue
-  friendlyId: string
-}
-
 const { data: issueResponse, status } = await useFetch<IssueResponse>(
   () => `/api/projects/${projectId.value}/issues/${issueId.value}`,
   {
@@ -33,6 +32,9 @@ const { data: issueResponse, status } = await useFetch<IssueResponse>(
 
 const issue = computed<Issue | undefined>(() => issueResponse.value?.data)
 const friendlyId = computed(() => issueResponse.value?.friendlyId)
+
+const isApiBug = computed(() => !issue.value?.issueType || issue.value.issueType === IssueType.ApiBug)
+const isTask = computed(() => issue.value?.issueType === IssueType.Task)
 
 const statusOptions = issueStatuses.map(status => ({
   label: IssueStatusLabel[status],
@@ -54,12 +56,9 @@ watch(issue, (currentIssue) => {
 }, { immediate: true })
 
 // Headers as array
-const headersArray = computed(() => {
-  if (!issue.value?.requestHeaders) return []
-  return Object.entries(issue.value.requestHeaders).map(([key, value]) => ({ key, value }))
-})
+const headersArray = computed(() => toHeadersArray(issue.value?.requestHeaders))
 
-// Tab items — always show all 3 tabs
+// Tab items — always show all 3 tabs (for API Bug only)
 const tabItems = [
   { label: 'Request Body', slot: 'request-body' as const },
   { label: 'Request Headers', slot: 'headers' as const },
@@ -80,8 +79,10 @@ function copyUrl() {
 
 function copyCurl() {
   if (!issue.value) return
-  const curlCmd = issue.value.rawCurl || buildCurlCommand(issue.value)
-  copyToClipboard(curlCmd, { description: 'cURL command copied to clipboard' })
+  const curlCmd = issue.value.rawCurl || (issue.value.method && issue.value.url ? buildCurlCommand(issue.value as { method: string, url: string, requestHeaders?: Record<string, string> | null, requestBody?: unknown }) : '')
+  if (curlCmd) {
+    copyToClipboard(curlCmd, { description: 'cURL command copied to clipboard' })
+  }
 }
 
 function copyRequestBody() {
@@ -168,7 +169,7 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
             The issue you're looking for doesn't exist or has been deleted.
           </p>
           <UButton
-            :to="`/projects/${projectId}`"
+            :to="backToListUrl"
             variant="outline"
             icon="i-lucide-arrow-left"
           >
@@ -184,7 +185,7 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
           <!-- Back Link + Friendly ID -->
           <div class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
             <NuxtLink
-              :to="`/projects/${projectId}`"
+              :to="backToListUrl"
               class="inline-flex items-center gap-1.5 hover:text-slate-900 dark:hover:text-white transition-colors group"
             >
               <UIcon
@@ -195,6 +196,17 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
             </NuxtLink>
             <span class="text-slate-300 dark:text-slate-700">|</span>
             <span class="font-mono font-medium text-slate-700 dark:text-slate-300">Issue {{ friendlyId }}</span>
+            <UBadge
+              :color="IssueTypeColor[issue.issueType]"
+              variant="subtle"
+              class="gap-1 ml-1"
+            >
+              <UIcon
+                :name="IssueTypeIcon[issue.issueType]"
+                class="size-3"
+              />
+              {{ IssueTypeLabel[issue.issueType] }}
+            </UBadge>
           </div>
 
           <!-- Title + Actions Row -->
@@ -234,6 +246,7 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
                 class="size-4 text-slate-500 animate-spin"
               />
               <UButton
+                v-if="isApiBug"
                 color="primary"
                 icon="i-lucide-terminal"
                 @click="copyCurl"
@@ -246,154 +259,180 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
 
         <!-- Main Content Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <!-- Left Column: Request Info -->
+          <!-- Left Column -->
           <div class="lg:col-span-2 space-y-6">
-            <!-- Method + URL Row -->
-            <div class="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200/70 dark:border-slate-800/70 bg-white dark:bg-slate-900/50 p-4">
-              <UBadge
-                :color="getHttpMethodColor(issue.method)"
-                variant="subtle"
-                class="font-mono font-bold text-sm px-3 py-1.5"
-              >
-                {{ issue.method }}
-              </UBadge>
-              <code class="flex-1 min-w-0 text-sm text-slate-900 dark:text-white font-mono truncate">
-                {{ issue.url }}
-              </code>
-              <UButton
-                size="xs"
-                variant="ghost"
-                color="neutral"
-                icon="i-lucide-copy"
-                @click="copyUrl"
-              />
-            </div>
-
-            <!-- Info Row: Status Code | Environment -->
-            <div class="flex items-center rounded-xl border border-slate-200/70 dark:border-slate-800/70 bg-white dark:bg-slate-900/50 divide-x divide-slate-200/70 dark:divide-slate-800/70">
-              <div
-                v-if="issue.responseStatus"
-                class="flex-1 px-5 py-3"
-              >
-                <span class="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 font-semibold block mb-1">Status Code</span>
-                <div class="flex items-center gap-2">
-                  <span
-                    class="size-2 rounded-full"
-                    :class="{
-                      'bg-emerald-500': issue.responseStatus >= 200 && issue.responseStatus < 300,
-                      'bg-blue-500': issue.responseStatus >= 300 && issue.responseStatus < 400,
-                      'bg-amber-500': issue.responseStatus >= 400 && issue.responseStatus < 500,
-                      'bg-red-500': issue.responseStatus >= 500
-                    }"
-                  />
-                  <span class="font-mono font-bold text-slate-900 dark:text-white">{{ issue.responseStatus }}</span>
-                </div>
-              </div>
-              <div class="flex-1 px-5 py-3">
-                <span class="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 font-semibold block mb-1">Environment</span>
+            <!-- API Bug: Method + URL Row -->
+            <template v-if="isApiBug && issue.method && issue.url">
+              <div class="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200/70 dark:border-slate-800/70 bg-white dark:bg-slate-900/50 p-4">
                 <UBadge
-                  :color="EnvironmentColor[issue.environment] || 'neutral'"
+                  :color="getHttpMethodColor(issue.method)"
                   variant="subtle"
-                  class="font-semibold px-2.5 py-0.5"
+                  class="font-mono font-bold text-sm px-3 py-1.5"
                 >
-                  {{ issue.environment }}
+                  {{ issue.method }}
                 </UBadge>
+                <code class="flex-1 min-w-0 text-sm text-slate-900 dark:text-white font-mono truncate">
+                  {{ issue.url }}
+                </code>
+                <UButton
+                  size="xs"
+                  variant="ghost"
+                  color="neutral"
+                  icon="i-lucide-copy"
+                  @click="copyUrl"
+                />
               </div>
-            </div>
 
-            <!-- Tabs: Request Body / Request Headers / Response -->
-            <UTabs
-              :items="tabItems"
-              variant="link"
-            >
-              <!-- Request Body Tab -->
-              <template #request-body>
-                <template v-if="issue.requestBody">
-                  <div class="mt-4 rounded-xl border border-slate-200/70 dark:border-slate-800/70 overflow-hidden bg-white dark:bg-slate-900/40 relative">
-                    <UButton
-                      size="xs"
-                      variant="ghost"
-                      color="neutral"
-                      icon="i-lucide-copy"
-                      class="absolute top-5 right-5 z-10"
-                      @click="copyRequestBody"
-                    />
-                    <div class="p-4">
-                      <JsonCodeBlock
-                        :content="formatJson(issue.requestBody)"
-                        read-only
-                        :show-header="false"
-                        line-number-offset-class="pl-10"
-                        line-number-padding-top-class="pt-4"
-                        content-padding-class="p-0"
-                      />
-                    </div>
-                  </div>
-                </template>
+              <!-- Info Row: Status Code | Environment -->
+              <div class="flex items-center rounded-xl border border-slate-200/70 dark:border-slate-800/70 bg-white dark:bg-slate-900/50 divide-x divide-slate-200/70 dark:divide-slate-800/70">
                 <div
-                  v-else
-                  class="mt-4 py-12 text-center text-sm text-slate-400 dark:text-slate-500"
+                  v-if="issue.responseStatus"
+                  class="flex-1 px-5 py-3"
                 >
-                  No request body recorded
+                  <span class="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 font-semibold block mb-1">Status Code</span>
+                  <div class="flex items-center gap-2">
+                    <span
+                      class="size-2 rounded-full"
+                      :class="{
+                        'bg-emerald-500': issue.responseStatus >= 200 && issue.responseStatus < 300,
+                        'bg-blue-500': issue.responseStatus >= 300 && issue.responseStatus < 400,
+                        'bg-amber-500': issue.responseStatus >= 400 && issue.responseStatus < 500,
+                        'bg-red-500': issue.responseStatus >= 500
+                      }"
+                    />
+                    <span class="font-mono font-bold text-slate-900 dark:text-white">{{ issue.responseStatus }}</span>
+                  </div>
                 </div>
-              </template>
+                <div
+                  v-if="issue.environment"
+                  class="flex-1 px-5 py-3"
+                >
+                  <span class="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 font-semibold block mb-1">Environment</span>
+                  <UBadge
+                    :color="EnvironmentColor[issue.environment] || 'neutral'"
+                    variant="subtle"
+                    class="font-semibold px-2.5 py-0.5"
+                  >
+                    {{ issue.environment }}
+                  </UBadge>
+                </div>
+              </div>
 
-              <!-- Headers Tab -->
-              <template #headers>
-                <template v-if="headersArray.length > 0">
-                  <div class="mt-4 rounded-xl border border-slate-200/70 dark:border-slate-800/70 overflow-hidden bg-white dark:bg-slate-900/40 p-4">
-                    <div class="space-y-2">
-                      <div
-                        v-for="header in headersArray"
-                        :key="header.key"
-                        class="flex items-start gap-2 font-mono text-sm"
-                      >
-                        <span class="text-emerald-600 dark:text-emerald-400 font-medium min-w-50">{{ header.key }}:</span>
-                        <span class="text-slate-600 dark:text-slate-400 flex-1 break-all">{{ maskValue(header.key, header.value) }}</span>
+              <!-- Tabs: Request Body / Request Headers / Response -->
+              <UTabs
+                :items="tabItems"
+                variant="link"
+              >
+                <!-- Request Body Tab -->
+                <template #request-body>
+                  <template v-if="issue.requestBody">
+                    <div class="mt-4 rounded-xl border border-slate-200/70 dark:border-slate-800/70 overflow-hidden bg-white dark:bg-slate-900/40 relative">
+                      <UButton
+                        size="xs"
+                        variant="ghost"
+                        color="neutral"
+                        icon="i-lucide-copy"
+                        class="absolute top-5 right-5 z-10"
+                        @click="copyRequestBody"
+                      />
+                      <div class="p-4">
+                        <JsonCodeBlock
+                          :content="formatJson(issue.requestBody)"
+                          read-only
+                          :show-header="false"
+                          line-number-offset-class="pl-10"
+                          line-number-padding-top-class="pt-4"
+                          content-padding-class="p-0"
+                        />
                       </div>
                     </div>
+                  </template>
+                  <div
+                    v-else
+                    class="mt-4 py-12 text-center text-sm text-slate-400 dark:text-slate-500"
+                  >
+                    No request body recorded
                   </div>
                 </template>
-                <div
-                  v-else
-                  class="mt-4 py-12 text-center text-sm text-slate-400 dark:text-slate-500"
-                >
-                  No request headers recorded
-                </div>
-              </template>
 
-              <!-- Response Tab -->
-              <template #response>
-                <template v-if="issue.responseBody">
-                  <div class="mt-4 rounded-xl border border-slate-200/70 dark:border-slate-800/70 overflow-hidden bg-white dark:bg-slate-900/40 relative">
-                    <UButton
-                      size="xs"
-                      variant="ghost"
-                      color="neutral"
-                      icon="i-lucide-copy"
-                      class="absolute top-5 right-5 z-10"
-                      @click="copyResponseBody"
-                    />
-                    <div class="p-4">
-                      <JsonCodeBlock
-                        :content="formatJson(issue.responseBody)"
-                        read-only
-                        :show-header="false"
-                        line-number-offset-class="pl-10"
-                        line-number-padding-top-class="pt-4"
-                        content-padding-class="p-0"
-                      />
+                <!-- Headers Tab -->
+                <template #headers>
+                  <template v-if="headersArray.length > 0">
+                    <div class="mt-4 rounded-xl border border-slate-200/70 dark:border-slate-800/70 overflow-hidden bg-white dark:bg-slate-900/40 p-4">
+                      <div class="space-y-2">
+                        <div
+                          v-for="header in headersArray"
+                          :key="header.key"
+                          class="flex items-start gap-2 font-mono text-sm"
+                        >
+                          <span class="text-emerald-600 dark:text-emerald-400 font-medium min-w-50">{{ header.key }}:</span>
+                          <span class="text-slate-600 dark:text-slate-400 flex-1 break-all">{{ maskValue(header.key, header.value) }}</span>
+                        </div>
+                      </div>
                     </div>
+                  </template>
+                  <div
+                    v-else
+                    class="mt-4 py-12 text-center text-sm text-slate-400 dark:text-slate-500"
+                  >
+                    No request headers recorded
                   </div>
                 </template>
-                <div
-                  v-else
-                  class="mt-4 py-12 text-center text-sm text-slate-400 dark:text-slate-500"
+
+                <!-- Response Tab -->
+                <template #response>
+                  <template v-if="issue.responseBody">
+                    <div class="mt-4 rounded-xl border border-slate-200/70 dark:border-slate-800/70 overflow-hidden bg-white dark:bg-slate-900/40 relative">
+                      <UButton
+                        size="xs"
+                        variant="ghost"
+                        color="neutral"
+                        icon="i-lucide-copy"
+                        class="absolute top-5 right-5 z-10"
+                        @click="copyResponseBody"
+                      />
+                      <div class="p-4">
+                        <JsonCodeBlock
+                          :content="formatJson(issue.responseBody)"
+                          read-only
+                          :show-header="false"
+                          line-number-offset-class="pl-10"
+                          line-number-padding-top-class="pt-4"
+                          content-padding-class="p-0"
+                        />
+                      </div>
+                    </div>
+                  </template>
+                  <div
+                    v-else
+                    class="mt-4 py-12 text-center text-sm text-slate-400 dark:text-slate-500"
+                  >
+                    No response data recorded
+                  </div>
+                </template>
+              </UTabs>
+            </template>
+
+            <!-- Task: Description prominently displayed -->
+            <template v-if="isTask">
+              <div class="rounded-xl border border-slate-200/70 dark:border-slate-800/70 bg-white dark:bg-slate-900/50 p-6">
+                <h3 class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
+                  Description
+                </h3>
+                <p
+                  v-if="issue.description"
+                  class="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap"
                 >
-                  No response data recorded
-                </div>
-              </template>
-            </UTabs>
+                  {{ issue.description }}
+                </p>
+                <p
+                  v-else
+                  class="text-sm text-slate-400 dark:text-slate-500 italic"
+                >
+                  No description provided
+                </p>
+              </div>
+            </template>
           </div>
 
           <!-- Right Column: Metadata Sidebar -->
@@ -402,6 +441,20 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
               <h3 class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                 Metadata
               </h3>
+
+              <!-- Type -->
+              <div class="space-y-1">
+                <span class="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">Type</span>
+                <div class="flex items-center gap-1.5">
+                  <UIcon
+                    :name="IssueTypeIcon[issue.issueType]"
+                    class="size-4 text-slate-600 dark:text-slate-300"
+                  />
+                  <span class="text-sm font-medium text-slate-900 dark:text-white">
+                    {{ IssueTypeLabel[issue.issueType] }}
+                  </span>
+                </div>
+              </div>
 
               <!-- Created -->
               <div class="space-y-1">

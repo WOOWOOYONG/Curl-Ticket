@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
 import type { IssueListItem } from '~~/shared/schemas'
+import { IssueType } from '~~/shared/constants'
 import { getHttpMethodColor } from '~/constants/http'
-import { IssueStatusColor, IssueStatusLabel } from '~/constants/issue'
+import { IssueStatusColor, IssueStatusLabel, IssueTypeIcon, issueTypeTabs } from '~/constants/issue'
 
 definePageMeta({
   ssr: false
@@ -20,10 +21,21 @@ const searchQuery = ref('')
 const debouncedSearch = refDebounced(searchQuery, 300)
 
 const DEFAULT_PAGE_SIZE = 10
-const issuesOptions = ref<UseIssuesOptions>({ page: 1, pageSize: DEFAULT_PAGE_SIZE })
+
+// Issue type filter — initialize from query param
+const initialType = route.query.type === IssueType.Task ? IssueType.Task : IssueType.ApiBug
+const activeTypeFilter = ref<IssueType>(initialType)
+const issuesOptions = ref<UseIssuesOptions>({ page: 1, pageSize: DEFAULT_PAGE_SIZE, issueType: initialType })
 
 watch(debouncedSearch, (val) => {
   issuesOptions.value = { ...issuesOptions.value, search: val, page: 1 }
+})
+
+watch(activeTypeFilter, (val) => {
+  issuesOptions.value = { ...issuesOptions.value, issueType: val, page: 1 }
+  // Sync query param without full navigation
+  const query = { ...route.query, type: val }
+  navigateTo({ path: route.path, query }, { replace: true })
 })
 
 const { data: issuesResponse, status: issuesStatus } = await useIssues(projectId, issuesOptions)
@@ -83,7 +95,7 @@ const columns: TableColumn<IssueListItem>[] = [
 
 // Row click handler
 function onRowSelect(_event: Event, row: { original: IssueListItem }) {
-  navigateTo(`/projects/${projectId.value}/issues/${row.original.id}`)
+  navigateTo(`/projects/${projectId.value}/issues/${row.original.id}?type=${activeTypeFilter.value}`)
 }
 </script>
 
@@ -208,6 +220,14 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
               />
             </div>
 
+            <!-- Issue Type Filter Tabs -->
+            <UTabs
+              :items="issueTypeTabs"
+              :model-value="activeTypeFilter"
+              variant="link"
+              @update:model-value="activeTypeFilter = $event as IssueType"
+            />
+
             <!-- Empty State -->
             <div
               v-if="project.totalIssues === 0"
@@ -239,7 +259,7 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
               v-else
               class="overflow-hidden rounded-2xl border border-slate-200/70 bg-white/80 shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60"
             >
-              <div class="max-h-[50vh] overflow-auto sm:max-h-[58vh]">
+              <div class="max-h-[40vh] overflow-auto sm:max-h-[48vh]">
                 <UTable
                   :columns="columns"
                   :data="issues"
@@ -254,9 +274,19 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
                 >
                   <!-- Issue ID -->
                   <template #issueId-cell="{ row }">
-                    <span class="font-mono text-sm font-semibold text-emerald-600 dark:text-emerald-400">
-                      {{ row.original.projectKey }}-{{ row.original.issueNumber }}
-                    </span>
+                    <div class="flex items-center gap-1.5">
+                      <UIcon
+                        :name="IssueTypeIcon[row.original.issueType]"
+                        class="size-3.5"
+                        :class="{
+                          'text-red-500': row.original.issueType === IssueType.ApiBug,
+                          'text-blue-500': row.original.issueType === IssueType.Task
+                        }"
+                      />
+                      <span class="font-mono text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                        {{ row.original.projectKey }}-{{ row.original.issueNumber }}
+                      </span>
+                    </div>
                   </template>
 
                   <!-- Title -->
@@ -265,7 +295,10 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
                       <span class="font-medium text-slate-900 dark:text-white truncate">
                         {{ row.original.title }}
                       </span>
-                      <span class="text-xs text-slate-400 dark:text-slate-500 truncate font-mono">
+                      <span
+                        v-if="row.original.url"
+                        class="text-xs text-slate-400 dark:text-slate-500 truncate font-mono"
+                      >
                         {{ row.original.url }}
                       </span>
                     </div>
@@ -274,12 +307,19 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
                   <!-- HTTP Method -->
                   <template #method-cell="{ row }">
                     <UBadge
+                      v-if="row.original.method"
                       :color="getHttpMethodColor(row.original.method)"
                       variant="subtle"
                       class="font-mono text-xs font-semibold"
                     >
                       {{ row.original.method }}
                     </UBadge>
+                    <span
+                      v-else
+                      class="text-slate-300 dark:text-slate-600"
+                    >
+                      —
+                    </span>
                   </template>
 
                   <!-- Status -->
@@ -299,8 +339,17 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
 
                   <!-- Environment -->
                   <template #environment-cell="{ row }">
-                    <span class="text-sm text-slate-500 dark:text-slate-400">
+                    <span
+                      v-if="row.original.environment"
+                      class="text-sm text-slate-500 dark:text-slate-400"
+                    >
                       {{ row.original.environment }}
+                    </span>
+                    <span
+                      v-else
+                      class="text-slate-300 dark:text-slate-600"
+                    >
+                      —
                     </span>
                   </template>
 
