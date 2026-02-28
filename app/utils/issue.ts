@@ -1,6 +1,16 @@
 import { Environment, type Environment as EnvironmentType } from '~~/shared/constants'
 
 /**
+ * Convert request headers object to array for display
+ * @param headers - Request headers object
+ * @returns Array of { key, value } pairs
+ */
+export function toHeadersArray(headers: Record<string, string> | null | undefined) {
+  if (!headers) return []
+  return Object.entries(headers).map(([key, value]) => ({ key, value }))
+}
+
+/**
  * Mask sensitive header values for display
  * @param key - Header key name
  * @param value - Header value
@@ -16,6 +26,19 @@ export function maskValue(key: string, value: string): string {
     return '*'.repeat(6)
   }
   return value
+}
+
+/**
+ * Calculate human-readable payload size from data
+ * @param data - Request body data
+ * @returns Formatted size string (e.g., '128 B', '1.5 KB') or null if no data
+ */
+export function formatPayloadSize(data: unknown): string | null {
+  if (!data) return null
+  const str = typeof data === 'string' ? data : JSON.stringify(data)
+  const bytes = new Blob([str]).size
+  if (bytes < 1024) return `${bytes} B`
+  return `${(bytes / 1024).toFixed(1)} KB`
 }
 
 /**

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { maskValue, formatJson, getJsonLines, buildCurlCommand, detectEnvironment } from './issue'
+import { maskValue, formatJson, formatPayloadSize, getJsonLines, buildCurlCommand, detectEnvironment } from './issue'
 
 describe('maskValue', () => {
   it('masks authorization header values', () => {
@@ -69,6 +69,44 @@ describe('formatJson', () => {
     const obj: Record<string, unknown> = {}
     obj.self = obj
     expect(formatJson(obj)).toBe('[object Object]')
+  })
+})
+
+describe('formatPayloadSize', () => {
+  it('returns null for null data', () => {
+    expect(formatPayloadSize(null)).toBeNull()
+  })
+
+  it('returns null for undefined data', () => {
+    expect(formatPayloadSize(undefined)).toBeNull()
+  })
+
+  it('returns null for empty string', () => {
+    expect(formatPayloadSize('')).toBeNull()
+  })
+
+  it('returns bytes for small string payload', () => {
+    expect(formatPayloadSize('hello')).toBe('5 B')
+  })
+
+  it('returns bytes for small object payload', () => {
+    const result = formatPayloadSize({ a: 1 })
+    expect(result).toBe(`${new Blob(['{"a":1}']).size} B`)
+  })
+
+  it('returns KB for payload >= 1024 bytes', () => {
+    const data = 'x'.repeat(1024)
+    expect(formatPayloadSize(data)).toBe('1.0 KB')
+  })
+
+  it('returns KB with one decimal for larger payloads', () => {
+    const data = 'x'.repeat(2560)
+    expect(formatPayloadSize(data)).toBe('2.5 KB')
+  })
+
+  it('handles string data directly without double-encoding', () => {
+    const str = '{"key":"value"}'
+    expect(formatPayloadSize(str)).toBe(`${new Blob([str]).size} B`)
   })
 })
 
