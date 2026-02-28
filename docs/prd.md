@@ -1,6 +1,6 @@
 # 📝 產品需求文件 (PRD) - Curl Ticket
 
-**Version:** 2.0  
+**Version:** 2.1  
 **Last Updated:** 2026-02-28  
 **Status:** Draft
 

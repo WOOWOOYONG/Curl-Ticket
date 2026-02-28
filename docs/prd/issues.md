@@ -66,7 +66,7 @@
 - `ISSUE-038`：顯示 Method Badge + 完整 URL（含複製按鈕）。
 - `ISSUE-039`：顯示 Response Status 與 Environment Badge。
 - `ISSUE-040`：提供 `Request Body` / `Request Headers` / `Response` 三個 Tab，皆支援複製。
-- `ISSUE-041`：`Request Headers` 顯示時需對敏感欄位自動遮罩為 `***REDACTED***`。
+- `ISSUE-041`：`Request Headers` 顯示時需對敏感欄位自動遮罩，不可回傳原始敏感值（目前 UI 顯示格式為 `******` 或 `Bearer ******`）。
 
 #### Task 詳細頁
 

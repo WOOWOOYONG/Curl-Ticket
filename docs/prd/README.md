@@ -1,6 +1,6 @@
 # 📝 產品需求文件 (PRD) - Curl Ticket
 
-**Version:** 2.0  
+**Version:** 2.1  
 **Last Updated:** 2026-02-28  
 **Status:** Draft
 
@@ -19,8 +19,8 @@
 
 | 文件 | 範圍 | 主要需求 ID Prefix |
 | --- | --- | --- |
-| [auth.md](./auth.md) | 登入、邀請註冊、角色、個人設定 | `AUTH-*` |
-| [projects.md](./projects.md) | 專案列表、建立、設定、成員邀請 | `PROJ-*` |
+| [auth.md](./auth.md) | 登入、邀請註冊、角色、使用者選單 | `AUTH-*` |
+| [projects.md](./projects.md) | 專案列表、建立、成員管理、成員邀請 | `PROJ-*` |
 | [issues.md](./issues.md) | Issue 列表、新增/編輯、詳細頁 | `ISSUE-*` |
 | [notifications.md](./notifications.md) | 通知中心、Realtime、觸發規則 | `NOTIF-*` |
 | [data-model.md](./data-model.md) | DB Schema、資料約束、追蹤矩陣 | `DATA-*` |
@@ -51,10 +51,10 @@ graph TD
 
     IssueList -->|Select Issue| IssueDetail[Issue 詳細頁]
     IssueList -->|Create| CreateIssue[新增 Issue 頁]
-    IssueList -->|Settings| ProjectSettings[專案設定頁]
+    IssueList -->|Members| ProjectMembers[專案成員管理頁]
 
-    ProjectSettings -->|Invite| SendInvitation[發送專案邀請]
-    ProjectSettings -->|Remove| RemoveMember[移除成員]
+    ProjectMembers -->|Invite| SendInvitation[發送專案邀請]
+    ProjectMembers -->|Remove| RemoveMember[移除成員]
 
     CreateIssue -->|Action| ParseCurl[解析 cURL]
     CreateIssue -->|Action| SaveIssue[儲存 Issue]
@@ -62,7 +62,7 @@ graph TD
     IssueDetail -->|Edit| EditIssue[編輯 Issue 頁]
     IssueDetail -->|Action| CopyCurl[複製 cURL]
 
-    GlobalNav --> Settings[設定/登出]
+    GlobalNav --> UserMenu[使用者選單 (Theme/登出)]
     GlobalNav --> Notifications[通知中心 (Realtime)]
     AdminSidebar[Sidebar - Admin] --> AdminPage[邀請管理頁]
     System --> NotFound[404 錯誤頁]

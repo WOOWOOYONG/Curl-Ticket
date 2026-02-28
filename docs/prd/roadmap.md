@@ -23,7 +23,7 @@
 ### Phase 2.5: Invitation Enhancement（已完成）
 
 - `ROAD-009`：完成專案 Email 邀請與通知中心邀請回應。
-- `ROAD-010`：完成專案設定頁（成員管理、邀請記錄、移除成員）。
+- `ROAD-010`：完成專案成員管理頁（成員管理、邀請記錄、移除成員）。
 - `ROAD-011`：完成 `project_invite` 通知類型與邀請回應 Modal。
 
 ### Phase 2.7: Issue Type（已完成）

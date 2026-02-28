@@ -1,5 +1,15 @@
 # PRD Changelog
 
+## 2026-02-28 - v2.1
+
+- `DOC-008`：對齊實作路由，將專案成員管理頁規格更新為 `/projects/[id]/members` 與 Members 入口命名。
+- `DOC-009`：補齊專案建立表單 `environments` 必填規格，與前後端驗證一致。
+- `DOC-010`：修正邀請狀態集合為 `pending/accepted/rejected/expired`，並標註 `rejected` 為保留擴充狀態。
+- `DOC-011`：更新認證模組，移除 `/settings` 必要性，改為 Header 使用者選單（Theme/登出）。
+- `DOC-012`：更新通知與資料模型文件，將 Issue 狀態變更通知 Trigger 標記為 `Planned`（尚未落地）。
+- `DOC-013`：調整敏感欄位遮罩規格描述，改為「不得暴露原值」並對齊目前 UI 表現。
+- `DOC-014`：校正資料模型欄位型別描述（`projects`、`notifications`）以符合 Drizzle schema。
+
 ## 2026-02-28 - v2.0
 
 - `DOC-001`：將單一檔案 `docs/prd.md` 重構為模組化文件目錄 `docs/prd/`。

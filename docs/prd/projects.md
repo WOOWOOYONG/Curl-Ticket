@@ -2,7 +2,7 @@
 
 ## 範圍
 
-本文件涵蓋首頁專案列表、專案建立、專案設定與專案成員邀請。
+本文件涵蓋首頁專案列表、專案建立、專案成員管理與專案成員邀請。
 
 ## Functional Requirements
 
@@ -15,19 +15,19 @@
 ### 3.3 專案新增 (Project Create)
 
 - `PROJ-004`：專案建立頁路徑為 `/projects/create`。
-- `PROJ-005`：建立表單欄位：`name`（必填）、`key`（必填，全站唯一）、`description`（選填）。
+- `PROJ-005`：建立表單欄位：`name`（必填）、`key`（必填，全站唯一）、`description`（選填）、`environments`（必填，至少 1 項）。
 - `PROJ-006`：`key` 重複檢查需在 Schema 驗證與 Server 寫入階段雙重保護。
 - `PROJ-007`：建立專案後，建立者自動成為 Owner。
 
-### 3.3.1 專案設定 (Project Settings)
+### 3.3.1 專案成員管理 (Project Members)
 
-- `PROJ-008`：專案設定頁路徑為 `/projects/[id]/settings`。
-- `PROJ-009`：僅 Owner 可存取設定頁，非 Owner 顯示無法存取。
-- `PROJ-010`：Issue 列表頁 Header 的 Settings 按鈕僅 Owner 可見。
-- `PROJ-011`：設定頁需顯示成員列表（名稱、Email、Owner Badge）。
+- `PROJ-008`：專案成員管理頁路徑為 `/projects/[id]/members`。
+- `PROJ-009`：僅 Owner 可存取成員管理頁，非 Owner 顯示無法存取。
+- `PROJ-010`：Issue 列表頁 Header 的 Members 按鈕僅 Owner 可見。
+- `PROJ-011`：成員管理頁需顯示成員列表（名稱、Email、Owner Badge）。
 - `PROJ-012`：Owner 可移除非自己的成員，不可移除自己。
-- `PROJ-013`：設定頁需提供邀請已註冊用戶加入專案的入口。
-- `PROJ-014`：邀請記錄需顯示 Email、狀態（`pending`/`accepted`/`expired`）、建立時間。
+- `PROJ-013`：成員管理頁需提供邀請已註冊用戶加入專案的入口。
+- `PROJ-014`：邀請記錄需顯示 Email、狀態（`pending`/`accepted`/`rejected`/`expired`）、建立時間。
 
 ### 3.3.2 專案邀請 (Project Invitation)
 
@@ -37,7 +37,7 @@
 - `PROJ-018`：被邀請者可於通知中心開啟邀請回應 Modal。
 - `PROJ-019`：接受邀請後需自動加入 `project_members`，並標記通知為已讀。
 - `PROJ-020`：未接受時維持 `pending`，到期後轉為 `expired`。
-- `PROJ-021`：邀請狀態僅允許 `pending`、`accepted`、`expired`。
+- `PROJ-021`：邀請狀態集合為 `pending`、`accepted`、`rejected`、`expired`（目前流程僅啟用接受，`rejected` 保留給未來擴充）。
 - `PROJ-022`：僅邀請對象本人可回應邀請，Server 端需驗證身份與邀請資料一致。
 
 ## Cross-References
