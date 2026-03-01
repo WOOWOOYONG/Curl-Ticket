@@ -45,5 +45,8 @@ export const issues = pgTable('issues', {
   index('issues_project_stats_idx')
     .on(table.projectId, table.status, table.updatedAt),
   uniqueIndex('issues_project_issue_number_key')
-    .on(table.projectId, table.issueNumber)
+    .on(table.projectId, table.issueNumber),
+  // 複合索引：加速 Issue 列表查詢（projectId + issueType 過濾 + createdAt 排序）
+  index('issues_project_list_idx')
+    .on(table.projectId, table.issueType, table.createdAt)
 ])

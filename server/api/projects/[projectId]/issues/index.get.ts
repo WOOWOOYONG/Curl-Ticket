@@ -15,7 +15,6 @@ export default defineEventHandler(async (event) => {
 
   const db = useDB()
   const userId = event.context.userId as string
-  await getAccessibleProject(db, projectId, userId)
 
   // Validate and extract query parameters
   const parsed = issueQuerySchema.safeParse(getQuery(event))
@@ -54,8 +53,9 @@ export default defineEventHandler(async (event) => {
 
   const whereClause = and(...conditions)
 
-  // Fetch issues and total count in parallel
-  const [issuesList, totalResult] = await Promise.all([
+  // Run access check and issue queries in parallel to reduce DB round-trips
+  const [_, issuesList, totalResult] = await Promise.all([
+    getAccessibleProject(db, projectId, userId),
     db
       .select({
         id: issues.id,
