@@ -1,0 +1,1 @@
+CREATE INDEX "issues_project_list_idx" ON "issues" USING btree ("project_id","issue_type","created_at");
