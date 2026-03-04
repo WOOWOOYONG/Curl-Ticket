@@ -53,9 +53,10 @@ export default defineEventHandler(async (event) => {
 
   const whereClause = and(...conditions)
 
-  // Run access check and issue queries in parallel to reduce DB round-trips
-  const [_, issuesList, totalResult] = await Promise.all([
-    getAccessibleProject(db, projectId, userId),
+  await getAccessibleProject(db, projectId, userId)
+
+  // Fetch issues and total count in parallel
+  const [issuesList, totalResult] = await Promise.all([
     db
       .select({
         id: issues.id,

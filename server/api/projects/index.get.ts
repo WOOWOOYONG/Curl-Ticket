@@ -53,7 +53,7 @@ export default defineEventHandler(async (event) => {
   const total = projectsWithTotal[0]?.total ?? 0
   const paginatedProjects = projectsWithTotal.map(({ total: _, ...p }) => p)
 
-  // 5. 針對這些 projects 查詢統計資料 + summary（並行執行，節省一次 DB 往返）
+  // 5. 針對這些 projects 查詢統計資料 + 全域 summary（並行執行）
   const projectIds = paginatedProjects.map(p => p.id)
 
   const [stats, summaryResult] = await Promise.all([
@@ -76,7 +76,12 @@ export default defineEventHandler(async (event) => {
             openIssues: sql<number>`count(case when ${issues.status} = ${IssueStatus.Open} then 1 end)`
           })
           .from(issues)
-          .where(inArray(issues.projectId, projectIds))
+          .where(
+            inArray(
+              issues.projectId,
+              db.select({ id: projects.id }).from(projects).where(whereCondition)
+            )
+          )
       : [{ totalIssues: 0, openIssues: 0 }]
   ])
 
