@@ -1,4 +1,4 @@
-import { Environment, type Environment as EnvironmentType } from '~~/shared/constants'
+import { Environment } from '~~/shared/constants'
 
 /**
  * Convert request headers object to array for display
@@ -93,7 +93,7 @@ export function buildCurlCommand(issue: {
  * @param url - Full URL string
  * @returns Detected environment string
  */
-export function detectEnvironment(url: string): EnvironmentType {
+export function detectEnvironment(url: string): Environment {
   try {
     const urlObj = new URL(url)
     const host = urlObj.hostname.toLowerCase()

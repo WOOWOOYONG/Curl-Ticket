@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { environments, HttpMethod, Environment } from '~~/shared/constants'
-import type { IssueStatusType, HttpMethod as HttpMethodType, Environment as EnvironmentType } from '~~/shared/constants'
+import type { IssueStatus } from '~~/shared/constants'
 import { getHttpMethodColor } from '~/constants/http'
 import { maskValue, formatJson, detectEnvironment, toHeadersArray, formatPayloadSize } from '~/utils/issue'
 
@@ -8,14 +8,14 @@ export interface ApiBugFormState {
   title: string
   description: string | null | undefined
   rawCurl: string | null | undefined
-  method: HttpMethodType
+  method: HttpMethod
   url: string
-  environment: EnvironmentType
+  environment: Environment
   requestHeaders: Record<string, string> | null | undefined
   requestBody: unknown
   responseStatus: number | null | undefined
   responseBody: unknown
-  status: IssueStatusType
+  status: IssueStatus
 }
 
 const state = defineModel<ApiBugFormState>('state', { required: true })
@@ -130,7 +130,7 @@ async function parseCurl() {
 
     // Fill form with parsed data
     state.value.url = parsed.url || ''
-    state.value.method = (parsed.method || HttpMethod.GET) as HttpMethodType
+    state.value.method = (parsed.method || HttpMethod.GET) as HttpMethod
     state.value.requestHeaders = parsed.headers || null
     state.value.requestBody = parsed.body || null
     state.value.environment = detectEnvironment(state.value.url)

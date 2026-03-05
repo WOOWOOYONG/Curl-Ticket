@@ -2,7 +2,7 @@ import { sql } from 'drizzle-orm'
 import { pgTable, uuid, text, varchar, timestamp, serial, integer, jsonb, index, uniqueIndex, check } from 'drizzle-orm/pg-core'
 import { projects } from './projects'
 import { Environment, IssueStatus, IssueType } from '../../../shared/constants'
-import type { Environment as EnvironmentType, IssueStatusType, HttpMethod as HttpMethodType, IssueType as IssueTypeType } from '../../../shared/constants'
+import type { HttpMethod } from '../../../shared/constants'
 
 /**
  * Issues 資料表
@@ -14,7 +14,7 @@ export const issues = pgTable('issues', {
   projectKey: varchar('project_key', { length: 10 }).notNull(),
 
   // Issue 類型
-  issueType: varchar('issue_type', { length: 20 }).notNull().$type<IssueTypeType>().default(IssueType.ApiBug),
+  issueType: varchar('issue_type', { length: 20 }).notNull().$type<IssueType>().default(IssueType.ApiBug),
 
   // 基本資訊
   title: varchar('title', { length: 200 }).notNull(),
@@ -22,9 +22,9 @@ export const issues = pgTable('issues', {
   rawCurl: text('raw_curl'),
 
   // API 請求資訊（nullable for Task type）
-  method: varchar('method', { length: 10 }).$type<HttpMethodType>(),
+  method: varchar('method', { length: 10 }).$type<HttpMethod>(),
   url: text('url'),
-  environment: varchar('environment', { length: 10 }).$type<EnvironmentType>().default(Environment.Dev),
+  environment: varchar('environment', { length: 10 }).$type<Environment>().default(Environment.Dev),
   requestHeaders: jsonb('request_headers').$type<Record<string, string>>(),
   requestBody: jsonb('request_body'),
 
@@ -33,7 +33,7 @@ export const issues = pgTable('issues', {
   responseBody: jsonb('response_body'),
 
   // 狀態管理
-  status: varchar('status', { length: 20 }).notNull().$type<IssueStatusType>().default(IssueStatus.Open),
+  status: varchar('status', { length: 20 }).notNull().$type<IssueStatus>().default(IssueStatus.Open),
   createdBy: uuid('created_by').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()

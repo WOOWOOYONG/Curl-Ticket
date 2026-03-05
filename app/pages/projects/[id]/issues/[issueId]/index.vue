@@ -5,7 +5,7 @@ import { maskValue, formatJson, buildCurlCommand, toHeadersArray } from '~/utils
 import type { IssueResponse } from '~/types/issue'
 import type { Issue } from '~~/shared/schemas/issue'
 import { issueStatuses, IssueType } from '~~/shared/constants'
-import type { IssueStatusType } from '~~/shared/constants'
+import type { IssueStatus } from '~~/shared/constants'
 
 definePageMeta({
   layout: 'header-only',
@@ -44,7 +44,7 @@ const statusOptions = issueStatuses.map(status => ({
     color: IssueStatusColor[status]
   }
 }))
-const selectedStatus = ref<IssueStatusType | undefined>()
+const selectedStatus = ref<IssueStatus | undefined>()
 
 function getStatusChip(value: string) {
   return statusOptions.find(item => item.value === value)?.chip
@@ -102,7 +102,7 @@ watch(selectedStatus, async (nextStatus) => {
   await updateIssueStatus(nextStatus)
 })
 
-async function updateIssueStatus(nextStatus: IssueStatusType) {
+async function updateIssueStatus(nextStatus: IssueStatus) {
   if (!issue.value || updatingStatus.value) return
 
   const previousStatus = issue.value.status

@@ -1,11 +1,10 @@
 import { IssueStatus, Environment, IssueType, issueTypes } from '~~/shared/constants'
-import type { IssueStatusType } from '~~/shared/constants'
 
 // UBadge 組件支援的顏色類型
 type BadgeColor = 'error' | 'success' | 'primary' | 'secondary' | 'info' | 'warning' | 'neutral'
 
 // Issue 狀態對應的顏色（用於 UBadge 組件）
-export const IssueStatusColor: Record<IssueStatusType, BadgeColor> = {
+export const IssueStatusColor: Record<IssueStatus, BadgeColor> = {
   [IssueStatus.Open]: 'error',
   [IssueStatus.InProgress]: 'warning',
   [IssueStatus.Done]: 'success',
@@ -13,7 +12,7 @@ export const IssueStatusColor: Record<IssueStatusType, BadgeColor> = {
 } as const
 
 // Issue 狀態顯示文案
-export const IssueStatusLabel: Record<IssueStatusType, string> = {
+export const IssueStatusLabel: Record<IssueStatus, string> = {
   [IssueStatus.Open]: 'Open',
   [IssueStatus.InProgress]: 'In Progress',
   [IssueStatus.Done]: 'Done',
