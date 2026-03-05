@@ -93,7 +93,8 @@ export const invitationStatuses = Object.values(InvitationStatus)
 // ============================================
 export const NotificationType = {
   IssueUpdate: 'issue_update',
-  ProjectInvite: 'project_invite'
+  ProjectInvite: 'project_invite',
+  IssueComment: 'issue_comment'
 } as const
 
 export type NotificationType = typeof NotificationType[keyof typeof NotificationType]

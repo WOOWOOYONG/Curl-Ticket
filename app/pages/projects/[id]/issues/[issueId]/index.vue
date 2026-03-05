@@ -218,7 +218,7 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
               </h1>
               <p
                 v-if="issue.description"
-                class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed max-w-2xl"
+                class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl whitespace-pre-wrap"
               >
                 {{ issue.description }}
               </p>
@@ -434,6 +434,12 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
                 </p>
               </div>
             </template>
+
+            <!-- Comments Section -->
+            <IssueComments
+              :project-id="projectId"
+              :issue-id="issueId"
+            />
           </div>
 
           <!-- Right Column: Metadata Sidebar -->
