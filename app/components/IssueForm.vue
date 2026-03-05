@@ -43,8 +43,11 @@ const issue = computed(() => issueResponse.value?.data)
 const isLoadingIssue = computed(() => isEditMode.value && issueStatus.value === 'pending')
 const isIssueMissing = computed(() => isEditMode.value && issueStatus.value !== 'pending' && !issue.value)
 
-// Issue type selection
-const activeIssueType = ref<typeof IssueType[keyof typeof IssueType]>(IssueType.ApiBug)
+// Issue type selection — default from query param in create mode
+const initialIssueType = !isEditMode.value && route.query.type === IssueType.Task
+  ? IssueType.Task
+  : IssueType.ApiBug
+const activeIssueType = ref<IssueType>(initialIssueType)
 
 // API Bug form state
 const apiBugState = ref<ApiBugFormState>({

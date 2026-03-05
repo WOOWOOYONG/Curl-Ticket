@@ -187,7 +187,7 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
               </UButton>
               <UButton
                 icon="i-lucide-plus"
-                :to="`/projects/${projectId}/issues/create`"
+                :to="`/projects/${projectId}/issues/create?type=${activeTypeFilter}`"
                 size="lg"
                 class="shadow-sm shadow-emerald-500/20"
               >
@@ -247,7 +247,7 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
               </p>
               <UButton
                 icon="i-lucide-plus"
-                :to="`/projects/${projectId}/issues/create`"
+                :to="`/projects/${projectId}/issues/create?type=${activeTypeFilter}`"
                 class="mt-6"
               >
                 Create First Issue
