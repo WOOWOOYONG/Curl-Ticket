@@ -1,6 +1,6 @@
 import type { Ref, ComputedRef } from 'vue'
 import type { IssueListItem } from '~~/shared/schemas'
-import type { IssueStatus, Environment, IssueType } from '~~/shared/constants'
+import type { IssueStatusType, Environment, IssueType } from '~~/shared/constants'
 import type { PaginationMeta } from '~~/shared/types'
 
 interface IssuesResponse {
@@ -11,7 +11,7 @@ interface IssuesResponse {
 export interface UseIssuesOptions {
   page?: number
   pageSize?: number
-  status?: IssueStatus
+  status?: IssueStatusType
   environment?: Environment
   issueType?: IssueType
   search?: string

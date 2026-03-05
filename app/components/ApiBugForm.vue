@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { environments, HttpMethod, Environment } from '~~/shared/constants'
-import type { IssueStatus, HttpMethod as HttpMethodType, Environment as EnvironmentType } from '~~/shared/constants'
+import type { IssueStatusType, HttpMethod as HttpMethodType, Environment as EnvironmentType } from '~~/shared/constants'
 import { getHttpMethodColor } from '~/constants/http'
 import { maskValue, formatJson, detectEnvironment, toHeadersArray, formatPayloadSize } from '~/utils/issue'
 
@@ -15,7 +15,7 @@ export interface ApiBugFormState {
   requestBody: unknown
   responseStatus: number | null | undefined
   responseBody: unknown
-  status: typeof IssueStatus[keyof typeof IssueStatus]
+  status: IssueStatusType
 }
 
 const state = defineModel<ApiBugFormState>('state', { required: true })

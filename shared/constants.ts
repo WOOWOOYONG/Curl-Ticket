@@ -32,7 +32,7 @@ export const IssueStatus = {
   Close: 'Close'
 } as const
 
-export type IssueStatus = typeof IssueStatus[keyof typeof IssueStatus]
+export type IssueStatusType = typeof IssueStatus[keyof typeof IssueStatus]
 export const issueStatuses = Object.values(IssueStatus)
 
 // ============================================

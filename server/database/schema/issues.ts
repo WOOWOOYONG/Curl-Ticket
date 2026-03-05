@@ -2,7 +2,7 @@ import { sql } from 'drizzle-orm'
 import { pgTable, uuid, text, varchar, timestamp, serial, integer, jsonb, index, uniqueIndex, check } from 'drizzle-orm/pg-core'
 import { projects } from './projects'
 import { Environment, IssueStatus, IssueType } from '../../../shared/constants'
-import type { Environment as EnvironmentType, IssueStatus as IssueStatusType, HttpMethod as HttpMethodType, IssueType as IssueTypeType } from '../../../shared/constants'
+import type { Environment as EnvironmentType, IssueStatusType, HttpMethod as HttpMethodType, IssueType as IssueTypeType } from '../../../shared/constants'
 
 /**
  * Issues 資料表

@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { IssueStatus } from '~~/shared/constants'
+import type { IssueStatusType } from '~~/shared/constants'
 
 export interface TaskFormState {
   title: string
   description: string | null | undefined
-  status: typeof IssueStatus[keyof typeof IssueStatus]
+  status: IssueStatusType
 }
 
 const state = defineModel<TaskFormState>('state', { required: true })
