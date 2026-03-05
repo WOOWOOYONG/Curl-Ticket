@@ -14,6 +14,7 @@
 - `NOTIF-006`：點擊 `project_invite` 通知需開啟邀請回應 Modal，支援接受邀請。
 - `NOTIF-007`：當 Issue 狀態被其他人更新時，系統需通知該 Issue 的建立者（`created_by`）`[Planned]`。
 - `NOTIF-008`：專案 Owner 發送邀請時，系統需通知被邀請者。
+- `NOTIF-009`：留言時通知 Issue 建立者（`created_by`），留言者自己不收通知。新增 `NotificationType`: `'issue_comment'`。
 
 ## Cross-References
 

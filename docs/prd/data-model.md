@@ -15,6 +15,7 @@ _基於 Supabase (PostgreSQL) + Drizzle ORM_
 - `DATA-009`：Issue 需支援專案內連號機制（`issue_number`）。
 - `DATA-010`：Issue 狀態變更需可由 DB Trigger 自動產生通知 `（Planned）`。
 - `DATA-011`：`notifications` 表需啟用 Supabase Realtime publication。
+- `DATA-012`：系統需有 `issue_comments` 表支援 Issue 留言功能，留言隨 Issue 級聯刪除。
 
 ## Tables
 
@@ -125,6 +126,18 @@ _(Supabase 內建 `auth.users`，本文件不重複定義欄位)_
 | `is_read` | boolean | Default `false` | 是否已讀 |
 | `created_at` | timestamp | Default `now()` | 建立時間 |
 
+### issue_comments
+
+| Column | Type | Constraint | Description |
+| --- | --- | --- | --- |
+| `id` | serial | PK | 留言 ID |
+| `issue_id` | int | FK -> `issues.id` (cascade delete), Not Null | 所屬 Issue |
+| `author_id` | uuid | Not Null | 留言者 |
+| `content` | text | Not Null | 留言內容 |
+| `created_at` | timestamp | Default `now()`, Not Null | 建立時間 |
+
+> 索引：`(issue_id)`、`(issue_id, created_at)`
+
 ## Traceability Matrix (Requirement ID -> Data)
 
 | Requirement IDs | Data Objects | Validation / Constraint |
@@ -139,6 +152,8 @@ _(Supabase 內建 `auth.users`，本文件不重複定義欄位)_
 | `NOTIF-003` `NOTIF-004` | `notifications` | 最新 50 筆 + Realtime 訂閱 |
 | `NOTIF-007` | `issues` + `notifications` | 狀態更新通知規則（DB Trigger 尚未落地，規格保留） |
 | `NOTIF-008` | `project_invitations` + `notifications` | 專案邀請建立時產生通知 |
+| `ISSUE-044` ~ `ISSUE-052` | `issue_comments` | Issue 留言 CRUD + 級聯刪除 |
+| `NOTIF-009` | `issue_comments` + `notifications` | 留言時通知 Issue 建立者 |
 
 ## Backend Notes
 

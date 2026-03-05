@@ -73,7 +73,19 @@
 - `ISSUE-042`：Task 不顯示 API 相關區塊（Method、URL、Headers、Request/Response）。
 - `ISSUE-043`：Task 以獨立卡片顯示 Description，格式採 `whitespace-pre-wrap`。
 
+### 3.7 Issue 留言 (Issue Comments)
+
+- `ISSUE-044`：Issue 詳細頁左欄底部需顯示留言區塊，適用 `api_bug` 與 `task`。
+- `ISSUE-045`：留言依 `created_at` 由舊到新排序。
+- `ISSUE-046`：每則留言顯示留言者名稱（Email fallback）、內容、建立時間（相對時間）。
+- `ISSUE-047`：留言區塊頂部顯示留言總數（例如 "Comments (3)"）。
+- `ISSUE-048`：列表下方提供文字輸入框與送出按鈕。
+- `ISSUE-049`：留言純文字，1~2000 字。
+- `ISSUE-050`：使用者僅可刪除自己的留言，刪除前需確認。
+- `ISSUE-051`：無留言時顯示空狀態提示。
+- `ISSUE-052`：新增留言後列表即時更新。
+
 ## Cross-References
 
-- 通知規則：見 [notifications.md](./notifications.md) 的 `NOTIF-005`、`NOTIF-007`。
-- 資料欄位與約束：見 [data-model.md](./data-model.md) 的 `DATA-006`、`DATA-007`。
+- 通知規則：見 [notifications.md](./notifications.md) 的 `NOTIF-005`、`NOTIF-007`、`NOTIF-009`。
+- 資料欄位與約束：見 [data-model.md](./data-model.md) 的 `DATA-006`、`DATA-007`、`DATA-012`。
