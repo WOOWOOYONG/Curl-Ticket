@@ -1,5 +1,15 @@
 # PRD Changelog
 
+## 2026-03-09 - v2.3
+
+- `DOC-018`：修正 [cli-integration.md](./cli-integration.md) `TOKEN-003` prefix 範例長度（`ct_a1b2c3d` → `ct_a1b2c3de`，符合 11 碼），同步修正 [data-model.md](./data-model.md) `api_tokens` 表範例。
+- `DOC-019`：修正 [cli-integration.md](./cli-integration.md) Friendly ID 解析邏輯，釐清 `-` 後數字為 `issueNumber` 而非 `issueId`；新增 `CLI-045`、`CLI-046` 定義 issueNumber 查詢需求與 API endpoint 支援。
+- `DOC-020`：新增 [cli-integration.md](./cli-integration.md) `TOKEN-SEC-005`，定義 auth middleware `authMethod` 標記機制，確保 Token 管理 API 拒絕 token-based 存取。
+- `DOC-021`：新增 [cli-integration.md](./cli-integration.md) `TOKEN-031`，補充 `unauthorized()` helper 需求。
+- `DOC-022`：修正 [cli-integration.md](./cli-integration.md) `CLI-008`，新增 kebab-case alias 支援（`in-progress` → `In Progress`）。
+- `DOC-023`：新增 [cli-integration.md](./cli-integration.md) `CLI-044`，定義 `--env, -e` 環境篩選選項。
+- `DOC-024`：修正 [cli-integration.md](./cli-integration.md) `CLI-015`，補充 status 合法值驗證與 kebab-case alias 支援。
+
 ## 2026-03-09 - v2.2
 
 - `DOC-015`：新增 [cli-integration.md](./cli-integration.md)，定義 API Token 系統（`TOKEN-*`）、CLI 工具（`CLI-*`）、Claude Code Skill（`SKILL-*`）三模組規格。

@@ -147,7 +147,7 @@ _(Supabase 內建 `auth.users`，本文件不重複定義欄位)_
 | `user_id` | uuid | FK → `profiles.id` (cascade delete), Not Null | 擁有者 |
 | `name` | text | Not Null | 用途描述（如 "Claude Code - MacBook"） |
 | `token_hash` | text | Not Null | SHA-256 hash |
-| `prefix` | text | Not Null | 前 11 碼（如 `ct_a1b2c3d`） |
+| `prefix` | text | Not Null | 前 11 碼（如 `ct_a1b2c3de`） |
 | `last_used_at` | timestamptz |  | 最後使用時間 |
 | `expires_at` | timestamptz |  | 到期時間（null = 永不過期） |
 | `created_at` | timestamptz | Not Null, Default `now()` | 建立時間 |

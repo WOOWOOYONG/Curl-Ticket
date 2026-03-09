@@ -45,7 +45,7 @@ CLI 方案讓 Claude Code 直接透過已有的 Bash tool 執行指令，不需�
 
 - `TOKEN-001`：系統需有 `api_tokens` 資料表儲存 Token 的 hash、名稱、使用紀錄。
 - `TOKEN-002`：Token 明碼永不儲存於資料庫，僅儲存 SHA-256 hash。
-- `TOKEN-003`：每筆 Token 需記錄 `prefix`（前 11 碼，如 `ct_a1b2c3d`），用於 UI 辨識。
+- `TOKEN-003`：每筆 Token 需記錄 `prefix`（前 11 碼，如 `ct_a1b2c3de`），用於 UI 辨識。
 - `TOKEN-004`：每筆 Token 支援可選的到期時間 `expires_at`。
 - `TOKEN-005`：每筆 Token 需記錄 `last_used_at`，於驗證成功時非同步更新。
 
@@ -62,6 +62,7 @@ CLI 方案讓 Claude Code 直接透過已有的 Bash tool 執行指令，不需�
 - `TOKEN-011`：Token 驗證成功後，設定 `event.context.userId` 與 `event.context.profile`，與 Supabase session 路徑行為一致。
 - `TOKEN-012`：Token 驗證成功後，非同步更新 `last_used_at`（fire-and-forget，不阻塞回應）。
 - `TOKEN-013`：Token 繼承使用者既有的 project access 權限（owner / member），不額外提權。
+- `TOKEN-031`：若 `server/utils/errors.ts` 尚未提供 `unauthorized()` helper，需新增之（回傳 401），供 Bearer Token 驗證失敗時使用。
 
 #### A4. Token 管理 API
 
@@ -99,7 +100,7 @@ CLI 方案讓 Claude Code 直接透過已有的 Bash tool 執行指令，不需�
 | `user_id` | uuid | FK → `profiles.id` (cascade delete), Not Null | 擁有者 |
 | `name` | text | Not Null | 用途描述（如 "Claude Code - MacBook"） |
 | `token_hash` | text | Not Null | SHA-256 hash |
-| `prefix` | text | Not Null | 前 11 碼（如 `ct_a1b2c3d`） |
+| `prefix` | text | Not Null | 前 11 碼（如 `ct_a1b2c3de`） |
 | `last_used_at` | timestamptz | | 最後使用時間 |
 | `expires_at` | timestamptz | | 到期時間（null = 永不過期） |
 | `created_at` | timestamptz | Not Null, Default `now()` | 建立時間 |
@@ -112,6 +113,7 @@ CLI 方案讓 Claude Code 直接透過已有的 Bash tool 執行指令，不需�
 - `TOKEN-SEC-002`：傳輸層依賴 HTTPS 加密（Vercel 預設強制 HTTPS）。
 - `TOKEN-SEC-003`：Token 撤銷即時生效（下次 API 請求即失敗）。
 - `TOKEN-SEC-004`：Token 管理 API 僅接受 Supabase session 驗證（不允許用 Token 管理 Token）。
+- `TOKEN-SEC-005`：Auth middleware 在 Bearer Token 驗證成功後，需設定 `event.context.authMethod = 'api_token'`。Token 管理 API（`/api/tokens`）需檢查此標記，若 `authMethod === 'api_token'` 則回傳 `403 Token-based access not allowed for token management`。
 
 ---
 
@@ -131,14 +133,15 @@ CLI 方案讓 Claude Code 直接透過已有的 Bash tool 執行指令，不需�
 - `CLI-005`：`curl-ticket projects` — 列出使用者可存取的所有專案。
 - `CLI-006`：`curl-ticket projects` 每筆輸出格式為 `{key}\t{name}\t({id})`，每行一筆。
 - `CLI-007`：`curl-ticket issues <projectId>` — 列出指定專案的 issue 摘要。
-- `CLI-008`：`curl-ticket issues` 支援選項 `--status, -s`（依狀態過濾：Open / In Progress / Done / Close）。
+- `CLI-008`：`curl-ticket issues` 支援選項 `--status, -s`（依狀態過濾：Open / In Progress / Done / Close）。亦支援 kebab-case alias（`in-progress` → `In Progress`），CLI 內部進行映射。
 - `CLI-009`：`curl-ticket issues` 支援選項 `--type, -t`（依類型過濾：api_bug / task）。
 - `CLI-010`：`curl-ticket issues` 支援選項 `--limit, -n`（筆數上限，預設 10，最大 20）。
+- `CLI-044`：`curl-ticket issues` 支援選項 `--env, -e`（依環境過濾：Local / Dev / Staging / Prod）。
 - `CLI-011`：`curl-ticket issues` 每筆輸出摘要格式為精簡純文字（見「輸出格式」章節）。
 - `CLI-012`：`curl-ticket issue <projectId> <issueId>` — 取得單一 issue 詳情。
 - `CLI-013`：`curl-ticket issue` 的 `<issueId>` 接受數字 ID 或 friendly ID（如 `CT-42`）。
 - `CLI-014`：`curl-ticket issue` 輸出完整詳情的精簡格式（見「輸出格式」章節）。
-- `CLI-015`：`curl-ticket update-status <projectId> <issueId> <status>` — 更新 issue 狀態。
+- `CLI-015`：`curl-ticket update-status <projectId> <issueId> <status>` — 更新 issue 狀態。`<status>` 合法值為 `Open | in-progress | Done | Close`，支援 kebab-case alias（`in-progress` → `In Progress`）。非法值時輸出錯誤訊息 `無效的狀態值，合法值為：Open, in-progress, Done, Close`。
 - `CLI-016`：`curl-ticket update-status` 成功時輸出 `已更新為 {status}`。
 - `CLI-017`：`curl-ticket init-skill` — 將 Skill 檔案複製到當前目錄的 `.claude/skills/curl-ticket/SKILL.md`。
 - `CLI-018`：`curl-ticket init-skill` 若目標檔案已存在，需提示是否覆蓋。
@@ -338,9 +341,15 @@ curl-ticket init-skill
 
 `CLI-013` 要求支援 friendly ID 輸入。解析邏輯：
 
-- 若 `issueId` 符合 `/^\d+$/`，視為數字 ID，直接傳入 API。
-- 若 `issueId` 符合 `/^[A-Z]+-\d+$/i`，取 `-` 後的數字部分作為 issueId。
+- 若 `issueId` 符合 `/^\d+$/`，視為數字 ID，直接傳入 API（作為 `issueId`）。
+- 若 `issueId` 符合 `/^[A-Z]+-\d+$/i`，取 `-` 後的數字部分。此數字為 `issueNumber`（專案內流水號），非內部 `issues.id`。
 - 其他格式，輸出錯誤。
+
+**issueNumber 查詢需求：**
+
+- `CLI-045`：當 CLI 解析出 friendly ID 時，API Client 需以 `issueNumber` + `projectId` 查詢 issue，而非直接以數字作為 `issueId`。
+- `CLI-046`：issue detail（`GET /api/projects/:projectId/issues`）與 update（`PATCH`）endpoint 需支援以 `issueNumber` query param 查詢（`?issueNumber=42`）。`(projectId, issueNumber)` 已有 unique index，可確保唯一性。
+- `CLI-038` 補充：API Client 呼叫 endpoint 清單新增 `GET /api/projects/:projectId/issues?issueNumber=N`（以 issueNumber 查詢單筆）。
 
 ---
 
