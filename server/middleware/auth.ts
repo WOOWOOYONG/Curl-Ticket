@@ -1,5 +1,9 @@
+import { createHash } from 'node:crypto'
 import { serverSupabaseClient } from '#supabase/server'
+import { eq } from 'drizzle-orm'
 import { getProfile } from '~~/server/utils/profile'
+import { unauthorized } from '~~/server/utils/errors'
+import { apiTokens } from '~~/server/database/schema'
 
 /**
  * Server Middleware: 驗證用戶登入狀態
@@ -28,6 +32,46 @@ export default defineEventHandler(async (event) => {
   )
 
   if (isPublicRoute) return
+
+  // Bearer Token 路徑（API Token 驗證）
+  const authHeader = getHeader(event, 'authorization')
+  if (authHeader?.toLowerCase().startsWith('bearer ct_')) {
+    const tokenValue = authHeader.slice(7).trim()
+    const tokenHash = createHash('sha256').update(tokenValue).digest('hex')
+
+    const db = useDB()
+    const [tokenRecord] = await db
+      .select()
+      .from(apiTokens)
+      .where(eq(apiTokens.tokenHash, tokenHash))
+      .limit(1)
+
+    if (!tokenRecord) {
+      unauthorized('Invalid or expired token')
+    }
+
+    if (tokenRecord.expiresAt && tokenRecord.expiresAt < new Date()) {
+      unauthorized('Invalid or expired token')
+    }
+
+    const profile = await getProfile(db, tokenRecord.userId)
+    if (!profile) {
+      unauthorized('Invalid or expired token')
+    }
+
+    event.context.userId = tokenRecord.userId
+    event.context.userEmail = profile!.email
+    event.context.profile = profile
+    event.context.authMethod = 'api_token'
+
+    // Fire-and-forget: update lastUsedAt（不阻塞回應）
+    db.update(apiTokens)
+      .set({ lastUsedAt: new Date() })
+      .where(eq(apiTokens.id, tokenRecord.id))
+      .catch(() => {})
+
+    return
+  }
 
   // 僅需 OAuth 驗證、不需要 profile 的路由
   const authOnlyRoutes = [

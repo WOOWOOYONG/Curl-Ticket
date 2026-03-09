@@ -2,6 +2,14 @@ import { HttpStatus } from '~~/server/constants'
 
 type ErrorData = Record<string, unknown> | unknown
 
+export function unauthorized(message: string, data?: ErrorData): never {
+  throw createError({
+    statusCode: HttpStatus.Unauthorized,
+    statusMessage: message,
+    data
+  })
+}
+
 export function badRequest(message: string, data?: ErrorData): never {
   throw createError({
     statusCode: HttpStatus.BadRequest,
