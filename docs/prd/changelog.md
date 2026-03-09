@@ -1,5 +1,11 @@
 # PRD Changelog
 
+## 2026-03-09 - v2.2
+
+- `DOC-015`：新增 [cli-integration.md](./cli-integration.md)，定義 API Token 系統（`TOKEN-*`）、CLI 工具（`CLI-*`）、Claude Code Skill（`SKILL-*`）三模組規格。
+- `DOC-016`：更新 [README.md](./README.md) 文件導覽，新增 `cli-integration.md` 入口。
+- `DOC-017`：更新 [data-model.md](./data-model.md)，新增 `api_tokens` 資料表定義與追蹤矩陣（`DATA-013`）。
+
 ## 2026-02-28 - v2.1
 
 - `DOC-008`：對齊實作路由，將專案成員管理頁規格更新為 `/projects/[id]/members` 與 Members 入口命名。

@@ -25,6 +25,7 @@
 | [notifications.md](./notifications.md) | 通知中心、Realtime、觸發規則 | `NOTIF-*` |
 | [data-model.md](./data-model.md) | DB Schema、資料約束、追蹤矩陣 | `DATA-*` |
 | [non-functional.md](./non-functional.md) | 效能、安全、相容性、DX | `NFR-*` |
+| [cli-integration.md](./cli-integration.md) | API Token、CLI 工具、Claude Code Skill | `TOKEN-*`, `CLI-*`, `SKILL-*` |
 | [roadmap.md](./roadmap.md) | 開發階段規劃 | `ROAD-*` |
 | [changelog.md](./changelog.md) | 文件版本變更歷史 | `DOC-*` |
 

@@ -16,6 +16,7 @@ _基於 Supabase (PostgreSQL) + Drizzle ORM_
 - `DATA-010`：Issue 狀態變更需可由 DB Trigger 自動產生通知 `（Planned）`。
 - `DATA-011`：`notifications` 表需啟用 Supabase Realtime publication。
 - `DATA-012`：系統需有 `issue_comments` 表支援 Issue 留言功能，留言隨 Issue 級聯刪除。
+- `DATA-013`：系統需有 `api_tokens` 表儲存 API Token 的 hash、名稱、使用紀錄，供 CLI 與外部整合使用。
 
 ## Tables
 
@@ -138,6 +139,21 @@ _(Supabase 內建 `auth.users`，本文件不重複定義欄位)_
 
 > 索引：`(issue_id)`、`(issue_id, created_at)`
 
+### api_tokens
+
+| Column | Type | Constraint | Description |
+| --- | --- | --- | --- |
+| `id` | uuid | PK, Default `gen_random_uuid()` | Token ID |
+| `user_id` | uuid | FK → `profiles.id` (cascade delete), Not Null | 擁有者 |
+| `name` | text | Not Null | 用途描述（如 "Claude Code - MacBook"） |
+| `token_hash` | text | Not Null | SHA-256 hash |
+| `prefix` | text | Not Null | 前 11 碼（如 `ct_a1b2c3d`） |
+| `last_used_at` | timestamptz |  | 最後使用時間 |
+| `expires_at` | timestamptz |  | 到期時間（null = 永不過期） |
+| `created_at` | timestamptz | Not Null, Default `now()` | 建立時間 |
+
+> 建議索引：`user_id`、`token_hash`。
+
 ## Traceability Matrix (Requirement ID -> Data)
 
 | Requirement IDs | Data Objects | Validation / Constraint |
@@ -154,6 +170,8 @@ _(Supabase 內建 `auth.users`，本文件不重複定義欄位)_
 | `NOTIF-008` | `project_invitations` + `notifications` | 專案邀請建立時產生通知 |
 | `ISSUE-044` ~ `ISSUE-052` | `issue_comments` | Issue 留言 CRUD + 級聯刪除 |
 | `NOTIF-009` | `issue_comments` + `notifications` | 留言時通知 Issue 建立者 |
+| `TOKEN-001` ~ `TOKEN-005` | `api_tokens` | Token hash 儲存、prefix 辨識、過期與使用紀錄 |
+| `TOKEN-008` ~ `TOKEN-013` | `api_tokens` + `profiles` | Bearer Token 驗證路徑，JOIN profiles 取得使用者資訊 |
 
 ## Backend Notes
 
