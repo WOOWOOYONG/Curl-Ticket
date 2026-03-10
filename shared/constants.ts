@@ -99,3 +99,29 @@ export const NotificationType = {
 
 export type NotificationType = typeof NotificationType[keyof typeof NotificationType]
 export const notificationTypes = Object.values(NotificationType)
+
+// ============================================
+// 敏感 Header 關鍵字（用於遮罩顯示）
+// ============================================
+export const SensitiveHeaderKeywords = [
+  'authorization',
+  'x-api-key',
+  'api-key',
+  'token',
+  'secret'
+] as const
+
+export type SensitiveHeaderKeyword = typeof SensitiveHeaderKeywords[number]
+
+// ============================================
+// cURL 簡化時移除的 Header（瀏覽器/噪音 Header）
+// ============================================
+export const CurlNoiseHeaders = [
+  'user-agent',
+  'accept-language',
+  'accept-encoding',
+  'cookie',
+  'cache-control',
+  'connection',
+  'upgrade-insecure-requests'
+] as const

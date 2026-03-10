@@ -1,4 +1,4 @@
-import { Environment } from '~~/shared/constants'
+import { Environment, SensitiveHeaderKeywords } from '~~/shared/constants'
 
 /**
  * Convert request headers object to array for display
@@ -17,8 +17,7 @@ export function toHeadersArray(headers: Record<string, string> | null | undefine
  * @returns Masked value if sensitive, otherwise original value
  */
 export function maskValue(key: string, value: string): string {
-  const sensitiveKeys = ['authorization', 'x-api-key', 'api-key', 'token', 'secret']
-  if (sensitiveKeys.some(k => key.toLowerCase().includes(k))) {
+  if (SensitiveHeaderKeywords.some(k => key.toLowerCase().includes(k))) {
     const prefix = value.split(' ')[0]
     if (prefix && value.length > prefix.length + 6) {
       return `${prefix} ${'*'.repeat(6)}`
