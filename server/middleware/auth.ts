@@ -20,7 +20,9 @@ export default defineEventHandler(async (event) => {
   // 公開路由（不需要驗證）
   const publicRoutes = [
     '/api/health',
-    '/api/invitation-codes/validate'
+    '/api/invitation-codes/validate',
+    '/api/auth/device/code',
+    '/api/auth/device/token'
   ]
 
   if (import.meta.dev) {
