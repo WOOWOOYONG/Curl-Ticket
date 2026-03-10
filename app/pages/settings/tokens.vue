@@ -15,6 +15,7 @@ const isCreating = ref(false)
 // ── Token display modal（建立成功後顯示明碼）──
 const newToken = ref<CreateTokenResponse | null>(null)
 const showTokenModal = ref(false)
+const hasCopied = ref(false)
 
 // ── Revoke confirm modal ──
 const revokeTarget = ref<Token | null>(null)
@@ -36,6 +37,7 @@ async function createToken() {
       }
     })
     newToken.value = result
+    hasCopied.value = false
     showCreateModal.value = false
     showTokenModal.value = true
     createForm.name = ''
@@ -227,7 +229,7 @@ function isExpired(expiresAt: string | Date | null) {
                 icon="i-lucide-copy"
                 color="neutral"
                 variant="outline"
-                @click="copyToClipboard(newToken?.token ?? '', { title: 'Token 已複製' })"
+                @click="copyToClipboard(newToken?.token ?? '', { title: 'Token 已複製' }); hasCopied = true"
               />
             </div>
           </UFormField>
@@ -237,6 +239,7 @@ function isExpired(expiresAt: string | Date | null) {
         <div class="flex justify-end">
           <UButton
             label="關閉"
+            :disabled="!hasCopied"
             @click="showTokenModal = false; newToken = null"
           />
         </div>
