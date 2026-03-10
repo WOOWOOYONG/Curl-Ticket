@@ -1,7 +1,7 @@
-import { randomBytes, createHash } from 'node:crypto'
 import { eq } from 'drizzle-orm'
 import { apiTokens } from '~~/server/database/schema'
 import { createTokenSchema } from '~~/shared/schemas/api-token'
+import { generateApiToken } from '~~/server/utils/api-token'
 
 const MAX_TOKENS_PER_USER = 5
 
@@ -25,9 +25,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // 產生 Token：ct_ + 64 字元 hex（TOKEN-006）
-  const tokenPlaintext = `ct_${randomBytes(32).toString('hex')}`
-  const tokenHash = createHash('sha256').update(tokenPlaintext).digest('hex')
-  const prefix = tokenPlaintext.slice(0, 11)
+  const { token: tokenPlaintext, tokenHash, prefix } = generateApiToken()
 
   const expiresAt = body.expiresInDays
     ? new Date(Date.now() + body.expiresInDays * 24 * 60 * 60 * 1000)
