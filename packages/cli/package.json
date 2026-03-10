@@ -1,0 +1,26 @@
+{
+  "name": "@curl-ticket/cli",
+  "version": "0.1.0",
+  "description": "CLI tool for Curl Ticket — query issues and update status from your terminal",
+  "type": "module",
+  "bin": {
+    "curl-ticket": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "skills"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "commander": "^13.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.4.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3"
+  }
+}
