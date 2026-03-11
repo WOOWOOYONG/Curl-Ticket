@@ -12,7 +12,8 @@ export function formatIssueSummary(issue: IssueSummary): string {
     return `#${friendlyId} [${issue.status}] (Task) 「${issue.title}」`
   }
   const endpoint = `${issue.method} ${issue.url}`
-  return `#${friendlyId} [${issue.status}] ${endpoint} → ${issue.responseStatus} 「${issue.title}」`
+  const status = issue.responseStatus ?? '-'
+  return `#${friendlyId} [${issue.status}] ${endpoint} → ${status} 「${issue.title}」`
 }
 
 export function formatIssueDetail(issue: IssueDetail, friendlyId: string): string {
