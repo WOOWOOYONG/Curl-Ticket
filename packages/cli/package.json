@@ -1,6 +1,6 @@
 {
   "name": "@curl-ticket/cli",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "CLI tool for Curl Ticket — query issues and update status from your terminal",
   "type": "module",
   "license": "MIT",
@@ -9,7 +9,13 @@
     "url": "https://github.com/WOOWOOYONG/Curl-Ticket",
     "directory": "packages/cli"
   },
-  "keywords": ["curl", "ticket", "issue-tracker", "cli", "api-debugging"],
+  "keywords": [
+    "curl",
+    "ticket",
+    "issue-tracker",
+    "cli",
+    "api-debugging"
+  ],
   "engines": {
     "node": ">=20"
   },
