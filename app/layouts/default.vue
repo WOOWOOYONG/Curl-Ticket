@@ -1,11 +1,6 @@
 <script setup lang="ts">
+import type { NavItem } from '~/components/AppHeader.vue'
 import { UserRole } from '~~/shared/constants'
-
-interface NavItem {
-  to: string
-  icon: string
-  label: string
-}
 
 const route = useRoute()
 
@@ -16,7 +11,7 @@ const navItems = computed<NavItem[]>(() => {
     { to: '/', icon: 'i-lucide-folder', label: 'Projects' }
   ]
   if (profile.value?.role === UserRole.Admin) {
-    items.push({ to: '/admin', icon: 'i-lucide-shield', label: '邀請管理' })
+    items.push({ to: '/admin', icon: 'i-lucide-shield', label: 'Invitations' })
   }
   return items
 })
@@ -28,7 +23,7 @@ function isActive(item: NavItem) {
 
 <template>
   <div class="flex min-h-screen flex-col">
-    <AppHeader />
+    <AppHeader :nav-items="navItems" />
     <UDashboardGroup class="flex-1 pt-(--ui-header-height)">
       <UDashboardSidebar
         :ui="{

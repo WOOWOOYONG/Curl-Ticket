@@ -1,7 +1,24 @@
 <script setup lang="ts">
+export interface NavItem {
+  to: string
+  icon: string
+  label: string
+}
+
+const props = withDefaults(defineProps<{
+  navItems?: NavItem[]
+}>(), {
+  navItems: () => []
+})
+
+const route = useRoute()
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
 const colorMode = useColorMode()
+
+function isActive(item: NavItem) {
+  return item.to === '/' ? route.path === '/' : route.path.startsWith(item.to)
+}
 
 const themePreferenceLabel = computed(() => {
   if (colorMode.preference === 'dark') return 'Dark'
@@ -75,6 +92,22 @@ const items = computed(() => [
         <NuxtLink to="/">
           <span class="text-lg font-bold">Curl Ticket</span>
         </NuxtLink>
+      </template>
+
+      <template #body>
+        <nav class="flex flex-col gap-1">
+          <UButton
+            v-for="item in props.navItems"
+            :key="item.to"
+            :to="item.to"
+            :icon="item.icon"
+            :color="isActive(item) ? 'primary' : 'neutral'"
+            :variant="isActive(item) ? 'soft' : 'ghost'"
+            :class="['w-full justify-start', isActive(item) && 'font-semibold']"
+          >
+            {{ item.label }}
+          </UButton>
+        </nav>
       </template>
 
       <template #right>
