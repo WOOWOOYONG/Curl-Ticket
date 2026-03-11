@@ -1,3 +1,4 @@
+import { createInterface } from 'node:readline'
 import { Command } from 'commander'
 import { CurlTicketClient, ApiError, NetworkError } from './api-client.js'
 import { getConfigAsync, getUrlAsync } from './auth/config.js'
@@ -8,20 +9,32 @@ import { issueCommand } from './commands/issue.js'
 import { updateStatusCommand } from './commands/update-status.js'
 import { authLoginCommand, authStatusCommand, authLogoutCommand } from './commands/auth.js'
 import { initSkillCommand } from './commands/init-skill.js'
-import { CLI_NAME, CLI_VERSION, ENV_URL, ENV_TOKEN, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from './constants.js'
+import { CLI_NAME, CLI_VERSION, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from './constants.js'
 import type { AuthConfig } from './types.js'
+
+function promptUrl(): Promise<string> {
+  const rl = createInterface({ input: process.stdin, output: process.stderr })
+  return new Promise((resolve, reject) => {
+    rl.question('請輸入你的 Curl Ticket 網址：', (answer: string) => {
+      rl.close()
+      const url = answer.trim().replace(/\/$/, '')
+      if (!url) {
+        reject(new Error('未輸入網址，已取消。'))
+      } else {
+        resolve(url)
+      }
+    })
+  })
+}
 
 async function ensureAuth(): Promise<AuthConfig> {
   const config = await getConfigAsync()
   if (config) return config
 
   // No config found — try Device Code Flow
-  const url = await getUrlAsync()
+  let url = await getUrlAsync()
   if (!url) {
-    process.stderr.write(
-      `找不到設定。請執行 ${CLI_NAME} auth login --url <URL> 或設定環境變數 ${ENV_URL} + ${ENV_TOKEN}。\n`
-    )
-    return process.exit(1) as never
+    url = await promptUrl()
   }
 
   return startDeviceCodeFlow(url)
