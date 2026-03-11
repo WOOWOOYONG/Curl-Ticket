@@ -81,10 +81,9 @@ export default defineEventHandler(async (event) => {
     '/api/auth/me'
   ]
 
-  // 使用 Supabase Client 進行 Server-side 驗證（getSession 從 JWT 本地解碼，避免 HTTP 往返）
+  // 使用 Supabase Client 進行 Server-side 驗證（getUser 會向 Auth server 確認 token 真實性）
   const supabase = await serverSupabaseClient(event)
-  const { data: { session }, error } = await supabase.auth.getSession()
-  const user = session?.user
+  const { data: { user }, error } = await supabase.auth.getUser()
 
   if (error || !user) {
     throw createError({

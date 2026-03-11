@@ -58,7 +58,7 @@ async function onSubmit(event: FormSubmitEvent<CreateProjectInput>) {
 </script>
 
 <template>
-  <UContainer class="max-w-2xl pt-4">
+  <UContainer class="max-w-2xl py-4">
     <div class="mb-4">
       <NuxtLink
         to="/"
