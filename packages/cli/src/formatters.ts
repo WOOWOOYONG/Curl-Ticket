@@ -17,37 +17,25 @@ export function formatIssueSummary(issue: IssueSummary): string {
 }
 
 export function formatIssueDetail(issue: IssueDetail, friendlyId: string): string {
-  const lines: string[] = []
-  lines.push(`# ${friendlyId}: ${issue.title}`)
-  lines.push(`類型: ${issue.issueType === IssueType.ApiBug ? 'API Bug' : 'Task'}`)
-  lines.push(`狀態: ${issue.status}`)
+  const isApiBug = issue.issueType === IssueType.ApiBug
+  const errorMsg = isApiBug ? extractErrorMessage(issue.responseBody) : null
 
-  if (issue.issueType === IssueType.ApiBug) {
-    if (issue.method && issue.url) {
-      lines.push(`端點: ${issue.method} ${issue.url}`)
-    }
-    if (issue.environment) {
-      lines.push(`環境: ${issue.environment}`)
-    }
-    if (issue.responseStatus) {
-      lines.push(`回應狀態碼: ${issue.responseStatus}`)
-    }
+  const fields: [string, string | number | null | undefined][] = [
+    [`# ${friendlyId}`, issue.title],
+    ['類型', isApiBug ? 'API Bug' : 'Task'],
+    ['狀態', issue.status],
+    ['端點', isApiBug && issue.method && issue.url ? `${issue.method} ${issue.url}` : null],
+    ['環境', isApiBug ? issue.environment : null],
+    ['回應狀態碼', isApiBug ? issue.responseStatus : null],
+    ['錯誤訊息', errorMsg && truncate(errorMsg, 300)],
+    ['cURL', isApiBug && issue.rawCurl ? truncate(simplifyCurl(issue.rawCurl), 500) : null],
+    ['描述', issue.description && truncate(issue.description, 300)]
+  ]
 
-    const errorMsg = extractErrorMessage(issue.responseBody)
-    if (errorMsg) {
-      lines.push(`錯誤訊息: ${truncate(errorMsg, 300)}`)
-    }
-
-    if (issue.rawCurl) {
-      lines.push(`cURL: ${truncate(simplifyCurl(issue.rawCurl), 500)}`)
-    }
-  }
-
-  if (issue.description) {
-    lines.push(`描述: ${truncate(issue.description, 300)}`)
-  }
-
-  return lines.join('\n')
+  return fields
+    .filter(([, value]) => value != null)
+    .map(([label, value]) => `${label}: ${value}`)
+    .join('\n')
 }
 
 export function extractErrorMessage(responseBody: unknown): string | null {
