@@ -253,11 +253,11 @@ function isExpired(expiresAt: string | Date | null) {
     >
       <template #body>
         <p class="text-sm">
-          確定要撤銷 <strong>{{ revokeTarget?.name }}</strong>？撤銷後立即生效，使用此 Token 的服務將無法繼續存取。
+          確定要撤銷 <strong>{{ revokeTarget?.name }}</strong>？撤銷後立即生效 ，使用此 Token 的服務將無法繼續存取。
         </p>
       </template>
       <template #footer>
-        <div class="flex justify-end gap-2">
+        <div class="flex justify-end w-full gap-2">
           <UButton
             label="取消"
             color="neutral"

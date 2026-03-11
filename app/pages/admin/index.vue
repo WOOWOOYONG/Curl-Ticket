@@ -56,7 +56,7 @@ function copyCode(code: string) {
                 Admin
               </div>
               <h1 class="text-xl font-semibold tracking-tight text-slate-900 dark:text-white">
-                邀請管理
+                Invitation Codes
               </h1>
             </div>
             <UButton
@@ -71,15 +71,12 @@ function copyCode(code: string) {
 
           <section class="flex flex-col gap-4">
             <div class="flex items-center gap-3">
-              <h2 class="text-base font-semibold text-slate-900 dark:text-white">
-                邀請碼列表
-              </h2>
               <UBadge
                 color="neutral"
                 variant="subtle"
                 class="font-mono text-xs"
               >
-                {{ codes.length }} 筆
+                共 {{ codes.length }} 筆
               </UBadge>
             </div>
 
