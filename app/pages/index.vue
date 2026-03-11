@@ -308,14 +308,6 @@ async function confirmDelete() {
                       </div>
                     </div>
                     <div class="flex items-center gap-1">
-                      <span class="text-[11px] text-slate-500 dark:text-slate-400">
-                        <template v-if="project.lastUpdated">
-                          Updated {{ getTimeAgo(project.lastUpdated) }}
-                        </template>
-                        <template v-else>
-                          New project
-                        </template>
-                      </span>
                       <UDropdownMenu
                         v-if="project.ownerId === user?.sub"
                         :items="getProjectMenuItems(project)"
@@ -360,12 +352,13 @@ async function confirmDelete() {
                   </div>
 
                   <div class="flex items-center justify-between pt-2 text-sm font-semibold text-slate-900 dark:text-white">
-                    <span class="inline-flex items-center gap-1 text-xs font-medium text-slate-500 dark:text-slate-400">
-                      <UIcon
-                        name="i-lucide-activity"
-                        class="size-3"
-                      />
-                      Activity
+                    <span class="text-[11px] text-slate-500 dark:text-slate-400">
+                      <template v-if="project.lastUpdated">
+                        Updated {{ getTimeAgo(project.lastUpdated) }}
+                      </template>
+                      <template v-else>
+                        New project
+                      </template>
                     </span>
                     <span class="text-emerald-600 transition group-hover:translate-x-1 dark:text-emerald-400">
                       View Details →
