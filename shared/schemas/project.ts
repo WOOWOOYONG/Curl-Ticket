@@ -17,8 +17,14 @@ export const createProjectSchema = z.object({
   environments: z.array(z.enum(environments as [string, ...string[]])).min(1, '請至少選擇一個環境')
 })
 
+export const editableProjectSchema = createProjectSchema.pick({
+  name: true,
+  description: true,
+  environments: true
+})
+
 /** 更新專案 */
-export const updateProjectSchema = createProjectSchema.partial()
+export const updateProjectSchema = editableProjectSchema.partial().strict()
 
 /** 專案資料（完整） */
 export const projectSchema = z.object({
@@ -50,6 +56,7 @@ export const projectMemberSchema = z.object({
 // ============================================
 
 export type CreateProjectInput = z.infer<typeof createProjectSchema>
+export type EditableProjectInput = z.infer<typeof editableProjectSchema>
 export type UpdateProjectInput = z.infer<typeof updateProjectSchema>
 export type Project = z.infer<typeof projectSchema>
 export type ProjectWithStats = z.infer<typeof projectWithStatsSchema>

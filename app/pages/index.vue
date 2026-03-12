@@ -49,17 +49,25 @@ function getProgressPercentage(open: number, total: number) {
   return Math.round((resolved / total) * 100)
 }
 
+const projectMenuUi = {
+  item: 'items-center'
+} as const
+
 // Project dropdown menu
 function getProjectMenuItems(project: { id: string, name: string }) {
   return [
     [{
-      label: '邀請成員',
-      icon: 'i-lucide-user-plus',
+      label: 'Edit Project',
+      iconVariant: 'edit' as const,
+      onSelect: () => navigateTo(`/projects/${project.id}/edit`)
+    }, {
+      label: 'Invite Members',
+      iconVariant: 'invite' as const,
       onSelect: () => navigateTo(`/projects/${project.id}/members`)
     }],
     [{
-      label: '刪除專案',
-      icon: 'i-lucide-trash-2',
+      label: 'Delete Project',
+      iconVariant: 'delete' as const,
       color: 'error' as const,
       onSelect: () => { deleteTarget.value = { id: project.id, name: project.name } }
     }]
@@ -311,13 +319,23 @@ async function confirmDelete() {
                       <UDropdownMenu
                         v-if="project.ownerId === user?.sub"
                         :items="getProjectMenuItems(project)"
+                        :ui="projectMenuUi"
                       >
+                        <template #item-leading="{ item }">
+                          <span class="flex size-4 shrink-0 items-center justify-center self-center">
+                            <ProjectMenuIcon
+                              :variant="item.iconVariant"
+                              class="size-4"
+                            />
+                          </span>
+                        </template>
+
                         <UButton
                           icon="i-lucide-ellipsis"
                           variant="ghost"
                           size="xs"
                           color="neutral"
-                          aria-label="專案操作"
+                          aria-label="Project actions"
                           @click.prevent.stop
                         />
                       </UDropdownMenu>

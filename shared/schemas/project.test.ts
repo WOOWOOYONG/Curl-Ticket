@@ -83,8 +83,13 @@ describe('updateProjectSchema', () => {
     expect(result.success).toBe(true)
   })
 
+  it('rejects project key updates', () => {
+    const result = updateProjectSchema.safeParse({ key: 'MP02' })
+    expect(result.success).toBe(false)
+  })
+
   it('still validates field constraints on partial update', () => {
-    const result = updateProjectSchema.safeParse({ key: 'lowercase' })
+    const result = updateProjectSchema.safeParse({ name: '' })
     expect(result.success).toBe(false)
   })
 })
