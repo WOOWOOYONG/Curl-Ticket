@@ -1,57 +1,44 @@
 ---
 name: code-review
-description: Review code changes for correctness, security, and adherence to project conventions. Use when asked to "review code", "review PR", "review my changes", "check this code", or when reviewing diffs, new features, bug fixes, or refactors in this Nuxt 4 / Vue 3 / Drizzle ORM / Supabase project.
+description: Review code changes for correctness, security, and adherence to project conventions. Use when asked to "review code", "review PR", "review my changes", "check this code", "code review", "review diff", or when reviewing diffs, new features, bug fixes, or refactors. Covers API routes, Vue components, Drizzle schemas, Zod validation, and Supabase auth patterns.
 ---
 
 # Code Review
 
-Perform thorough code reviews for the Curl Ticket project (Nuxt 4 + Vue 3 + Drizzle ORM + Supabase Auth + Zod).
+## Process
 
-## Review Process
+1. **Determine scope** — identify what to review:
+   - PR number given → `gh pr diff <number>`
+   - "my changes" / no target specified → `git diff HEAD` (unstaged + staged)
+   - Specific files mentioned → read those files directly
+2. **Read each changed file fully** before reviewing
+3. **Load [references/checklist.md](references/checklist.md)** and apply sections matching the changed file paths:
+   | Path pattern | Checklist sections |
+   |---|---|
+   | `server/api/**` | API Route, Security, Error Handling |
+   | `app/components/**`, `app/pages/**` | Vue Component, Security |
+   | `server/database/schema/**` | Database & Schema |
+   | `shared/schemas/**`, `shared/constants.ts` | Validation & Types |
+   | `app/composables/**` | Vue Component (data fetching), Performance |
+   | `server/utils/**`, `server/middleware/**` | API Route (auth), Security, Error Handling |
+4. **Always apply Security Review** regardless of file type
+5. **Report findings** using the output format below
 
-1. **Identify scope** — determine which files changed and their categories (API route, component, schema, shared code)
-2. **Read changed files** — read each file fully before reviewing
-3. **Apply category checklist** — use the relevant sections from [references/checklist.md](references/checklist.md)
-4. **Report findings** — output structured review with severity levels
+## Instant Red Flags
 
-## Review Categories
+Flag these on sight — the most frequent mistakes in this codebase:
 
-Based on the changed files, apply the matching checks:
-
-| File path pattern | Checklist sections to apply |
-|---|---|
-| `server/api/**` | API Route, Security, Error Handling |
-| `app/components/**`, `app/pages/**` | Vue Component, Security (XSS) |
-| `server/database/schema/**` | Database & Schema |
-| `shared/schemas/**`, `shared/constants.ts` | Validation & Types |
-| `app/composables/**` | Vue Component (data fetching), Performance |
-| `server/utils/**`, `server/middleware/**` | API Route (auth), Security, Error Handling |
-
-Always apply **Security Review** regardless of file type.
-
-For the full checklist, read [references/checklist.md](references/checklist.md).
-
-## Critical Project Rules
-
-These are the most common mistakes — flag immediately:
-
-- **Missing project access check**: Any `server/api/projects/[projectId]/**` route MUST call `getAccessibleProject()` or `buildProjectAccessCondition()`
-- **Raw string enums**: Use `IssueStatus.Open`, `HttpMethod.GET`, etc. from `shared/constants.ts` — never raw strings
-- **Raw fetch in components**: Must use `useFetch` or project composables for SSR compatibility
-- **Options API usage**: All components must use `<script setup lang="ts">`
-- **Missing Zod validation**: All API request bodies must be validated with shared Zod schemas
-- **Error helpers**: Use `notFound()`, `forbidden()`, `badRequest()`, `unauthorized()` from `server/utils/errors.ts`
-- **v-html with user input**: Flag as high-severity security issue
+- `server/api/projects/[projectId]/**` route missing `getAccessibleProject()` call
+- Raw string where a shared constant exists (`'Open'` instead of `IssueStatus.Open`)
+- `v-html` with user-controlled content
 
 ## Output Format
-
-Structure review output as:
 
 ```
 ## Code Review: [brief description]
 
 ### Summary
-[1-2 sentence overview of changes and overall assessment]
+[1-2 sentence overview and assessment]
 
 ### Findings
 
@@ -62,7 +49,7 @@ Structure review output as:
 - **[file:line]**: [description and suggestion]
 
 #### 🟢 Good Patterns
-- [note positive patterns worth highlighting]
+- [positive patterns worth noting]
 
 ### Verdict
 [APPROVE / REQUEST_CHANGES / COMMENT — with brief rationale]
