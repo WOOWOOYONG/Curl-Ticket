@@ -25,13 +25,17 @@ export function useProfile() {
     fetched: false
   }))
 
+  // useRequestFetch forwards cookies during SSR so the server
+  // can authenticate and return the same profile as the client.
+  const requestFetch = useRequestFetch()
+
   async function fetchProfile(): Promise<Profile | null> {
     if (state.value.fetched) {
       return state.value.data
     }
 
     try {
-      const profile = await $fetch('/api/auth/me')
+      const profile = await requestFetch('/api/auth/me')
       state.value = { data: profile, fetched: true }
       return profile
     } catch (e: unknown) {

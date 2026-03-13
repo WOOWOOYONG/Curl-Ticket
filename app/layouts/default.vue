@@ -4,7 +4,8 @@ import { UserRole } from '~~/shared/constants'
 
 const route = useRoute()
 
-const { profile } = useProfile()
+const { profile, fetchProfile } = useProfile()
+await fetchProfile().catch(() => {})
 
 const navItems = computed<NavItem[]>(() => {
   const items: NavItem[] = [

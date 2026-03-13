@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
 import type { IssueListItem } from '~~/shared/schemas'
-import { IssueType } from '~~/shared/constants'
+import { IssueType, issueStatuses, environments, httpMethods } from '~~/shared/constants'
+import type { IssueStatus, Environment, HttpMethod } from '~~/shared/constants'
 import { getHttpMethodColor } from '~/constants/http'
 import { IssueStatusColor, IssueStatusLabel, IssueTypeIcon, issueTypeTabs } from '~/constants/issue'
 
@@ -27,12 +28,51 @@ const initialType = route.query.type === IssueType.Task ? IssueType.Task : Issue
 const activeTypeFilter = ref<IssueType>(initialType)
 const issuesOptions = ref<UseIssuesOptions>({ page: 1, pageSize: DEFAULT_PAGE_SIZE, issueType: initialType })
 
+// Filter options
+const statusFilterOptions = issueStatuses.map(s => ({ label: IssueStatusLabel[s], value: s }))
+const environmentFilterOptions = environments.map(e => ({ label: e, value: e }))
+const methodFilterOptions = httpMethods.map(m => ({ label: m, value: m }))
+
+// Filter refs
+const activeStatusFilter = ref<IssueStatus | undefined>()
+const activeEnvironmentFilter = ref<Environment | undefined>()
+const activeMethodFilter = ref<HttpMethod | undefined>()
+
+// Filter popover controls
+const statusOpen = ref(false)
+const environmentOpen = ref(false)
+const methodOpen = ref(false)
+
+const hasActiveFilters = computed(() => activeStatusFilter.value || activeEnvironmentFilter.value || activeMethodFilter.value)
+
+function clearAllFilters() {
+  activeStatusFilter.value = undefined
+  activeEnvironmentFilter.value = undefined
+  activeMethodFilter.value = undefined
+}
+
 watch(debouncedSearch, (val) => {
   issuesOptions.value = { ...issuesOptions.value, search: val, page: 1 }
 })
 
+watch(activeStatusFilter, (val) => {
+  issuesOptions.value = { ...issuesOptions.value, status: val, page: 1 }
+})
+
+watch(activeEnvironmentFilter, (val) => {
+  issuesOptions.value = { ...issuesOptions.value, environment: val, page: 1 }
+})
+
+watch(activeMethodFilter, (val) => {
+  issuesOptions.value = { ...issuesOptions.value, method: val, page: 1 }
+})
+
 watch(activeTypeFilter, (val) => {
-  issuesOptions.value = { ...issuesOptions.value, issueType: val, page: 1 }
+  // Reset all filters on tab switch
+  activeStatusFilter.value = undefined
+  activeEnvironmentFilter.value = undefined
+  activeMethodFilter.value = undefined
+  issuesOptions.value = { ...issuesOptions.value, issueType: val, status: undefined, environment: undefined, method: undefined, page: 1 }
   // Sync query param without full navigation
   const query = { ...route.query, type: val }
   navigateTo({ path: route.path, query }, { replace: true })
@@ -227,6 +267,179 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
               variant="link"
               @update:model-value="activeTypeFilter = $event as IssueType"
             />
+
+            <!-- Filter Pills -->
+            <div class="flex flex-wrap items-center gap-2">
+              <!-- Status -->
+              <div
+                class="inline-flex items-center rounded-full border text-sm transition-colors"
+                :class="activeStatusFilter
+                  ? 'border-primary-200 bg-primary-50 hover:bg-primary-100 dark:border-primary-800 dark:bg-primary-950 dark:hover:bg-primary-900'
+                  : 'border-slate-300 hover:bg-slate-100 dark:border-white/15 dark:hover:bg-white/5'"
+              >
+                <UPopover
+                  v-model:open="statusOpen"
+                  :ui="{ content: 'min-w-36 p-1' }"
+                >
+                  <button
+                    class="flex cursor-pointer items-center gap-1.5 py-1.5 pl-3 font-medium"
+                    :class="[
+                      activeStatusFilter
+                        ? 'pr-1 text-primary-700 dark:text-primary-200'
+                        : 'pr-3 text-slate-600 dark:text-slate-300'
+                    ]"
+                  >
+                    {{ activeStatusFilter ? IssueStatusLabel[activeStatusFilter] : 'Status' }}
+                    <UIcon
+                      name="i-lucide-chevron-down"
+                      class="size-3.5 opacity-50"
+                    />
+                  </button>
+                  <template #content>
+                    <button
+                      v-for="opt in statusFilterOptions"
+                      :key="opt.value"
+                      class="flex w-full cursor-pointer items-center gap-2 rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-slate-100 dark:hover:bg-white/5"
+                      @click="activeStatusFilter = opt.value as IssueStatus; statusOpen = false"
+                    >
+                      <UIcon
+                        :name="activeStatusFilter === opt.value ? 'i-lucide-check' : ''"
+                        class="size-4 shrink-0 text-primary"
+                      />
+                      <span>{{ opt.label }}</span>
+                    </button>
+                  </template>
+                </UPopover>
+                <button
+                  v-if="activeStatusFilter"
+                  class="mr-1.5 flex shrink-0 cursor-pointer items-center rounded-full p-0.5 text-primary-500 transition-colors hover:bg-primary-100 dark:text-primary-300 dark:hover:bg-primary-900"
+                  aria-label="Clear status filter"
+                  @click="activeStatusFilter = undefined"
+                >
+                  <UIcon
+                    name="i-lucide-x"
+                    class="size-3.5"
+                  />
+                </button>
+              </div>
+
+              <!-- Environment (API Bug only) -->
+              <div
+                v-if="activeTypeFilter === IssueType.ApiBug"
+                class="inline-flex items-center rounded-full border text-sm transition-colors"
+                :class="activeEnvironmentFilter
+                  ? 'border-primary-200 bg-primary-50 hover:bg-primary-100 dark:border-primary-800 dark:bg-primary-950 dark:hover:bg-primary-900'
+                  : 'border-slate-300 hover:bg-slate-100 dark:border-white/15 dark:hover:bg-white/5'"
+              >
+                <UPopover
+                  v-model:open="environmentOpen"
+                  :ui="{ content: 'min-w-40 p-1' }"
+                >
+                  <button
+                    class="flex cursor-pointer items-center gap-1.5 py-1.5 pl-3 font-medium"
+                    :class="[
+                      activeEnvironmentFilter
+                        ? 'pr-1 text-primary-700 dark:text-primary-200'
+                        : 'pr-3 text-slate-600 dark:text-slate-300'
+                    ]"
+                  >
+                    {{ activeEnvironmentFilter || 'Environment' }}
+                    <UIcon
+                      name="i-lucide-chevron-down"
+                      class="size-3.5 opacity-50"
+                    />
+                  </button>
+                  <template #content>
+                    <button
+                      v-for="opt in environmentFilterOptions"
+                      :key="opt.value"
+                      class="flex w-full cursor-pointer items-center gap-2 rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-slate-100 dark:hover:bg-white/5"
+                      @click="activeEnvironmentFilter = opt.value as Environment; environmentOpen = false"
+                    >
+                      <UIcon
+                        :name="activeEnvironmentFilter === opt.value ? 'i-lucide-check' : ''"
+                        class="size-4 shrink-0 text-primary"
+                      />
+                      <span>{{ opt.label }}</span>
+                    </button>
+                  </template>
+                </UPopover>
+                <button
+                  v-if="activeEnvironmentFilter"
+                  class="mr-1.5 flex shrink-0 cursor-pointer items-center rounded-full p-0.5 text-primary-500 transition-colors hover:bg-primary-100 dark:text-primary-300 dark:hover:bg-primary-900"
+                  aria-label="Clear environment filter"
+                  @click="activeEnvironmentFilter = undefined"
+                >
+                  <UIcon
+                    name="i-lucide-x"
+                    class="size-3.5"
+                  />
+                </button>
+              </div>
+
+              <!-- Method (API Bug only) -->
+              <div
+                v-if="activeTypeFilter === IssueType.ApiBug"
+                class="inline-flex items-center rounded-full border text-sm transition-colors"
+                :class="activeMethodFilter
+                  ? 'border-primary-200 bg-primary-50 hover:bg-primary-100 dark:border-primary-800 dark:bg-primary-950 dark:hover:bg-primary-900'
+                  : 'border-slate-300 hover:bg-slate-100 dark:border-white/15 dark:hover:bg-white/5'"
+              >
+                <UPopover
+                  v-model:open="methodOpen"
+                  :ui="{ content: 'min-w-36 p-1' }"
+                >
+                  <button
+                    class="flex cursor-pointer items-center gap-1.5 py-1.5 pl-3 font-medium"
+                    :class="[
+                      activeMethodFilter
+                        ? 'pr-1 text-primary-700 dark:text-primary-200'
+                        : 'pr-3 text-slate-600 dark:text-slate-300'
+                    ]"
+                  >
+                    {{ activeMethodFilter || 'Method' }}
+                    <UIcon
+                      name="i-lucide-chevron-down"
+                      class="size-3.5 opacity-50"
+                    />
+                  </button>
+                  <template #content>
+                    <button
+                      v-for="opt in methodFilterOptions"
+                      :key="opt.value"
+                      class="flex w-full cursor-pointer items-center gap-2 rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-slate-100 dark:hover:bg-white/5"
+                      @click="activeMethodFilter = opt.value as HttpMethod; methodOpen = false"
+                    >
+                      <UIcon
+                        :name="activeMethodFilter === opt.value ? 'i-lucide-check' : ''"
+                        class="size-4 shrink-0 text-primary"
+                      />
+                      <span>{{ opt.label }}</span>
+                    </button>
+                  </template>
+                </UPopover>
+                <button
+                  v-if="activeMethodFilter"
+                  class="mr-1.5 flex shrink-0 cursor-pointer items-center rounded-full p-0.5 text-primary-500 transition-colors hover:bg-primary-100 dark:text-primary-300 dark:hover:bg-primary-900"
+                  aria-label="Clear method filter"
+                  @click="activeMethodFilter = undefined"
+                >
+                  <UIcon
+                    name="i-lucide-x"
+                    class="size-3.5"
+                  />
+                </button>
+              </div>
+
+              <!-- Clear All -->
+              <button
+                v-if="hasActiveFilters"
+                class="ml-2 cursor-pointer text-sm font-medium text-slate-500 transition-colors hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100"
+                @click="clearAllFilters"
+              >
+                Clear filters
+              </button>
+            </div>
 
             <!-- Empty State -->
             <div

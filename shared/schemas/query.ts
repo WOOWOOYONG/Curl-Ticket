@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { issueStatuses, environments, issueTypes } from '../constants'
+import { issueStatuses, environments, issueTypes, httpMethods } from '../constants'
 
 // ============================================
 // Pagination
@@ -18,6 +18,7 @@ export const issueQuerySchema = paginationQuerySchema.extend({
   status: z.enum(issueStatuses).optional(),
   environment: z.enum(environments).optional(),
   issueType: z.enum(issueTypes).optional(),
+  method: z.enum(httpMethods).optional(),
   search: z.string().optional()
 })
 

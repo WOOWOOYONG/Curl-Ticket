@@ -1,6 +1,6 @@
 import type { Ref, ComputedRef } from 'vue'
 import type { IssueListItem } from '~~/shared/schemas'
-import type { IssueStatus, Environment, IssueType } from '~~/shared/constants'
+import type { IssueStatus, Environment, IssueType, HttpMethod } from '~~/shared/constants'
 import type { PaginationMeta } from '~~/shared/types'
 
 interface IssuesResponse {
@@ -14,6 +14,7 @@ export interface UseIssuesOptions {
   status?: IssueStatus
   environment?: Environment
   issueType?: IssueType
+  method?: HttpMethod
   search?: string
 }
 
@@ -30,7 +31,7 @@ export function useIssues(
   options: Ref<UseIssuesOptions>
 ) {
   return useFetch<IssuesResponse>(() => {
-    const { page = 1, pageSize = 20, status, environment, issueType, search } = options.value
+    const { page = 1, pageSize = 20, status, environment, issueType, method, search } = options.value
     const params = new URLSearchParams()
     params.set('page', String(page))
     params.set('pageSize', String(pageSize))
@@ -38,6 +39,7 @@ export function useIssues(
     if (status) params.set('status', status)
     if (environment) params.set('environment', environment)
     if (issueType) params.set('issueType', issueType)
+    if (method) params.set('method', method)
     if (search) params.set('search', search)
 
     return `/api/projects/${projectId.value}/issues?${params.toString()}`
