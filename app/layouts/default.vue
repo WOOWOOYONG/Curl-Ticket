@@ -5,6 +5,8 @@ import { UserRole } from '~~/shared/constants'
 const route = useRoute()
 
 const { profile, fetchProfile } = useProfile()
+// Silently catch: unauthenticated visitors won't have a profile — that's fine,
+// but the await is needed so SSR renders the same nav items as the client.
 await fetchProfile().catch(() => {})
 
 const navItems = computed<NavItem[]>(() => {

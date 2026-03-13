@@ -43,7 +43,7 @@ const statusOpen = ref(false)
 const environmentOpen = ref(false)
 const methodOpen = ref(false)
 
-const hasActiveFilters = computed(() => activeStatusFilter.value || activeEnvironmentFilter.value || activeMethodFilter.value)
+const hasActiveFilters = computed(() => !!activeStatusFilter.value || !!activeEnvironmentFilter.value || !!activeMethodFilter.value)
 
 function clearAllFilters() {
   activeStatusFilter.value = undefined
@@ -303,8 +303,13 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
                       @click="activeStatusFilter = opt.value as IssueStatus; statusOpen = false"
                     >
                       <UIcon
-                        :name="activeStatusFilter === opt.value ? 'i-lucide-check' : ''"
+                        v-if="activeStatusFilter === opt.value"
+                        name="i-lucide-check"
                         class="size-4 shrink-0 text-primary"
+                      />
+                      <span
+                        v-else
+                        class="size-4 shrink-0"
                       />
                       <span>{{ opt.label }}</span>
                     </button>
@@ -357,8 +362,13 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
                       @click="activeEnvironmentFilter = opt.value as Environment; environmentOpen = false"
                     >
                       <UIcon
-                        :name="activeEnvironmentFilter === opt.value ? 'i-lucide-check' : ''"
+                        v-if="activeEnvironmentFilter === opt.value"
+                        name="i-lucide-check"
                         class="size-4 shrink-0 text-primary"
+                      />
+                      <span
+                        v-else
+                        class="size-4 shrink-0"
                       />
                       <span>{{ opt.label }}</span>
                     </button>
@@ -411,8 +421,13 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
                       @click="activeMethodFilter = opt.value as HttpMethod; methodOpen = false"
                     >
                       <UIcon
-                        :name="activeMethodFilter === opt.value ? 'i-lucide-check' : ''"
+                        v-if="activeMethodFilter === opt.value"
+                        name="i-lucide-check"
                         class="size-4 shrink-0 text-primary"
+                      />
+                      <span
+                        v-else
+                        class="size-4 shrink-0"
                       />
                       <span>{{ opt.label }}</span>
                     </button>
