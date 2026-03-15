@@ -8,18 +8,18 @@ import { issuesCommand } from './commands/issues.js'
 import { issueCommand } from './commands/issue.js'
 import { updateStatusCommand } from './commands/update-status.js'
 import { authLoginCommand, authStatusCommand, authLogoutCommand } from './commands/auth.js'
-import { initSkillCommand } from './commands/init-skill.js'
+import { initSkillCommand } from './commands/init-skill/index.js'
 import { CLI_NAME, CLI_VERSION, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from './constants.js'
 import type { AuthConfig } from './types.js'
 
 function promptUrl(): Promise<string> {
   const rl = createInterface({ input: process.stdin, output: process.stderr })
   return new Promise((resolve, reject) => {
-    rl.question('請輸入你的 Curl Ticket 網址：', (answer: string) => {
+    rl.question('Enter your Curl Ticket URL: ', (answer: string) => {
       rl.close()
       const url = answer.trim().replace(/\/$/, '')
       if (!url) {
-        reject(new Error('未輸入網址，已取消。'))
+        reject(new Error('No URL provided, cancelled.'))
       } else {
         resolve(url)
       }
@@ -55,7 +55,7 @@ async function withAuth<T>(fn: (client: CurlTicketClient) => Promise<T>): Promis
         client = new CurlTicketClient(config)
         return await fn(client)
       } catch {
-        throw new Error('Token 無效，請至 Curl Ticket 站台重新產生。')
+        throw new Error('Invalid token. Please regenerate it from the Curl Ticket site.')
       }
     }
     throw err
@@ -66,23 +66,23 @@ function handleError(err: unknown): never {
   if (err instanceof ApiError) {
     switch (err.statusCode) {
       case 401:
-        process.stderr.write('Token 無效，請至 Curl Ticket 站台重新產生。\n')
+        process.stderr.write('Invalid token. Please regenerate it from the Curl Ticket site.\n')
         break
       case 403:
-        process.stderr.write('無權限存取此專案。\n')
+        process.stderr.write('Access denied for this project.\n')
         break
       case 404:
-        process.stderr.write('找不到指定的資源。\n')
+        process.stderr.write('Resource not found.\n')
         break
       default:
-        process.stderr.write(`API 錯誤 (${err.statusCode}): ${err.message}\n`)
+        process.stderr.write(`API error (${err.statusCode}): ${err.message}\n`)
     }
   } else if (err instanceof NetworkError) {
     process.stderr.write(`${err.message}\n`)
   } else if (err instanceof Error) {
     process.stderr.write(`${err.message}\n`)
   } else {
-    process.stderr.write('發生未知錯誤。\n')
+    process.stderr.write('An unknown error occurred.\n')
   }
   process.exit(1)
 }
@@ -91,14 +91,14 @@ const program = new Command()
 
 program
   .name(CLI_NAME)
-  .description('Curl Ticket CLI — 從終端機查詢與管理 issue')
+  .description('Curl Ticket CLI — query and manage issues from the terminal')
   .version(CLI_VERSION)
 
 // --- Data commands ---
 
 program
   .command('projects')
-  .description('列出可存取的專案')
+  .description('List accessible projects')
   .action(async () => {
     try {
       await withAuth(client => projectsCommand(client))
@@ -109,10 +109,10 @@ program
 
 program
   .command('issues <projectId>')
-  .description('列出指定專案的 issue')
-  .option('-s, --status <status>', '依狀態過濾 (Open / in-progress / Done / Close)')
-  .option('-t, --type <type>', '依類型過濾 (api_bug / task)')
-  .option('-n, --limit <limit>', `筆數上限 (預設 ${DEFAULT_PAGE_SIZE}, 最大 ${MAX_PAGE_SIZE})`, String(DEFAULT_PAGE_SIZE))
+  .description('List issues for a project')
+  .option('-s, --status <status>', 'Filter by status (Open / in-progress / Done / Close)')
+  .option('-t, --type <type>', 'Filter by type (api_bug / task)')
+  .option('-n, --limit <limit>', `Max results (default ${DEFAULT_PAGE_SIZE}, max ${MAX_PAGE_SIZE})`, String(DEFAULT_PAGE_SIZE))
   .action(async (projectId: string, options: { status?: string, type?: string, limit: string }) => {
     try {
       await withAuth(client => issuesCommand(client, projectId, {
@@ -127,7 +127,7 @@ program
 
 program
   .command('issue <projectId> <issueId>')
-  .description('取得單一 issue 詳情')
+  .description('Get issue details')
   .action(async (projectId: string, issueId: string) => {
     try {
       await withAuth(client => issueCommand(client, projectId, issueId))
@@ -138,7 +138,7 @@ program
 
 program
   .command('update-status <projectId> <issueId> <status>')
-  .description('更新 issue 狀態')
+  .description('Update issue status')
   .action(async (projectId: string, issueId: string, status: string) => {
     try {
       await withAuth(client => updateStatusCommand(client, projectId, issueId, status))
@@ -151,12 +151,12 @@ program
 
 const auth = program
   .command('auth')
-  .description('管理登入狀態')
+  .description('Manage authentication')
 
 auth
   .command('login')
-  .description('登入 Curl Ticket')
-  .option('--url <url>', '站台網址')
+  .description('Log in to Curl Ticket')
+  .option('--url <url>', 'Site URL')
   .action(async (options: { url?: string }) => {
     try {
       await authLoginCommand(options.url)
@@ -167,7 +167,7 @@ auth
 
 auth
   .command('status')
-  .description('顯示當前登入狀態')
+  .description('Show current login status')
   .action(async () => {
     try {
       await authStatusCommand()
@@ -178,7 +178,7 @@ auth
 
 auth
   .command('logout')
-  .description('登出並刪除本地 config')
+  .description('Log out and delete local config')
   .action(async () => {
     try {
       await authLogoutCommand()
@@ -191,7 +191,7 @@ auth
 
 program
   .command('init-skill')
-  .description('初始化 Claude Code Skill 檔案')
+  .description('Initialize coding agent skill files')
   .action(async () => {
     try {
       await initSkillCommand()
