@@ -485,9 +485,9 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
             <!-- Issues List -->
             <div
               v-else
-              class="overflow-hidden rounded-2xl border border-slate-200/70 bg-white/80 shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60"
+              class="overflow-clip rounded-2xl border border-slate-200/70 bg-white/80 shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60"
             >
-              <div class="max-h-[40vh] overflow-auto sm:max-h-[48vh]">
+              <div class="max-h-[25vh] overflow-auto sm:max-h-[40vh]">
                 <UTable
                   :columns="columns"
                   :data="issues"

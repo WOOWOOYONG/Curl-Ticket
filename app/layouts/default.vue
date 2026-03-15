@@ -48,7 +48,7 @@ function isActive(item: NavItem) {
           </UButton>
         </nav>
       </UDashboardSidebar>
-      <main class="flex-1 bg-slate-50 dark:bg-gray-950">
+      <main class="flex-1 overflow-x-hidden overflow-y-auto bg-slate-50 dark:bg-gray-950">
         <slot />
       </main>
     </UDashboardGroup>
