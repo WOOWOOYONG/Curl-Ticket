@@ -15,7 +15,7 @@ export class ApiError extends Error {
 
 export class NetworkError extends Error {
   constructor(public url: string, cause?: Error) {
-    super(`無法連線至 ${url}，請確認網址與網路狀態。`)
+    super(`Unable to connect to ${url}. Please check the URL and network status.`)
     this.name = 'NetworkError'
     this.cause = cause
   }
@@ -75,7 +75,7 @@ export class CurlTicketClient {
       `/api/projects/${projectId}/issues?issueNumber=${issueNumber}&pageSize=1`
     )
     if (list.data.length === 0) {
-      throw new ApiError(404, '找不到指定的 issue。')
+      throw new ApiError(404, 'Issue not found.')
     }
     // Get full detail
     return this.getIssue(projectId, String(list.data[0].id))

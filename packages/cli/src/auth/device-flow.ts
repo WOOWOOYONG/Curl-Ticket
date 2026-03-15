@@ -18,7 +18,7 @@ function stderr(msg: string): void {
 }
 
 export async function startDeviceCodeFlow(baseUrl: string): Promise<AuthConfig> {
-  stderr('尚未登入 Curl Ticket\n\n')
+  stderr('Not logged in to Curl Ticket\n\n')
 
   const codeRes = await fetch(`${baseUrl}/api/auth/device/code`, {
     method: 'POST',
@@ -26,14 +26,14 @@ export async function startDeviceCodeFlow(baseUrl: string): Promise<AuthConfig> 
   })
 
   if (!codeRes.ok) {
-    throw new Error(`無法啟動登入流程 (${codeRes.status})`)
+    throw new Error(`Failed to start login flow (${codeRes.status})`)
   }
 
   const codeData = await codeRes.json() as DeviceCodeResponse
   const { deviceCode, verificationUrl, expiresIn, interval } = codeData
 
-  stderr('  正在開啟瀏覽器...\n')
-  stderr(`  若瀏覽器未開啟，請手動前往：\n`)
+  stderr('  Opening browser...\n')
+  stderr('  If the browser did not open, go to:\n')
   stderr(`  ${verificationUrl}\n\n`)
 
   openBrowser(verificationUrl)
@@ -43,7 +43,7 @@ export async function startDeviceCodeFlow(baseUrl: string): Promise<AuthConfig> 
 
   while (Date.now() < deadline) {
     const remaining = Math.ceil((deadline - Date.now()) / 1000)
-    stderr(`\r  等待驗證中... (剩餘 ${remaining} 秒)  `)
+    stderr(`\r  Waiting for verification... (${remaining}s remaining)  `)
 
     await new Promise(resolve => setTimeout(resolve, pollInterval))
 
@@ -65,14 +65,14 @@ export async function startDeviceCodeFlow(baseUrl: string): Promise<AuthConfig> 
         token: tokenData.token
       }
       await saveConfig(config)
-      stderr('\r\n✓ 登入成功\n\n')
+      stderr('\r\n✓ Login successful\n\n')
       return config
     }
 
     if (tokenData.status === 'expired') {
-      throw new Error('驗證已逾時，請重新執行指令。')
+      throw new Error('Verification timed out. Please try again.')
     }
   }
 
-  throw new Error('驗證已逾時，請重新執行指令。')
+  throw new Error('Verification timed out. Please try again.')
 }

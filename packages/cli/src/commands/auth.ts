@@ -4,7 +4,7 @@ import { startDeviceCodeFlow } from '../auth/device-flow.js'
 export async function authLoginCommand(url?: string): Promise<void> {
   const baseUrl = url ?? await getUrlAsync()
   if (!baseUrl) {
-    throw new Error('請以 --url 參數指定站台網址，或設定環境變數 CURL_TICKET_URL。')
+    throw new Error('Please specify a site URL with --url or set the CURL_TICKET_URL environment variable.')
   }
   await startDeviceCodeFlow(baseUrl)
 }
@@ -12,19 +12,19 @@ export async function authLoginCommand(url?: string): Promise<void> {
 export async function authStatusCommand(): Promise<void> {
   const config = await getConfigAsync()
   if (!config) {
-    console.log('未登入')
-    console.log('執行 curl-ticket auth login --url <URL> 來登入。')
+    console.log('Not logged in')
+    console.log('Run: curl-ticket auth login --url <URL>')
     return
   }
 
   const source = getConfigSource(config)
-  console.log(`來源: ${source === 'env' ? '環境變數' : '本地 config 檔'}`)
-  console.log(`站台: ${config.url}`)
+  console.log(`Source: ${source === 'env' ? 'environment variable' : 'local config file'}`)
+  console.log(`Site: ${config.url}`)
   console.log(`Token: ${config.token.slice(0, 11)}...`)
 }
 
 export async function authLogoutCommand(): Promise<void> {
   await deleteConfig()
-  console.log('已登出（本地 config 已刪除）')
-  console.log('如需撤銷 Token，請至站台 設定 → API Tokens 操作。')
+  console.log('Logged out (local config deleted)')
+  console.log('To revoke the token, go to Settings → API Tokens on the site.')
 }

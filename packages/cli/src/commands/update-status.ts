@@ -20,5 +20,5 @@ export async function updateStatusCommand(
   }
 
   await client.updateIssueStatus(projectId, actualId, normalized)
-  console.log(`已更新為 ${normalized}`)
+  console.log(`Status updated to ${normalized}`)
 }

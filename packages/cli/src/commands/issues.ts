@@ -24,7 +24,7 @@ export async function issuesCommand(
   })
 
   if (res.data.length === 0) {
-    console.log('沒有符合條件的 issue。')
+    console.log('No issues found.')
     return
   }
 

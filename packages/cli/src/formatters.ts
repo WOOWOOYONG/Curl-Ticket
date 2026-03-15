@@ -22,14 +22,14 @@ export function formatIssueDetail(issue: IssueDetail, friendlyId: string): strin
 
   const fields: [string, string | number | null | undefined][] = [
     [`# ${friendlyId}`, issue.title],
-    ['類型', isApiBug ? 'API Bug' : 'Task'],
-    ['狀態', issue.status],
-    ['端點', isApiBug && issue.method && issue.url ? `${issue.method} ${issue.url}` : null],
-    ['環境', isApiBug ? issue.environment : null],
-    ['回應狀態碼', isApiBug ? issue.responseStatus : null],
-    ['錯誤訊息', errorMsg && truncate(errorMsg, 300)],
+    ['Type', isApiBug ? 'API Bug' : 'Task'],
+    ['Status', issue.status],
+    ['Endpoint', isApiBug && issue.method && issue.url ? `${issue.method} ${issue.url}` : null],
+    ['Environment', isApiBug ? issue.environment : null],
+    ['Response Status', isApiBug ? issue.responseStatus : null],
+    ['Error', errorMsg && truncate(errorMsg, 300)],
     ['cURL', isApiBug && issue.rawCurl ? truncate(simplifyCurl(issue.rawCurl), 500) : null],
-    ['描述', issue.description && truncate(issue.description, 300)]
+    ['Description', issue.description && truncate(issue.description, 300)]
   ]
 
   return fields
