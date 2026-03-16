@@ -1,0 +1,11 @@
+-- Custom SQL migration file, put your code below! --
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.project_members ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.issues ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.issue_comments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.project_invitations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.invitation_codes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.api_tokens ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.device_codes ENABLE ROW LEVEL SECURITY;
