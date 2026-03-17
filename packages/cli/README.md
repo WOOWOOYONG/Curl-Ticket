@@ -53,6 +53,19 @@ ct update-status <projectId> <issueId> Done
 ct update-status <projectId> <issueId> Close
 ```
 
+#### JSON Output
+
+All data commands support `--json` for structured output, useful for scripts and AI agent integration:
+
+```bash
+ct projects --json
+ct issues <projectId> --json
+ct issue <projectId> CT-42 --json
+ct update-status <projectId> <issueId> Done --json
+```
+
+JSON responses include full API data and pagination metadata. Errors also return structured JSON when this flag is used.
+
 #### Authentication
 
 ```bash
@@ -139,6 +152,19 @@ ct update-status <projectId> <issueId> in-progress
 ct update-status <projectId> <issueId> Done
 ct update-status <projectId> <issueId> Close
 ```
+
+#### JSON 輸出
+
+所有資料指令皆支援 `--json`，輸出結構化 JSON，適合腳本與 AI Agent 整合使用：
+
+```bash
+ct projects --json
+ct issues <projectId> --json
+ct issue <projectId> CT-42 --json
+ct update-status <projectId> <issueId> Done --json
+```
+
+JSON 回應包含完整 API 資料與分頁資訊。啟用此 flag 時，錯誤也會以結構化 JSON 回傳。
 
 #### 認證
 

@@ -8,24 +8,39 @@ description: >
 
 # CLI Commands
 
+**Always use `--json` flag** to get structured JSON output. This avoids parsing human-readable text and preserves all fields including pagination.
+
 ```
-curl-ticket projects                                            # List projects
-curl-ticket issues <projectId> [-s Open] [-t api_bug] [-n 10]  # List issues
-curl-ticket issue <projectId> <issueId|CT-42>                   # Issue details
-curl-ticket update-status <projectId> <issueId> <status>        # Update status (Open|in-progress|Done|Close)
+curl-ticket projects --json                                            # List projects
+curl-ticket issues <projectId> --json [-s Open] [-t api_bug] [-n 10]  # List issues
+curl-ticket issue <projectId> <issueId|CT-42> --json                   # Issue details
+curl-ticket update-status <projectId> <issueId> <status> --json        # Update status (Open|in-progress|Done|Close)
 ```
 
 Authentication is handled automatically; first run opens the browser for login.
 
-# Issue Output Fields
+# JSON Output Format
 
-Issue details include: type (API Bug / Task), status, endpoint, environment, response status code, error message (auto-extracted from responseBody), simplified cURL (noise headers removed), and description.
+List commands (`projects`, `issues`) return:
+```json
+{ "data": [...], "pagination": { "page": 1, "pageSize": 10, "total": 42, "totalPages": 5 } }
+```
+
+Single-resource commands (`issue`, `update-status`) return:
+```json
+{ "data": { "id": 1, "issueNumber": 42, "issueType": "api_bug", "title": "...", "status": "Open", "method": "GET", "url": "/api/users", "environment": "Prod", "responseStatus": 500, "rawCurl": "...", "responseBody": "...", ... }, "friendlyId": "PROJ-42" }
+```
+
+Errors return:
+```json
+{ "error": true, "code": 404, "message": "Resource not found." }
+```
 
 # Analysis Workflow
 
-1. Run `curl-ticket projects` to get the projectId
-2. Run `curl-ticket issues <projectId> -s Open` to list open issues
-3. Run `curl-ticket issue <projectId> <issueId>` to get details
+1. Run `curl-ticket projects --json` to get the projectId
+2. Run `curl-ticket issues <projectId> -s Open --json` to list open issues
+3. Run `curl-ticket issue <projectId> <issueId> --json` to get full details
 4. Locate code by issue type:
    - **API Bug**: Search for the route handler matching the endpoint field (e.g. `POST /api/users`), then triage by status code:
      - 4xx → validation logic, access control, resource lookup
