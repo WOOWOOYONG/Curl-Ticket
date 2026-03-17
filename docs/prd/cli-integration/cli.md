@@ -134,9 +134,49 @@ packages/cli/
 
 ---
 
-## B5. 輸出格式（Context 優化）
+## B5. 輸出格式
 
-設計原則：以**最少 token 數**傳達**對 LLM 分析程式碼最有用**的資訊。所有資料輸出為精簡純文字（非 JSON）。
+### 雙模式輸出
+
+- `CLI-064`：所有資料指令（`projects`、`issues`、`issue`、`update-status`）支援 `--json` global flag。
+- `CLI-065`：`--json` 為 Commander.js root program 上的 option，透過 `program.opts()` 讀取，傳入各 command handler。
+- `CLI-066`：`--json` 模式下，stdout 輸出原始 API JSON（`JSON.stringify(res, null, 2)`），包含完整資料與 pagination metadata。
+- `CLI-067`：`--json` 模式下，所有訊息性文字（auth 提示、進度提示）僅走 stderr，stdout 保持純 JSON。
+- `CLI-068`：未指定 `--json` 時，行為與原 human-readable 模式完全一致（向後相容）。
+
+#### JSON 模式輸出格式
+
+列表指令（`projects`、`issues`）：
+
+```json
+{
+  "data": [...],
+  "pagination": { "page": 1, "pageSize": 10, "total": 42, "totalPages": 5 }
+}
+```
+
+單筆指令（`issue`、`update-status`）：
+
+```json
+{
+  "data": { "id": 1, "issueNumber": 42, "status": "Open", ... },
+  "friendlyId": "CT-42"
+}
+```
+
+錯誤（`--json` 模式）：
+
+```json
+{
+  "error": true,
+  "code": 404,
+  "message": "Resource not found."
+}
+```
+
+### Human-Readable 模式
+
+設計原則：以**最少 token 數**傳達**對 LLM 分析程式碼最有用**的資訊。純文字格式。
 
 ### 列表摘要格式（`issues` 指令）
 
@@ -178,7 +218,7 @@ packages/cli/
 cURL: curl -X POST https://example.com/api/users -H 'Content-Type: application/json' -H 'Authorization: Bearer ***' -d '{"name":"test"}'
 ```
 
-### Token 預算總表
+### Token 預算總表（Human-Readable 模式）
 
 | 指令 | 預估 Tokens | 控制方式 |
 |------|-------------|----------|
@@ -188,6 +228,10 @@ cURL: curl -X POST https://example.com/api/users -H 'Content-Type: application/j
 | `issue`（1 筆） | ~200-600 | 動態截斷，依欄位內容量 |
 | `update-status` | ~10 | 僅確認訊息 |
 | **典型工作流**（列表 + 2 筆詳情） | **~1,000-2,000** | |
+
+### Token 預算備註（JSON 模式）
+
+`--json` 模式輸出完整 API 資料（含所有欄位、pagination），token 量會高於 human-readable 模式（約 2-5 倍），但 Agent 可直接 parse 結構化資料，無轉譯損失。未來可搭配 `--fields` field mask（見 [README.md Phase E3](./README.md)）控制輸出欄位以降低 token 開銷。
 
 ---
 
@@ -257,6 +301,7 @@ cURL: curl -X POST https://example.com/api/users -H 'Content-Type: application/j
 - `CLI-061`：API 回傳 `404` 時，輸出 `找不到指定的 {resource}。`。
 - `CLI-062`：網路錯誤（fetch 失敗）時，輸出 `無法連線至 {URL}，請確認網址與網路狀態。`。
 - `CLI-063`：所有錯誤訊息輸出至 stderr，以 exit code 1 結束。正常結果輸出至 stdout，以 exit code 0 結束。
+- `CLI-069`：`--json` 模式下，`handleError` 統一提取 error code 與 message，輸出結構化 JSON 至 stdout（讓 pipe 消費者收到一致格式），並以 exit code 1 結束。非 `--json` 模式行為不變。
 
 ---
 

@@ -16,7 +16,8 @@
 
 ## C2. Skill Body 內容
 
-- `SKILL-006`：SKILL.md body 需列出所有可用的 `curl-ticket` CLI 指令與常用選項，供 Claude 直接參考。
+- `SKILL-006`：SKILL.md body 需列出所有可用的 `curl-ticket` CLI 指令與常用選項，**所有指令範例須帶 `--json` flag**，並明確指示 Agent 一律使用 JSON 模式。
+- `SKILL-006a`：SKILL.md body 需包含「JSON Output Format」區塊，列出三種回傳結構（list / single / error）的 JSON schema 範例，供 Agent 預期 response shape。
 - `SKILL-007`：SKILL.md body 需包含「分析流程」，以編號步驟指引 Claude 從 issue 資訊到本地 codebase 的追蹤路徑。
 - `SKILL-008`：分析流程需包含 endpoint → 本地 route 檔案的對應規則。此規則需為通用型（適用於各種框架），不預設使用者的專案結構。示例對應：`POST /api/users → 搜尋 api/users 相關的 route handler`。
 - `SKILL-009`：分析流程需包含 responseStatus 的判斷邏輯：4xx → 驗證、權限、找不到資源；5xx → 程式邏輯錯誤、DB query 問題。
@@ -78,15 +79,15 @@ user-invocable: false
 使用者：看一下有什麼 open 的 issue
 
 Claude 思考：偵測到 "issue" 關鍵字 → 載入 Skill → 需要先知道 projectId
-Claude 執行：curl-ticket projects
+Claude 執行：curl-ticket projects --json
   → CLI stderr: 印出登入提示與代碼
   → 使用者在瀏覽器完成 OAuth
-  → CLI stdout: 專案列表
+  → CLI stdout: JSON 專案列表（含 pagination）
 
 Claude 回覆：你有 3 個專案，要看哪個的 issue？
   → 使用者選擇後
-Claude 執行：curl-ticket issues <projectId> -s Open
-Claude 回覆：列出 issue 摘要
+Claude 執行：curl-ticket issues <projectId> -s Open --json
+Claude 回覆：列出 issue 摘要（從 JSON 的 data 陣列提取）
 ```
 
 ### 場景 B：日常使用（已登入）
@@ -95,10 +96,11 @@ Claude 回覆：列出 issue 摘要
 使用者：CT-42 那個 500 幫我查一下
 
 Claude 思考：偵測到 "CT-42" → 載入 Skill → 需要取得 issue 詳情
-Claude 執行：curl-ticket issue <projectId> 42
-  → CLI stdout: issue 詳情（端點、錯誤訊息、精簡 cURL）
+Claude 執行：curl-ticket issue <projectId> CT-42 --json
+  → CLI stdout: JSON issue 詳情（含完整 endpoint、responseBody、rawCurl）
 
-Claude 思考：端點是 POST /api/users，錯誤是 column "email" cannot be null
+Claude 思考：從 JSON 直接讀取 method=POST, url=/api/users, responseStatus=500
+  → 從 responseBody 欄位取得 "column email cannot be null"
   → 在本地搜尋 api/users 相關的 route handler
   → 讀取對應檔案，追蹤到 DB insert 邏輯
   → 找到缺少 email 欄位的驗證
@@ -112,7 +114,8 @@ Claude 回覆：問題在 server/api/users.post.ts 第 23 行，
 ```
 使用者：修好了，幫我把 issue 標成 Done
 
-Claude 執行：curl-ticket update-status <projectId> 42 Done
+Claude 執行：curl-ticket update-status <projectId> CT-42 Done --json
+  → CLI stdout: JSON 回傳更新後的完整 issue 資料
 Claude 回覆：已將 CT-42 標記為 Done。
 ```
 
