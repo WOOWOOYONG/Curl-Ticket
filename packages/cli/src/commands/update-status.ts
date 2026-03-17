@@ -5,7 +5,8 @@ export async function updateStatusCommand(
   client: CurlTicketClient,
   projectId: string,
   issueId: string,
-  status: string
+  status: string,
+  json = false
 ): Promise<void> {
   const normalized = normalizeStatus(status)
   const parsed = parseIssueId(issueId)
@@ -19,6 +20,12 @@ export async function updateStatusCommand(
     actualId = parsed.value
   }
 
-  await client.updateIssueStatus(projectId, actualId, normalized)
+  const res = await client.updateIssueStatus(projectId, actualId, normalized)
+
+  if (json) {
+    process.stdout.write(JSON.stringify(res, null, 2) + '\n')
+    return
+  }
+
   console.log(`Status updated to ${normalized}`)
 }

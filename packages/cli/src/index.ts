@@ -62,27 +62,35 @@ async function withAuth<T>(fn: (client: CurlTicketClient) => Promise<T>): Promis
   }
 }
 
-function handleError(err: unknown): never {
+function handleError(err: unknown, json = false): never {
+  let code: number | null = null
+  let message = 'An unknown error occurred.'
+
   if (err instanceof ApiError) {
+    code = err.statusCode
     switch (err.statusCode) {
       case 401:
-        process.stderr.write('Invalid token. Please regenerate it from the Curl Ticket site.\n')
+        message = 'Invalid token. Please regenerate it from the Curl Ticket site.'
         break
       case 403:
-        process.stderr.write('Access denied for this project.\n')
+        message = 'Access denied for this project.'
         break
       case 404:
-        process.stderr.write('Resource not found.\n')
+        message = 'Resource not found.'
         break
       default:
-        process.stderr.write(`API error (${err.statusCode}): ${err.message}\n`)
+        message = `API error (${err.statusCode}): ${err.message}`
     }
   } else if (err instanceof NetworkError) {
-    process.stderr.write(`${err.message}\n`)
+    message = err.message
   } else if (err instanceof Error) {
-    process.stderr.write(`${err.message}\n`)
+    message = err.message
+  }
+
+  if (json) {
+    process.stdout.write(JSON.stringify({ error: true, code, message }, null, 2) + '\n')
   } else {
-    process.stderr.write('An unknown error occurred.\n')
+    process.stderr.write(message + '\n')
   }
   process.exit(1)
 }
@@ -93,6 +101,11 @@ program
   .name(CLI_NAME)
   .description('Curl Ticket CLI — query and manage issues from the terminal')
   .version(CLI_VERSION)
+  .option('--json', 'Output raw JSON instead of human-readable text')
+
+function isJsonMode(): boolean {
+  return program.opts<{ json?: boolean }>().json === true
+}
 
 // --- Data commands ---
 
@@ -101,9 +114,9 @@ program
   .description('List accessible projects')
   .action(async () => {
     try {
-      await withAuth(client => projectsCommand(client))
+      await withAuth(client => projectsCommand(client, isJsonMode()))
     } catch (err) {
-      handleError(err)
+      handleError(err, isJsonMode())
     }
   })
 
@@ -119,9 +132,9 @@ program
         status: options.status,
         type: options.type,
         limit: parseInt(options.limit, 10)
-      }))
+      }, isJsonMode()))
     } catch (err) {
-      handleError(err)
+      handleError(err, isJsonMode())
     }
   })
 
@@ -130,9 +143,9 @@ program
   .description('Get issue details')
   .action(async (projectId: string, issueId: string) => {
     try {
-      await withAuth(client => issueCommand(client, projectId, issueId))
+      await withAuth(client => issueCommand(client, projectId, issueId, isJsonMode()))
     } catch (err) {
-      handleError(err)
+      handleError(err, isJsonMode())
     }
   })
 
@@ -141,9 +154,9 @@ program
   .description('Update issue status')
   .action(async (projectId: string, issueId: string, status: string) => {
     try {
-      await withAuth(client => updateStatusCommand(client, projectId, issueId, status))
+      await withAuth(client => updateStatusCommand(client, projectId, issueId, status, isJsonMode()))
     } catch (err) {
-      handleError(err)
+      handleError(err, isJsonMode())
     }
   })
 

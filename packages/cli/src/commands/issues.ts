@@ -12,7 +12,8 @@ interface IssuesCommandOptions {
 export async function issuesCommand(
   client: CurlTicketClient,
   projectId: string,
-  options: IssuesCommandOptions
+  options: IssuesCommandOptions,
+  json = false
 ): Promise<void> {
   const status = options.status ? normalizeStatus(options.status) : undefined
   const limit = options.limit ? Math.min(options.limit, MAX_PAGE_SIZE) : DEFAULT_PAGE_SIZE
@@ -22,6 +23,11 @@ export async function issuesCommand(
     issueType: options.type,
     limit
   })
+
+  if (json) {
+    process.stdout.write(JSON.stringify(res, null, 2) + '\n')
+    return
+  }
 
   if (res.data.length === 0) {
     console.log('No issues found.')
