@@ -301,7 +301,7 @@ cURL: curl -X POST https://example.com/api/users -H 'Content-Type: application/j
 - `CLI-061`：API 回傳 `404` 時，輸出 `找不到指定的 {resource}。`。
 - `CLI-062`：網路錯誤（fetch 失敗）時，輸出 `無法連線至 {URL}，請確認網址與網路狀態。`。
 - `CLI-063`：所有錯誤訊息輸出至 stderr，以 exit code 1 結束。正常結果輸出至 stdout，以 exit code 0 結束。
-- `CLI-069`：`--json` 模式下，`handleError` 統一提取 error code 與 message，輸出結構化 JSON 至 stdout（讓 pipe 消費者收到一致格式），並以 exit code 1 結束。非 `--json` 模式行為不變。
+- `CLI-069`：`--json` 模式下，`handleError` 統一提取 error code 與 message，輸出結構化 JSON 至 stderr（避免 pipe 下游收到非預期結構），並以 exit code 1 結束。非 `--json` 模式行為不變。
 
 ---
 

@@ -88,7 +88,7 @@ function handleError(err: unknown, json = false): never {
   }
 
   if (json) {
-    process.stdout.write(JSON.stringify({ error: true, code, message }, null, 2) + '\n')
+    process.stderr.write(JSON.stringify({ error: true, code, message }, null, 2) + '\n')
   } else {
     process.stderr.write(message + '\n')
   }
