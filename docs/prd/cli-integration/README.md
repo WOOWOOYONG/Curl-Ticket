@@ -108,49 +108,50 @@ Phase A 和 B 可平行開發（前端頁面 + 後端 API 可分工）。Phase C
 
 ### E1. JSON 優先輸出（已完成 ✓）
 
-- `CLI-064`：所有資料指令支援 `--json` global flag，輸出原始 API JSON（含 pagination metadata）。
-- `CLI-065`：`--json` 模式下，stdout 僅輸出 JSON，所有訊息性文字走 stderr。
-- `CLI-066`：`--json` 模式下，錯誤輸出結構化 JSON：`{ "error": true, "code": <number|null>, "message": "<string>" }`。
-- `CLI-067`：SKILL.md 指示 Agent 一律使用 `--json` flag。
+詳細規格見 [cli.md](./cli.md) `CLI-064` ~ `CLI-069`。
+
+- `CLI-064` ~ `CLI-068`：`--json` global flag、JSON stdout 輸出、向後相容。
+- `CLI-069`：`--json` 模式下錯誤輸出結構化 JSON。
+- SKILL.md 已更新，指示 Agent 一律使用 `--json` flag。
 
 ### E2. Input Hardening（防禦 Agent Hallucination）
 
-- `CLI-068`：`--type` 過濾參數需驗證合法值（`api_bug` / `task`），非法值時列出可用選項並以 exit code 結束。
-- `CLI-069`：`projectId` 參數需驗證 UUID 格式（`/^[0-9a-f-]{36}$/i`），防止 hallucinated ID 直接拼入 URL。
-- `CLI-070`：寫入操作（`update-status`）支援 `--dry-run` flag，輸出預期變更但不實際執行，讓 Agent 可先預覽再確認。
+- `CLI-070`：`--type` 過濾參數需驗證合法值（`api_bug` / `task`），非法值時列出可用選項並以 exit code 結束。
+- `CLI-071`：`projectId` 參數需驗證 UUID 格式（`/^[0-9a-f-]{36}$/i`），防止 hallucinated ID 直接拼入 URL。
+- `CLI-072`：寫入操作（`update-status`）支援 `--dry-run` flag，輸出預期變更但不實際執行，讓 Agent 可先預覽再確認。
 
 ### E3. Context Window Discipline（Field Mask）
 
-- `CLI-071`：`issue` 指令支援 `--fields` 選項（例如 `--fields status,endpoint,error`），在 `--json` 模式下僅回傳指定欄位。
-- `CLI-072`：預設 field set 為所有欄位；當指定 `--fields` 時，省略 `rawCurl`、`requestHeaders`、`responseBody` 等大型欄位，減少 token 開銷。
-- `CLI-073`：`--fields` 僅在 `--json` 模式下生效；human-readable 模式忽略此選項。
+- `CLI-073`：`issue` 指令支援 `--fields` 選項（例如 `--fields status,endpoint,error`），在 `--json` 模式下僅回傳指定欄位。
+- `CLI-074`：預設 field set 為所有欄位；當指定 `--fields` 時，省略 `rawCurl`、`requestHeaders`、`responseBody` 等大型欄位，減少 token 開銷。
+- `CLI-075`：`--fields` 僅在 `--json` 模式下生效；human-readable 模式忽略此選項。
 
 ### E4. Schema Introspection（自我描述能力）
 
-- `CLI-074`：新增 `curl-ticket schema` 指令，輸出所有指令的 JSON Schema（指令名稱、參數、型別、enum 值、描述）。
-- `CLI-075`：`schema` 輸出包含 status enum（`Open`, `In Progress`, `Done`, `Close`）、type enum（`api_bug`, `task`）、所有可用 fields 名稱。
-- `CLI-076`：Agent 可透過 `curl-ticket schema` 在首次呼叫時了解所有可用操作與合法值，減少 hallucination。
+- `CLI-076`：新增 `curl-ticket schema` 指令，輸出所有指令的 JSON Schema（指令名稱、參數、型別、enum 值、描述）。
+- `CLI-077`：`schema` 輸出包含 status enum（`Open`, `In Progress`, `Done`, `Close`）、type enum（`api_bug`, `task`）、所有可用 fields 名稱。
+- `CLI-078`：Agent 可透過 `curl-ticket schema` 在首次呼叫時了解所有可用操作與合法值，減少 hallucination。
 
 ### E5. Exit Code 語義化
 
-- `CLI-077`：區分 exit code：`0`=成功, `1`=一般錯誤, `2`=認證錯誤, `3`=資源不存在, `4`=輸入驗證錯誤。
-- `CLI-078`：Agent 可透過 exit code 直接判斷錯誤類型，不需 parse stderr 文字。
+- `CLI-079`：區分 exit code：`0`=成功, `1`=一般錯誤, `2`=認證錯誤, `3`=資源不存在, `4`=輸入驗證錯誤。
+- `CLI-080`：Agent 可透過 exit code 直接判斷錯誤類型，不需 parse stderr 文字。
 
 ### E6. Batch 操作
 
-- `CLI-079`：`update-status` 支援批量更新：`curl-ticket update-status <projectId> CT-1,CT-2,CT-3 Done`。
-- `CLI-080`：`--json` 模式下回傳每筆更新的結果陣列，含成功/失敗狀態。
+- `CLI-081`：`update-status` 支援批量更新：`curl-ticket update-status <projectId> CT-1,CT-2,CT-3 Done`。
+- `CLI-082`：`--json` 模式下回傳每筆更新的結果陣列，含成功/失敗狀態。
 
 ### 優先級
 
 | 優先級 | 項目 | 需求 ID |
 |--------|------|---------|
-| **P0（已完成）** | JSON 優先輸出 | `CLI-064` ~ `CLI-067` |
-| **P1** | Input Hardening | `CLI-068` ~ `CLI-070` |
-| **P1** | Field Mask | `CLI-071` ~ `CLI-073` |
-| **P2** | Schema Introspection | `CLI-074` ~ `CLI-076` |
-| **P2** | Exit Code 語義化 | `CLI-077` ~ `CLI-078` |
-| **P2** | Batch 操作 | `CLI-079` ~ `CLI-080` |
+| **P0（已完成）** | JSON 優先輸出 | `CLI-064` ~ `CLI-069` |
+| **P1** | Input Hardening | `CLI-070` ~ `CLI-072` |
+| **P1** | Field Mask | `CLI-073` ~ `CLI-075` |
+| **P2** | Schema Introspection | `CLI-076` ~ `CLI-078` |
+| **P2** | Exit Code 語義化 | `CLI-079` ~ `CLI-080` |
+| **P2** | Batch 操作 | `CLI-081` ~ `CLI-082` |
 
 ## Cross-References
 
