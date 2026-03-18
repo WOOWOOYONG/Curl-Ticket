@@ -32,6 +32,31 @@ node scripts/verify-schema.mjs    # Print current database schema from informati
 node scripts/reset-db.mjs         # Drop all app tables and migration history (destructive!)
 ```
 
+## Branch Strategy
+
+**Feature Branch Workflow** — `main` is always deployable. All development happens on short-lived feature branches.
+
+```
+main (always deployable)
+  ├── feat/xxx          ← new features
+  ├── fix/xxx           ← bug fixes
+  └── chore/xxx         ← maintenance, CI, docs
+```
+
+**Rules:**
+- Feature branches merge back to `main` via PR
+- CLI releases: tag `cli@x.x.x` on `main` triggers CI auto `npm publish`
+
+### CLI Version Release Flow
+```bash
+# 1. Merge feature branch to main
+# 2. Bump version and tag on main
+cd packages/cli
+npm version patch    # or minor / major
+git push && git push --tags
+# 3. CI detects cli@* tag → auto build + npm publish
+```
+
 ## Architecture
 
 ### Tech Stack
