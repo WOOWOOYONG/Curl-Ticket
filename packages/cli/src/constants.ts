@@ -1,6 +1,11 @@
 import { join } from 'node:path'
 import { homedir } from 'node:os'
 
+// Valid issue fields for --fields filtering
+// Type-safe: every entry must be a key of IssueDetail,
+// and every key of IssueDetail must be listed here.
+import type { IssueDetail } from './types.js'
+
 // CLI app name and version
 export const CLI_NAME = 'curl-ticket'
 export const CLI_VERSION = '0.1.0'
@@ -28,3 +33,47 @@ export const BROWSER_COMMANDS: Record<string, string> = {
   linux: 'xdg-open',
   win32: 'start'
 }
+
+// Exit codes
+export const ExitCode = {
+  Success: 0,
+  GeneralError: 1,
+  AuthError: 2,
+  NotFound: 3,
+  ValidationError: 4
+} as const
+
+export type ExitCode = typeof ExitCode[keyof typeof ExitCode]
+
+type AssertExhaustive<
+  T extends readonly string[],
+  U
+> = Exclude<keyof U, T[number]> extends never
+  ? Exclude<T[number], keyof U> extends never
+    ? T
+    : never
+  : never
+
+const _issueFields = [
+  'id',
+  'issueNumber',
+  'projectId',
+  'projectKey',
+  'issueType',
+  'title',
+  'description',
+  'method',
+  'url',
+  'environment',
+  'status',
+  'responseStatus',
+  'rawCurl',
+  'requestHeaders',
+  'requestBody',
+  'responseBody',
+  'createdBy',
+  'createdAt',
+  'updatedAt'
+] as const
+
+export const ISSUE_FIELDS: AssertExhaustive<typeof _issueFields, IssueDetail> = _issueFields

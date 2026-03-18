@@ -1,15 +1,17 @@
 import { createInterface } from 'node:readline'
 import { Command } from 'commander'
-import { CurlTicketClient, ApiError, NetworkError } from './api-client.js'
+import { CurlTicketClient, ApiError } from './api-client.js'
 import { getConfigAsync, getUrlAsync } from './auth/config.js'
 import { startDeviceCodeFlow } from './auth/device-flow.js'
 import { projectsCommand } from './commands/projects.js'
 import { issuesCommand } from './commands/issues.js'
 import { issueCommand } from './commands/issue.js'
 import { updateStatusCommand } from './commands/update-status.js'
+import { schemaCommand } from './commands/schema.js'
 import { authLoginCommand, authStatusCommand, authLogoutCommand } from './commands/auth.js'
 import { initSkillCommand } from './commands/init-skill/index.js'
-import { CLI_NAME, CLI_VERSION, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from './constants.js'
+import { ValidationError } from './utils.js'
+import { CLI_NAME, CLI_VERSION, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, ExitCode } from './constants.js'
 import type { AuthConfig } from './types.js'
 
 function promptUrl(): Promise<string> {
@@ -62,37 +64,39 @@ async function withAuth<T>(fn: (client: CurlTicketClient) => Promise<T>): Promis
   }
 }
 
-function handleError(err: unknown, json = false): never {
-  let code: number | null = null
-  let message = 'An unknown error occurred.'
+interface ErrorInfo {
+  code: number | null
+  exitCode: ExitCode
+  message: string
+}
 
+const API_STATUS_MAP: Record<number, ErrorInfo> = {
+  401: { code: 401, exitCode: ExitCode.AuthError, message: 'Invalid token. Please regenerate it from the Curl Ticket site.' },
+  403: { code: 403, exitCode: ExitCode.AuthError, message: 'Access denied for this project.' },
+  404: { code: 404, exitCode: ExitCode.NotFound, message: 'Resource not found.' }
+}
+
+function resolveError(err: unknown): ErrorInfo {
   if (err instanceof ApiError) {
-    code = err.statusCode
-    switch (err.statusCode) {
-      case 401:
-        message = 'Invalid token. Please regenerate it from the Curl Ticket site.'
-        break
-      case 403:
-        message = 'Access denied for this project.'
-        break
-      case 404:
-        message = 'Resource not found.'
-        break
-      default:
-        message = `API error (${err.statusCode}): ${err.message}`
-    }
-  } else if (err instanceof NetworkError) {
-    message = err.message
-  } else if (err instanceof Error) {
-    message = err.message
+    return API_STATUS_MAP[err.statusCode]
+      ?? { code: err.statusCode, exitCode: ExitCode.GeneralError, message: `API error (${err.statusCode}): ${err.message}` }
   }
+  if (err instanceof ValidationError) {
+    return { code: null, exitCode: ExitCode.ValidationError, message: err.message }
+  }
+  const message = err instanceof Error ? err.message : 'An unknown error occurred.'
+  return { code: null, exitCode: ExitCode.GeneralError, message }
+}
+
+function handleError(err: unknown, json = false): never {
+  const { code, exitCode, message } = resolveError(err)
 
   if (json) {
-    process.stderr.write(JSON.stringify({ error: true, code, message }, null, 2) + '\n')
+    process.stderr.write(JSON.stringify({ error: true, code, exitCode, message }, null, 2) + '\n')
   } else {
     process.stderr.write(message + '\n')
   }
-  process.exit(1)
+  process.exit(exitCode)
 }
 
 const program = new Command()
@@ -141,9 +145,10 @@ program
 program
   .command('issue <projectId> <issueId>')
   .description('Get issue details')
-  .action(async (projectId: string, issueId: string) => {
+  .option('--fields <fields>', 'Comma-separated list of fields to include (JSON mode only)')
+  .action(async (projectId: string, issueId: string, options: { fields?: string }) => {
     try {
-      await withAuth(client => issueCommand(client, projectId, issueId, isJsonMode()))
+      await withAuth(client => issueCommand(client, projectId, issueId, isJsonMode(), options.fields))
     } catch (err) {
       handleError(err, isJsonMode())
     }
@@ -152,9 +157,23 @@ program
 program
   .command('update-status <projectId> <issueId> <status>')
   .description('Update issue status')
-  .action(async (projectId: string, issueId: string, status: string) => {
+  .option('--dry-run', 'Preview the update without applying it')
+  .action(async (projectId: string, issueId: string, status: string, options: { dryRun?: boolean }) => {
     try {
-      await withAuth(client => updateStatusCommand(client, projectId, issueId, status, isJsonMode()))
+      await withAuth(client => updateStatusCommand(client, projectId, issueId, status, isJsonMode(), options.dryRun))
+    } catch (err) {
+      handleError(err, isJsonMode())
+    }
+  })
+
+// --- Schema introspection ---
+
+program
+  .command('schema')
+  .description('Print CLI schema for agent introspection')
+  .action(() => {
+    try {
+      schemaCommand()
     } catch (err) {
       handleError(err, isJsonMode())
     }
