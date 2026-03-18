@@ -40,7 +40,8 @@ export const ExitCode = {
   GeneralError: 1,
   AuthError: 2,
   NotFound: 3,
-  ValidationError: 4
+  ValidationError: 4,
+  NetworkError: 5
 } as const
 
 export type ExitCode = typeof ExitCode[keyof typeof ExitCode]

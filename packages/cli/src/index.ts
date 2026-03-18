@@ -1,6 +1,6 @@
 import { createInterface } from 'node:readline'
 import { Command } from 'commander'
-import { CurlTicketClient, ApiError } from './api-client.js'
+import { CurlTicketClient, ApiError, NetworkError } from './api-client.js'
 import { getConfigAsync, getUrlAsync } from './auth/config.js'
 import { startDeviceCodeFlow } from './auth/device-flow.js'
 import { projectsCommand } from './commands/projects.js'
@@ -80,6 +80,9 @@ function resolveError(err: unknown): ErrorInfo {
   if (err instanceof ApiError) {
     return API_STATUS_MAP[err.statusCode]
       ?? { code: err.statusCode, exitCode: ExitCode.GeneralError, message: `API error (${err.statusCode}): ${err.message}` }
+  }
+  if (err instanceof NetworkError) {
+    return { code: null, exitCode: ExitCode.NetworkError, message: err.message }
   }
   if (err instanceof ValidationError) {
     return { code: null, exitCode: ExitCode.ValidationError, message: err.message }

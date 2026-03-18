@@ -35,6 +35,7 @@ Authentication is handled automatically; first run opens the browser for login.
 | 2 | Authentication / authorization error (401/403) |
 | 3 | Resource not found (404) |
 | 4 | Validation error (invalid input) |
+| 5 | Network connection error |
 
 In `--json` mode, errors include `exitCode` in the response:
 ```json

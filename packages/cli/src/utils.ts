@@ -1,4 +1,5 @@
-import { IssueStatus, issueTypes } from '../../../shared/constants.js'
+import { IssueStatus, issueTypes } from '#shared/constants.js'
+import type { IssueType } from '#shared/constants.js'
 
 export class ValidationError extends Error {
   constructor(message: string) {
@@ -15,7 +16,7 @@ const STATUS_ALIASES: Record<string, IssueStatus> = {
   'close': IssueStatus.Close
 }
 
-const VALID_STATUS_INPUTS = ['Open', 'in-progress', 'Done', 'Close']
+export const VALID_STATUS_INPUTS = ['Open', 'in-progress', 'Done', 'Close'] as const
 
 export function normalizeStatus(status: string): IssueStatus {
   const normalized = STATUS_ALIASES[status.toLowerCase()]
@@ -44,11 +45,11 @@ export function validateProjectId(projectId: string): void {
   }
 }
 
-export function normalizeType(type: string): string {
+export function normalizeType(type: string): IssueType {
   const lower = type.toLowerCase().replace(/-/g, '_')
   const valid = issueTypes as readonly string[]
   if (!valid.includes(lower)) {
     throw new ValidationError(`Invalid type "${type}". Valid values: ${issueTypes.join(', ')}`)
   }
-  return lower
+  return lower as IssueType
 }

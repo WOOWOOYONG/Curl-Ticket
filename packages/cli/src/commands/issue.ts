@@ -21,7 +21,7 @@ export async function issueCommand(
     if (fields) {
       const requested = fields.split(',').map(f => f.trim())
       const validFields = ISSUE_FIELDS as readonly string[]
-      const invalid = requested.filter(f => f !== 'id' && !validFields.includes(f))
+      const invalid = requested.filter(f => !validFields.includes(f))
       if (invalid.length > 0) {
         throw new ValidationError(`Invalid fields: ${invalid.join(', ')}. Valid fields: ${ISSUE_FIELDS.join(', ')}`)
       }

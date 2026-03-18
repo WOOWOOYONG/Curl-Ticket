@@ -1,4 +1,4 @@
-import type { IssueType, IssueStatus } from '../../../shared/constants.js'
+import type { IssueType, IssueStatus } from '#shared/constants.js'
 
 export interface Project {
   id: string

@@ -7,8 +7,9 @@ import {
   issueTypes,
   environments,
   httpMethods
-} from '../../../../shared/constants.js'
+} from '#shared/constants.js'
 import { ExitCode, ISSUE_FIELDS } from '../constants.js'
+import { VALID_STATUS_INPUTS } from '../utils.js'
 
 export function schemaCommand(): void {
   const schema = {
@@ -27,7 +28,7 @@ export function schemaCommand(): void {
         ],
         options: {
           '--json': { type: 'boolean', description: 'Output raw JSON' },
-          '-s, --status': { type: 'enum', values: ['Open', 'in-progress', 'Done', 'Close'], description: 'Filter by status' },
+          '-s, --status': { type: 'enum', values: [...VALID_STATUS_INPUTS], description: 'Filter by status' },
           '-t, --type': { type: 'enum', values: issueTypes, description: 'Filter by type' },
           '-n, --limit': { type: 'number', default: 10, max: 20, description: 'Max results' }
         }
@@ -48,7 +49,7 @@ export function schemaCommand(): void {
         args: [
           { name: 'projectId', type: 'uuid', required: true },
           { name: 'issueId', type: 'string', required: true, description: 'Numeric ID or friendly ID (e.g. CT-42)' },
-          { name: 'status', type: 'enum', values: ['Open', 'in-progress', 'Done', 'Close'], required: true }
+          { name: 'status', type: 'enum', values: [...VALID_STATUS_INPUTS], required: true }
         ],
         options: {
           '--json': { type: 'boolean', description: 'Output raw JSON' },
@@ -79,7 +80,7 @@ export function schemaCommand(): void {
       }
     },
     enums: {
-      status: { values: issueStatuses, map: IssueStatus },
+      status: { values: issueStatuses, cliInputs: [...VALID_STATUS_INPUTS], map: IssueStatus },
       issueType: { values: issueTypes, map: IssueType },
       environment: { values: environments, map: Environment },
       httpMethod: { values: httpMethods, map: HttpMethod }

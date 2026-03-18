@@ -22,6 +22,10 @@ export async function updateStatusCommand(
     friendlyId = issue.friendlyId
   } else {
     actualId = parsed.value
+    if (dryRun) {
+      const issue = await client.getIssue(projectId, parsed.value)
+      friendlyId = issue.friendlyId
+    }
   }
 
   if (dryRun) {
