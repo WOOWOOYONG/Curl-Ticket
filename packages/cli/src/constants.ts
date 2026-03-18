@@ -8,7 +8,7 @@ import type { IssueDetail } from './types.js'
 
 // CLI app name and version
 export const CLI_NAME = 'curl-ticket'
-export const CLI_VERSION = '0.1.0'
+export const CLI_VERSION = '0.3.0'
 
 // Config file paths
 export const CONFIG_DIR = join(homedir(), '.config', CLI_NAME)
