@@ -29,12 +29,15 @@ packages/cli/
 │   │   ├── issues.ts           # issues 子指令
 │   │   ├── issue.ts            # issue 子指令
 │   │   ├── update-status.ts    # update-status 子指令
+│   │   ├── schema.ts           # schema 子指令（Agent introspection）
 │   │   ├── auth.ts             # auth login / status / logout 子指令
 │   │   └── init-skill.ts       # init-skill 子指令
 │   ├── auth/
 │   │   ├── config.ts           # 本地 config 讀寫（~/.config/curl-ticket/config.json）
 │   │   └── device-flow.ts      # Device Code Flow 實作
 │   ├── api-client.ts           # CurlTicketClient（封裝 fetch + auth header）
+│   ├── utils.ts                # ValidationError、normalizeStatus、normalizeType、validateProjectId、parseIssueId
+│   ├── constants.ts            # ExitCode、ISSUE_FIELDS、CLI 設定常數
 │   └── formatters.ts           # JSON → 精簡純文字轉換
 ├── skills/
 │   └── curl-ticket/
@@ -170,6 +173,7 @@ packages/cli/
 {
   "error": true,
   "code": 404,
+  "exitCode": 3,
   "message": "Resource not found."
 }
 ```
@@ -300,8 +304,8 @@ cURL: curl -X POST https://example.com/api/users -H 'Content-Type: application/j
 - `CLI-060`：API 回傳 `403` 時，輸出 `無權限存取此專案。`。
 - `CLI-061`：API 回傳 `404` 時，輸出 `找不到指定的 {resource}。`。
 - `CLI-062`：網路錯誤（fetch 失敗）時，輸出 `無法連線至 {URL}，請確認網址與網路狀態。`。
-- `CLI-063`：所有錯誤訊息輸出至 stderr，以 exit code 1 結束。正常結果輸出至 stdout，以 exit code 0 結束。
-- `CLI-069`：`--json` 模式下，`handleError` 統一提取 error code 與 message，輸出結構化 JSON 至 stderr（避免 pipe 下游收到非預期結構），並以 exit code 1 結束。非 `--json` 模式行為不變。
+- `CLI-063`：所有錯誤訊息輸出至 stderr。正常結果輸出至 stdout，以 exit code 0 結束。錯誤使用語義化 exit code：`0`=成功, `1`=一般錯誤, `2`=認證錯誤(401/403), `3`=資源不存在(404), `4`=輸入驗證錯誤（見 `CLI-079`、`CLI-080`）。
+- `CLI-069`：`--json` 模式下，`handleError` 統一提取 error code 與 message，輸出結構化 JSON（含 `exitCode` 欄位）至 stderr（避免 pipe 下游收到非預期結構），並以對應的語義化 exit code 結束。非 `--json` 模式行為不變。
 
 ---
 

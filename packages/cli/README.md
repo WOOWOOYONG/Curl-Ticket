@@ -61,10 +61,31 @@ All data commands support `--json` for structured output, useful for scripts and
 ct projects --json
 ct issues <projectId> --json
 ct issue <projectId> CT-42 --json
+ct issue <projectId> CT-42 --json --fields status,method,url   # Fetch specific fields only
 ct update-status <projectId> <issueId> Done --json
+ct update-status <projectId> <issueId> Done --json --dry-run   # Preview without applying
 ```
 
-JSON responses include full API data and pagination metadata. Errors also return structured JSON when this flag is used.
+JSON responses include full API data and pagination metadata. Errors also return structured JSON (with `exitCode` field) when this flag is used.
+
+#### Schema Introspection
+
+```bash
+# Print full CLI schema (commands, args, options, enums, exit codes, fields)
+ct schema
+```
+
+No authentication required. Useful for AI agents to discover available commands and valid values.
+
+#### Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| 0 | Success |
+| 1 | General error |
+| 2 | Authentication / authorization error (401/403) |
+| 3 | Resource not found (404) |
+| 4 | Validation error (invalid input) |
 
 #### Authentication
 
@@ -161,10 +182,31 @@ ct update-status <projectId> <issueId> Close
 ct projects --json
 ct issues <projectId> --json
 ct issue <projectId> CT-42 --json
+ct issue <projectId> CT-42 --json --fields status,method,url   # 僅取得指定欄位
 ct update-status <projectId> <issueId> Done --json
+ct update-status <projectId> <issueId> Done --json --dry-run   # 預覽變更，不實際執行
 ```
 
-JSON 回應包含完整 API 資料與分頁資訊。啟用此 flag 時，錯誤也會以結構化 JSON 回傳。
+JSON 回應包含完整 API 資料與分頁資訊。啟用此 flag 時，錯誤也會以結構化 JSON（含 `exitCode` 欄位）回傳。
+
+#### Schema 自我描述
+
+```bash
+# 輸出完整 CLI schema（指令、參數、選項、enum 值、exit code、可用欄位）
+ct schema
+```
+
+不需認證。適合 AI Agent 在首次呼叫時探索可用操作與合法值。
+
+#### Exit Code
+
+| 代碼 | 意義 |
+|------|------|
+| 0 | 成功 |
+| 1 | 一般錯誤 |
+| 2 | 認證 / 授權錯誤 (401/403) |
+| 3 | 資源不存在 (404) |
+| 4 | 輸入驗證錯誤 |
 
 #### 認證
 
