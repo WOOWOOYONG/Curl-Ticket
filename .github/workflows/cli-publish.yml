@@ -1,0 +1,37 @@
+name: cli-publish
+
+on:
+  push:
+    tags:
+      - 'cli@*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build CLI
+        run: pnpm --filter @curl-ticket/cli build
+
+      - name: Publish to npm (provenance via OIDC Trusted Publishing)
+        run: pnpm --filter @curl-ticket/cli publish --no-git-checks --access public --provenance
