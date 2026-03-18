@@ -1,4 +1,4 @@
-import { IssueType, CurlNoiseHeaders } from '../../../shared/constants.js'
+import { IssueType, CurlNoiseHeaders } from '#shared/constants.js'
 import type { IssueSummary, IssueDetail } from './types.js'
 
 export function truncate(str: string, maxLength: number): string {

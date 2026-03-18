@@ -7,5 +7,10 @@ export default defineConfig({
   clean: true,
   banner: {
     js: '#!/usr/bin/env node'
+  },
+  esbuildOptions(options) {
+    options.alias = {
+      '#shared': '../../shared'
+    }
   }
 })

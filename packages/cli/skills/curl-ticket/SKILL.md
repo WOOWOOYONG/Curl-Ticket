@@ -6,6 +6,10 @@ description: >
   issue tracking, analyze bug, update issue status, or requests task information from the issue tracker.
 ---
 
+# First-Run Introspection
+
+Run `curl-ticket schema` to get the full CLI schema — all commands, args, options, enum values, exit codes, and available fields. Use this to avoid invalid inputs and hallucinated values.
+
 # CLI Commands
 
 **Always use `--json` flag** to get structured JSON output. This avoids parsing human-readable text and preserves all fields including pagination.
@@ -14,10 +18,49 @@ description: >
 curl-ticket projects --json                                            # List projects
 curl-ticket issues <projectId> --json [-s Open] [-t api_bug] [-n 10]  # List issues
 curl-ticket issue <projectId> <issueId|CT-42> --json                   # Issue details
+curl-ticket issue <projectId> <issueId> --json --fields status,url,method  # Fetch only specific fields (saves tokens)
 curl-ticket update-status <projectId> <issueId> <status> --json        # Update status (Open|in-progress|Done|Close)
+curl-ticket update-status <projectId> <issueId> <status> --dry-run --json  # Preview without applying
+curl-ticket schema                                                     # Print CLI schema (no auth needed)
 ```
 
 Authentication is handled automatically; first run opens the browser for login.
+
+# Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| 0 | Success |
+| 1 | General error |
+| 2 | Authentication / authorization error (401/403) |
+| 3 | Resource not found (404) |
+| 4 | Validation error (invalid input) |
+| 5 | Network connection error |
+
+In `--json` mode, errors include `exitCode` in the response:
+```json
+{ "error": true, "code": 404, "exitCode": 3, "message": "Resource not found." }
+```
+
+# Field Filtering (`--fields`)
+
+Use `--fields` on the `issue` command (JSON mode only) to fetch only the fields you need. This reduces output size and saves context tokens.
+
+```bash
+curl-ticket issue <projectId> CT-1 --json --fields status,method,url,responseStatus
+```
+
+The `id` field is always included. Run `curl-ticket schema` to see all valid field names.
+
+# Dry Run (`--dry-run`)
+
+Use `--dry-run` on `update-status` to preview a mutation without applying it:
+
+```bash
+curl-ticket update-status <projectId> CT-1 Done --dry-run --json
+```
+
+Returns a preview object with `dryRun: true` and the resolved `issueId`, `friendlyId`, and `newStatus`.
 
 # JSON Output Format
 
@@ -31,26 +74,31 @@ Single-resource commands (`issue`, `update-status`) return:
 { "data": { "id": 1, "issueNumber": 42, "issueType": "api_bug", "title": "...", "status": "Open", "method": "GET", "url": "/api/users", "environment": "Prod", "responseStatus": 500, "rawCurl": "...", "responseBody": "...", ... }, "friendlyId": "PROJ-42" }
 ```
 
-Errors return:
-```json
-{ "error": true, "code": 404, "message": "Resource not found." }
-```
+# Input Validation
+
+- `projectId` must be a valid UUID — non-UUID values return exit code 4
+- `--type` must be a valid issue type (`api_bug`, `task`) — invalid values return exit code 4
+- `--status` must be a valid status (`Open`, `in-progress`, `Done`, `Close`) — invalid values return exit code 4
+- `issueId` must be a numeric ID or friendly ID (e.g. `CT-42`) — invalid formats return exit code 4
 
 # Analysis Workflow
 
-1. Run `curl-ticket projects --json` to get the projectId
-2. Run `curl-ticket issues <projectId> -s Open --json` to list open issues
-3. Run `curl-ticket issue <projectId> <issueId> --json` to get full details
-4. Locate code by issue type:
+1. Run `curl-ticket schema` to learn available commands and valid enum values
+2. Run `curl-ticket projects --json` to get the projectId
+3. Run `curl-ticket issues <projectId> -s Open --json` to list open issues
+4. Run `curl-ticket issue <projectId> <issueId> --json --fields status,method,url,responseStatus,rawCurl,responseBody` to get relevant details
+5. Locate code by issue type:
    - **API Bug**: Search for the route handler matching the endpoint field (e.g. `POST /api/users`), then triage by status code:
      - 4xx → validation logic, access control, resource lookup
      - 5xx → application logic errors, DB query issues
    - **Task**: Search codebase using keywords from title and description
-5. Grep for keywords from the error message to pinpoint the failure location
-6. Trace the request chain: route → middleware → handler → business logic → DB query
-7. Provide fix suggestions, then update status with `update-status` after resolving
+6. Grep for keywords from the error message to pinpoint the failure location
+7. Trace the request chain: route → middleware → handler → business logic → DB query
+8. Provide fix suggestions, then update status with `update-status` after resolving
 
 # Constraints
 
 - Always filter with `-s Open` to avoid loading resolved issues
 - Analyze only 1-2 issues at a time to avoid context overload
+- Use `--fields` to fetch only what you need — avoid loading full issue details when a summary suffices
+- Use `--dry-run` before mutations in uncertain contexts
