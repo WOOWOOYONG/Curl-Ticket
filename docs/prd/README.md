@@ -26,8 +26,6 @@
 | [data-model.md](./data-model.md) | DB Schema、資料約束、追蹤矩陣 | `DATA-*` |
 | [non-functional.md](./non-functional.md) | 效能、安全、相容性、DX | `NFR-*` |
 | [cli-integration.md](./cli-integration.md) | API Token、CLI 工具、Claude Code Skill | `TOKEN-*`, `CLI-*`, `SKILL-*` |
-| [roadmap.md](./roadmap.md) | 開發階段規劃 | `ROAD-*` |
-| [changelog.md](./changelog.md) | 文件版本變更歷史 | `DOC-*` |
 
 ## 3. 需求 ID 規範 (Requirement ID Convention)
 
@@ -77,6 +75,6 @@ graph TD
 
 ## 6. 維護原則 (Maintenance)
 
-- 功能變更先更新對應模組文件，再同步更新 [changelog.md](./changelog.md)。
+- 功能變更先更新對應模組文件。
 - 涉及資料結構變動時，必須同步更新 [data-model.md](./data-model.md)。
 - 本文件是入口索引；具體規格以模組文件為準。

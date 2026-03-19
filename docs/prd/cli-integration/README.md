@@ -160,5 +160,4 @@ Phase A 和 B 可平行開發（前端頁面 + 後端 API 可分工）。Phase C
 - Issue 資料欄位：見 [data-model.md](../data-model.md) `DATA-006`、`DATA-007`
 - Issue API endpoint：見 [issues.md](../issues.md) `ISSUE-001` ~ `ISSUE-043`
 - 敏感欄位遮罩：見 [non-functional.md](../non-functional.md) `NFR-008`
-- 此功能對應 Roadmap Phase 4，見 [roadmap.md](../roadmap.md)
 - 資料模型變更（`api_tokens`、`device_codes`）需同步更新 [data-model.md](../data-model.md)
