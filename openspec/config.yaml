@@ -1,0 +1,47 @@
+schema: spec-driven
+
+context: |
+  Project: Curl Ticket — an API issue tracking app for engineering teams.
+  Converts pasted cURL commands into structured issue records with request/response tracking.
+
+  Tech stack:
+    - Frontend: Nuxt 4, Vue 3 (Composition API with <script setup>), TypeScript, Nuxt UI, Tailwind CSS, VueUse
+    - Backend: Nuxt server routes, Supabase Auth (Google OAuth), PostgreSQL, Drizzle ORM
+    - Validation: Zod schemas shared between client and server (shared/schemas/)
+    - Parsing: curlconverter for cURL command parsing
+    - CLI: standalone npm package (packages/cli) published via GitHub Actions on tag push
+
+  Architecture:
+    - app/ — Nuxt app (pages, components, composables, layouts)
+    - server/ — API routes, middleware, database schema (Drizzle), utilities
+    - shared/ — Zod schemas and constants shared across client/server
+    - packages/cli/ — CLI tool for terminal-based issue management
+    - docs/prd/ — modular PRD with requirement IDs (AUTH-*, PROJ-*, ISSUE-*, etc.)
+
+  Auth flow: Google OAuth via Supabase → invitation code redemption → profile creation.
+  Access control: project owner OR project_members membership required.
+
+  Conventions:
+    - Composition API with <script setup> only (no Options API)
+    - ESLint: @nuxt/eslint with stylistic rules (single quotes, 2-space indent, 1tbs brace style)
+    - Conventional commits (feat:, fix:, chore:, docs:, refactor:, ci:, perf:)
+    - Use shared constants (IssueStatus.Open, not raw strings)
+    - Use server error helpers (notFound(), forbidden(), badRequest(), unauthorized())
+    - Use getAccessibleProject() for project-scoped API routes
+    - Branch strategy: main is always deployable, feature branches merge via PR
+
+  Language: PRD and comments may be in Traditional Chinese (zh-TW). Code and commit messages are in English.
+
+rules:
+  proposal:
+    - Reference existing PRD requirement IDs (AUTH-*, PROJ-*, ISSUE-*, etc.) when relevant
+    - Include a "Non-goals" section to keep scope clear
+    - Note which PRD modules (auth.md, issues.md, etc.) would need updates
+  design:
+    - Follow existing patterns in the codebase (composables, server utils, Zod schemas)
+    - Consider both API route and Vue component changes
+    - Note Drizzle schema changes that would require migrations
+  tasks:
+    - Each task should be independently verifiable (lintable, type-checkable, or testable)
+    - Order tasks so schema/API changes come before frontend changes
+    - Include a task for running pnpm lint and pnpm typecheck as final verification
