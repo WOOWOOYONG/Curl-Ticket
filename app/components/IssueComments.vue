@@ -103,8 +103,21 @@ function cancelEdit() {
   editContent.value = ''
 }
 
+const canSaveEdit = computed((): boolean => {
+  return editingId.value !== null && editContent.value.length <= MAX_LENGTH && !saving.value
+})
+
 async function saveEdit() {
   if (!editingId.value || saving.value) return
+
+  if (editContent.value.length > MAX_LENGTH) {
+    toast.add({
+      title: 'Error',
+      description: `Comment exceeds maximum length of ${MAX_LENGTH_DISPLAY} characters`,
+      color: 'error'
+    })
+    return
+  }
 
   saving.value = true
   try {
@@ -359,6 +372,7 @@ const currentUserAvatarColor = computed(() => {
               <UButton
                 size="sm"
                 color="primary"
+                :disabled="!canSaveEdit"
                 :loading="saving"
                 @click="saveEdit"
               >
