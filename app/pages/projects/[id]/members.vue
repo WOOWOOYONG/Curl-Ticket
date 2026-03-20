@@ -75,11 +75,11 @@ async function removeMember() {
     await $fetch(`/api/projects/${projectId.value}/members/${target.userId}`, {
       method: 'DELETE'
     })
-    toast.add({ title: '已移除成員', color: 'success' })
+    toast.add({ title: 'Member removed', color: 'success' })
     removeTarget.value = null
     refreshMembers()
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : '移除失敗'
+    const message = error instanceof Error ? error.message : 'Failed to remove member'
     const fetchError = error as { data?: { statusMessage?: string } }
     toast.add({
       title: fetchError.data?.statusMessage || message,
