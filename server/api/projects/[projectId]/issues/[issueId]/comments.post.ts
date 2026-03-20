@@ -4,7 +4,7 @@ import { createCommentSchema } from '~~/shared/schemas/issue-comment'
 import { NotificationType } from '~~/shared/constants'
 import { badRequest, notFound } from '~~/server/utils/errors'
 import { getAccessibleProject } from '~~/server/utils/project-access'
-import { sanitizeHtml, stripHtmlTags } from '~~/shared/utils/html'
+import { sanitizeHtml, stripHtmlTags } from '~~/server/utils/html'
 
 export default defineEventHandler(async (event) => {
   const projectId = getRouterParam(event, 'projectId')
