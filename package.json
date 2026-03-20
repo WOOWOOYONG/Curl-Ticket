@@ -29,9 +29,9 @@
     "@vueuse/nuxt": "14.1.0",
     "curlconverter": "^4.12.0",
     "drizzle-orm": "^0.45.1",
-    "isomorphic-dompurify": "^3.5.1",
     "nuxt": "^4.2.2",
     "postgres": "^3.4.8",
+    "sanitize-html": "^2.17.2",
     "shiki": "^3.22.0",
     "tailwindcss": "^4.1.18",
     "vue": "^3.5.27",
@@ -39,6 +39,7 @@
   },
   "devDependencies": {
     "@nuxt/eslint": "^1.13.0",
+    "@types/sanitize-html": "^2.16.1",
     "@vitest/coverage-v8": "^4.0.18",
     "agent-browser": "^0.13.0",
     "drizzle-kit": "^0.31.8",

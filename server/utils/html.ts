@@ -1,19 +1,21 @@
-import DOMPurify from 'isomorphic-dompurify'
+import sanitize from 'sanitize-html'
 
 const ALLOWED_TAGS = [
   'p', 'strong', 'em', 's', 'code', 'pre', 'ul', 'ol', 'li',
   'blockquote', 'a', 'br', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'
 ]
 
-const ALLOWED_ATTR = ['href', 'target', 'rel']
+const ALLOWED_ATTR: Record<string, string[]> = {
+  a: ['href', 'target', 'rel']
+}
 
 /**
- * Sanitize HTML content using DOMPurify, only allowing safe tags and attributes.
+ * Sanitize HTML content, only allowing safe tags and attributes.
  */
 export function sanitizeHtml(html: string): string {
-  return DOMPurify.sanitize(html, {
-    ALLOWED_TAGS,
-    ALLOWED_ATTR
+  return sanitize(html, {
+    allowedTags: ALLOWED_TAGS,
+    allowedAttributes: ALLOWED_ATTR
   })
 }
 
@@ -21,5 +23,5 @@ export function sanitizeHtml(html: string): string {
  * Strip all HTML tags from a string, returning plain text.
  */
 export function stripHtmlTags(html: string): string {
-  return DOMPurify.sanitize(html, { ALLOWED_TAGS: [] }).trim()
+  return sanitize(html, { allowedTags: [], allowedAttributes: {} }).trim()
 }
