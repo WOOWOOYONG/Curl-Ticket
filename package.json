@@ -29,6 +29,7 @@
     "@vueuse/nuxt": "14.1.0",
     "curlconverter": "^4.12.0",
     "drizzle-orm": "^0.45.1",
+    "isomorphic-dompurify": "^3.5.1",
     "nuxt": "^4.2.2",
     "postgres": "^3.4.8",
     "shiki": "^3.22.0",

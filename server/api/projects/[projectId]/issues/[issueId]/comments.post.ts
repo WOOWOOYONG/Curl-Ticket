@@ -1,9 +1,11 @@
 import { eq } from 'drizzle-orm'
-import { issueComments, issues, notifications, profiles } from '~~/server/database/schema'
+import { issueComments, notifications, profiles } from '~~/server/database/schema'
 import { createCommentSchema } from '~~/shared/schemas/issue-comment'
 import { NotificationType } from '~~/shared/constants'
-import { badRequest, notFound } from '~~/server/utils/errors'
+import { badRequest } from '~~/server/utils/errors'
 import { getAccessibleProject } from '~~/server/utils/project-access'
+import { getProjectIssue } from '~~/server/utils/comment-access'
+import { sanitizeHtml, stripHtmlTags } from '~~/server/utils/html'
 
 export default defineEventHandler(async (event) => {
   const projectId = getRouterParam(event, 'projectId')
@@ -17,23 +19,7 @@ export default defineEventHandler(async (event) => {
   const userId = event.context.userId as string
 
   await getAccessibleProject(db, projectId, userId)
-
-  // Verify issue exists and belongs to project
-  const [issue] = await db
-    .select({
-      id: issues.id,
-      title: issues.title,
-      projectKey: issues.projectKey,
-      issueNumber: issues.issueNumber,
-      createdBy: issues.createdBy
-    })
-    .from(issues)
-    .where(eq(issues.id, Number(issueId)))
-    .limit(1)
-
-  if (!issue) {
-    notFound('Issue not found')
-  }
+  const issue = await getProjectIssue(db, projectId, issueId)
 
   const body = await readBody(event)
   const result = createCommentSchema.safeParse(body)
@@ -42,12 +28,14 @@ export default defineEventHandler(async (event) => {
     badRequest('Validation Error', result.error.issues)
   }
 
+  const sanitizedContent = sanitizeHtml(result.data.content)
+
   const [comment] = await db
     .insert(issueComments)
     .values({
       issueId: Number(issueId),
       authorId: userId,
-      content: result.data.content
+      content: sanitizedContent
     })
     .returning()
 
@@ -61,14 +49,16 @@ export default defineEventHandler(async (event) => {
   // Notify issue creator if commenter is not the creator
   if (issue.createdBy !== userId) {
     const friendlyId = `${issue.projectKey}-${issue.issueNumber}`
+    const plainText = stripHtmlTags(result.data.content)
+    const preview = plainText.length > 200
+      ? `${plainText.slice(0, 200)}...`
+      : plainText
     await db.insert(notifications).values({
       userId: issue.createdBy,
       issueId: issue.id,
       type: NotificationType.IssueComment,
       title: `New comment on ${friendlyId}`,
-      content: result.data.content.length > 200
-        ? `${result.data.content.slice(0, 200)}...`
-        : result.data.content
+      content: preview
     })
   }
 

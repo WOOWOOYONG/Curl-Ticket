@@ -430,42 +430,15 @@ async function confirmDelete() {
     </div>
 
     <!-- Delete Confirmation Modal -->
-    <UModal
+    <ConfirmModal
       :open="!!deleteTarget"
-      :prevent-close="deleteLoading"
+      title="Delete Project"
+      :description="`Are you sure you want to delete project ${deleteTarget?.name}? This action cannot be undone. All related issues, members, and invitations will be permanently removed.`"
+      confirm-label="Delete"
+      :loading="deleteLoading"
+      :on-confirm="confirmDelete"
+      :on-cancel="() => { deleteTarget = null }"
       @update:open="(val: boolean) => { if (!val && !deleteLoading) deleteTarget = null }"
-    >
-      <template #header>
-        <h3 class="text-lg font-semibold">
-          確認刪除專案
-        </h3>
-      </template>
-
-      <template #body>
-        <p class="text-sm text-slate-600 dark:text-slate-300">
-          確定要刪除專案 <span class="font-semibold text-slate-900 dark:text-white">{{ deleteTarget?.name }}</span> 嗎？此操作無法復原，所有相關的 Issues、成員和邀請都會一併刪除。
-        </p>
-      </template>
-
-      <template #footer>
-        <div class="flex justify-end gap-3">
-          <UButton
-            color="neutral"
-            variant="outline"
-            :disabled="deleteLoading"
-            @click="deleteTarget = null"
-          >
-            取消
-          </UButton>
-          <UButton
-            color="error"
-            :loading="deleteLoading"
-            @click="confirmDelete"
-          >
-            確認刪除
-          </UButton>
-        </div>
-      </template>
-    </UModal>
+    />
   </UDashboardPanel>
 </template>

@@ -247,31 +247,14 @@ function isExpired(expiresAt: string | Date | null) {
     </UModal>
 
     <!-- Revoke confirm modal -->
-    <UModal
+    <ConfirmModal
       v-model:open="showRevokeModal"
-      title="確認撤銷 Token"
-    >
-      <template #body>
-        <p class="text-sm">
-          確定要撤銷 <strong>{{ revokeTarget?.name }}</strong>？撤銷後立即生效 ，使用此 Token 的服務將無法繼續存取。
-        </p>
-      </template>
-      <template #footer>
-        <div class="flex justify-end w-full gap-2">
-          <UButton
-            label="取消"
-            color="neutral"
-            variant="ghost"
-            @click="revokeTarget = null"
-          />
-          <UButton
-            label="確認撤銷"
-            color="error"
-            :loading="isRevoking"
-            @click="confirmRevoke"
-          />
-        </div>
-      </template>
-    </UModal>
+      title="Revoke Token"
+      :description="`Are you sure you want to revoke ${revokeTarget?.name}? This takes effect immediately and any services using this token will lose access.`"
+      confirm-label="Revoke"
+      :loading="isRevoking"
+      :on-confirm="confirmRevoke"
+      :on-cancel="() => { revokeTarget = null }"
+    />
   </div>
 </template>
