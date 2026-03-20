@@ -4,7 +4,7 @@ import { createCommentSchema } from '~~/shared/schemas/issue-comment'
 import { NotificationType } from '~~/shared/constants'
 import { badRequest, notFound } from '~~/server/utils/errors'
 import { getAccessibleProject } from '~~/server/utils/project-access'
-import { stripHtmlTags, isAllowedHtml } from '~~/server/utils/html'
+import { sanitizeHtml, stripHtmlTags } from '~~/shared/utils/html'
 
 export default defineEventHandler(async (event) => {
   const projectId = getRouterParam(event, 'projectId')
@@ -43,16 +43,14 @@ export default defineEventHandler(async (event) => {
     badRequest('Validation Error', result.error.issues)
   }
 
-  if (!isAllowedHtml(result.data.content)) {
-    badRequest('Comment contains disallowed HTML tags')
-  }
+  const sanitizedContent = sanitizeHtml(result.data.content)
 
   const [comment] = await db
     .insert(issueComments)
     .values({
       issueId: Number(issueId),
       authorId: userId,
-      content: result.data.content
+      content: sanitizedContent
     })
     .returning()
 

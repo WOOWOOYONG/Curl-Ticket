@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Comment } from '~~/shared/schemas/issue-comment'
 import type { EditorToolbarItem } from '@nuxt/ui'
-import { isHtmlContent } from '~~/shared/utils/html'
+import { isHtmlContent, sanitizeHtml } from '~~/shared/utils/html'
 
 interface EditorInstance {
   isEmpty: boolean
@@ -375,7 +375,7 @@ const currentUserAvatarColor = computed(() => {
             <div
               v-if="isHtmlContent(comment.content)"
               class="comment-content prose prose-sm prose-slate dark:prose-invert max-w-none wrap-break-word"
-              v-html="comment.content"
+              v-html="sanitizeHtml(comment.content)"
             />
             <!-- Plain text comment (backward compat) -->
             <p

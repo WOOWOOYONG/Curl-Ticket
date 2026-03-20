@@ -3,7 +3,7 @@ import { issueComments } from '~~/server/database/schema'
 import { updateCommentSchema } from '~~/shared/schemas/issue-comment'
 import { badRequest, forbidden, notFound } from '~~/server/utils/errors'
 import { getAccessibleProject } from '~~/server/utils/project-access'
-import { isAllowedHtml } from '~~/server/utils/html'
+import { sanitizeHtml } from '~~/shared/utils/html'
 
 export default defineEventHandler(async (event) => {
   const projectId = getRouterParam(event, 'projectId')
@@ -45,14 +45,12 @@ export default defineEventHandler(async (event) => {
     badRequest('Validation Error', result.error.issues)
   }
 
-  if (!isAllowedHtml(result.data.content)) {
-    badRequest('Comment contains disallowed HTML tags')
-  }
+  const sanitizedContent = sanitizeHtml(result.data.content)
 
   const [updated] = await db
     .update(issueComments)
     .set({
-      content: result.data.content,
+      content: sanitizedContent,
       updatedAt: new Date()
     })
     .where(eq(issueComments.id, Number(commentId)))
