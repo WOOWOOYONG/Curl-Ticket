@@ -1,5 +1,12 @@
 <script setup lang="ts">
 import type { Comment } from '~~/shared/schemas/issue-comment'
+import type { EditorToolbarItem } from '@nuxt/ui'
+import { isHtmlContent } from '~~/shared/utils/html'
+
+interface EditorInstance {
+  isEmpty: boolean
+  chain(): { focus(): { clearContent(): { run(): void } } }
+}
 
 const props = defineProps<{
   projectId: string
@@ -18,17 +25,43 @@ const comments = computed<Comment[]>(() => commentsResponse.value?.data ?? [])
 
 const newComment = ref('')
 const submitting = ref(false)
-const inputFocused = ref(false)
+const editorRef = useTemplateRef<{ editor: EditorInstance }>('editorRef')
 
-const canSubmit = computed(() => {
-  const trimmed = newComment.value.trim()
-  return trimmed.length >= 1 && trimmed.length <= 2000 && !submitting.value
+const MAX_LENGTH = 5000
+const MAX_LENGTH_DISPLAY = MAX_LENGTH.toLocaleString()
+
+const toolbarItems: EditorToolbarItem[][] = [
+  [
+    { kind: 'mark', mark: 'bold', icon: 'i-lucide-bold', tooltip: { text: 'Bold' } },
+    { kind: 'mark', mark: 'italic', icon: 'i-lucide-italic', tooltip: { text: 'Italic' } },
+    { kind: 'mark', mark: 'strike', icon: 'i-lucide-strikethrough', tooltip: { text: 'Strikethrough' } }
+  ],
+  [
+    { kind: 'mark', mark: 'code', icon: 'i-lucide-code', tooltip: { text: 'Inline Code' } },
+    { kind: 'codeBlock', icon: 'i-lucide-square-code', tooltip: { text: 'Code Block' } }
+  ],
+  [
+    { kind: 'bulletList', icon: 'i-lucide-list', tooltip: { text: 'Bullet List' } },
+    { kind: 'orderedList', icon: 'i-lucide-list-ordered', tooltip: { text: 'Ordered List' } }
+  ],
+  [
+    { kind: 'blockquote', icon: 'i-lucide-quote', tooltip: { text: 'Blockquote' } },
+    { kind: 'link', icon: 'i-lucide-link', tooltip: { text: 'Link' } }
+  ]
+]
+
+const isEditorEmpty = computed((): boolean => {
+  return editorRef.value?.editor?.isEmpty ?? true
+})
+
+const canSubmit = computed((): boolean => {
+  return !isEditorEmpty.value && newComment.value.length <= MAX_LENGTH && !submitting.value
 })
 
 const charCountColor = computed(() => {
   const len = newComment.value.length
-  if (len >= 1900) return 'text-red-500 dark:text-red-400'
-  if (len >= 1500) return 'text-amber-500 dark:text-amber-400'
+  if (len >= 4750) return 'text-red-500 dark:text-red-400'
+  if (len >= 4500) return 'text-amber-500 dark:text-amber-400'
   return 'text-slate-400 dark:text-slate-500'
 })
 
@@ -39,8 +72,9 @@ async function submitComment() {
   try {
     await $fetch(`/api/projects/${props.projectId}/issues/${props.issueId}/comments`, {
       method: 'POST',
-      body: { content: newComment.value.trim() }
+      body: { content: newComment.value }
     })
+    editorRef.value?.editor?.chain().focus().clearContent().run()
     newComment.value = ''
     await refresh()
   } catch (err: unknown) {
@@ -55,14 +89,60 @@ async function submitComment() {
   }
 }
 
-const deletingId = ref<number | null>(null)
+const editingId = ref<number | null>(null)
+const editContent = ref('')
+const saving = ref(false)
 
-async function deleteComment(commentId: number) {
-  deletingId.value = commentId
+function startEdit(comment: Comment) {
+  editingId.value = comment.id
+  editContent.value = comment.content
+}
+
+function cancelEdit() {
+  editingId.value = null
+  editContent.value = ''
+}
+
+async function saveEdit() {
+  if (!editingId.value || saving.value) return
+
+  saving.value = true
   try {
-    await $fetch(`/api/projects/${props.projectId}/issues/${props.issueId}/comments/${commentId}`, {
+    await $fetch(`/api/projects/${props.projectId}/issues/${props.issueId}/comments/${editingId.value}`, {
+      method: 'PATCH',
+      body: { content: editContent.value }
+    })
+    editingId.value = null
+    editContent.value = ''
+    await refresh()
+  } catch (err: unknown) {
+    const error = err as { data?: { statusMessage?: string } }
+    toast.add({
+      title: 'Error',
+      description: error.data?.statusMessage || 'Failed to update comment',
+      color: 'error'
+    })
+  } finally {
+    saving.value = false
+  }
+}
+
+const deletingId = ref<number | null>(null)
+const deleteTargetId = ref<number | null>(null)
+
+function confirmDelete(commentId: number) {
+  deleteTargetId.value = commentId
+}
+
+async function deleteComment() {
+  if (!deleteTargetId.value) return
+
+  deletingId.value = deleteTargetId.value
+  try {
+    await $fetch(`/api/projects/${props.projectId}/issues/${props.issueId}/comments/${deleteTargetId.value}`, {
       method: 'DELETE'
     })
+    deleteTargetId.value = null
     await refresh()
     toast.add({
       title: 'Comment deleted',
@@ -193,11 +273,16 @@ const currentUserAvatarColor = computed(() => {
               {{ getDisplayName(comment) }}
             </span>
             <span class="text-xs text-slate-400 dark:text-slate-500 shrink-0">
-              commented {{ useTimeAgo(comment.createdAt).value }}
+              <template v-if="comment.updatedAt">
+                edited {{ useTimeAgo(comment.updatedAt).value }}
+              </template>
+              <template v-else>
+                commented {{ useTimeAgo(comment.createdAt).value }}
+              </template>
             </span>
-            <!-- Delete menu -->
+            <!-- Actions menu -->
             <div
-              v-if="isOwnComment(comment)"
+              v-if="isOwnComment(comment) && editingId !== comment.id"
               class="ml-auto shrink-0"
             >
               <UPopover>
@@ -206,29 +291,97 @@ const currentUserAvatarColor = computed(() => {
                   variant="ghost"
                   color="neutral"
                   icon="i-lucide-ellipsis"
-                  class="opacity-0 group-hover:opacity-100 transition-opacity size-6"
+                  class="size-6"
                 />
                 <template #content>
-                  <div class="p-1">
-                    <UButton
-                      variant="ghost"
-                      color="error"
-                      icon="i-lucide-trash-2"
-                      size="xs"
-                      :loading="deletingId === comment.id"
-                      class="w-full justify-start"
-                      @click="deleteComment(comment.id)"
+                  <div class="w-48 py-1">
+                    <button
+                      type="button"
+                      class="flex items-center gap-2.5 w-full px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                      @click="startEdit(comment)"
                     >
+                      <UIcon
+                        name="i-lucide-pencil"
+                        class="size-4 text-slate-500 dark:text-slate-400"
+                      />
+                      Edit comment
+                    </button>
+                    <button
+                      type="button"
+                      class="flex items-center gap-2.5 w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                      :disabled="deletingId === comment.id"
+                      @click="confirmDelete(comment.id)"
+                    >
+                      <UIcon
+                        name="i-lucide-trash-2"
+                        class="size-4"
+                      />
                       Delete comment
-                    </UButton>
+                    </button>
                   </div>
                 </template>
               </UPopover>
             </div>
           </div>
-          <!-- Card Body -->
-          <div class="px-4 py-3 bg-white dark:bg-slate-900/40">
-            <p class="text-sm leading-relaxed text-slate-700 dark:text-slate-300 whitespace-pre-wrap break-words">
+          <!-- Card Body — Edit Mode -->
+          <div
+            v-if="editingId === comment.id"
+            class="bg-white dark:bg-slate-900/40"
+          >
+            <ClientOnly>
+              <UEditor
+                v-model="editContent"
+                content-type="html"
+                class="comment-editor"
+                :image="false"
+                :mention="false"
+                :ui="{ content: 'min-h-24 px-4 py-3' }"
+              >
+                <template #default="{ editor }">
+                  <UEditorToolbar
+                    :editor="editor"
+                    :items="toolbarItems"
+                    class="px-2.5 py-1 border-b border-slate-200 dark:border-slate-700"
+                  />
+                </template>
+              </UEditor>
+            </ClientOnly>
+            <div class="flex items-center justify-end gap-2 px-3 py-2.5 border-t border-slate-200 dark:border-slate-700">
+              <UButton
+                size="sm"
+                variant="ghost"
+                color="neutral"
+                :disabled="saving"
+                @click="cancelEdit"
+              >
+                Cancel
+              </UButton>
+              <UButton
+                size="sm"
+                color="primary"
+                :loading="saving"
+                @click="saveEdit"
+              >
+                Save
+              </UButton>
+            </div>
+          </div>
+          <!-- Card Body — Read Mode -->
+          <div
+            v-else
+            class="px-4 py-3 bg-white dark:bg-slate-900/40"
+          >
+            <!-- Rich text (HTML) comment -->
+            <div
+              v-if="isHtmlContent(comment.content)"
+              class="comment-content prose prose-sm prose-slate dark:prose-invert max-w-none wrap-break-word"
+              v-html="comment.content"
+            />
+            <!-- Plain text comment (backward compat) -->
+            <p
+              v-else
+              class="text-sm leading-relaxed text-slate-700 dark:text-slate-300 whitespace-pre-wrap wrap-break-word"
+            >
               {{ comment.content }}
             </p>
           </div>
@@ -246,32 +399,36 @@ const currentUserAvatarColor = computed(() => {
         {{ currentUserInitials }}
       </div>
 
-      <!-- Input Card -->
-      <div
-        class="flex-1 min-w-0 rounded-lg border overflow-hidden transition-colors"
-        :class="inputFocused
-          ? 'border-primary-500 dark:border-primary-400'
-          : 'border-slate-200 dark:border-slate-700'"
-      >
+      <!-- Editor Card -->
+      <div class="flex-1 min-w-0 rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden focus-within:border-primary-500 dark:focus-within:border-primary-400 transition-colors">
         <div class="bg-white dark:bg-slate-900/40">
-          <UTextarea
-            v-model="newComment"
-            placeholder="Leave a comment..."
-            :rows="4"
-            :maxlength="2000"
-            autoresize
-            variant="none"
-            class="w-full"
-            @focus="inputFocused = true"
-            @blur="inputFocused = false"
-          />
+          <ClientOnly>
+            <UEditor
+              ref="editorRef"
+              v-model="newComment"
+              content-type="html"
+              placeholder="Leave a comment..."
+              class="comment-editor"
+              :image="false"
+              :mention="false"
+              :ui="{ content: 'min-h-24 px-4 py-3' }"
+            >
+              <template #default="{ editor }">
+                <UEditorToolbar
+                  :editor="editor"
+                  :items="toolbarItems"
+                  class="px-2.5 py-1 border-b border-slate-200 dark:border-slate-700"
+                />
+              </template>
+            </UEditor>
+          </ClientOnly>
         </div>
         <div class="flex items-center justify-between px-3 py-2.5 bg-slate-50 dark:bg-slate-800/60 border-t border-slate-200 dark:border-slate-700">
           <span
             class="text-[11px] tabular-nums transition-colors"
             :class="charCountColor"
           >
-            {{ newComment.length > 0 ? `${newComment.length} / 2,000` : '' }}
+            {{ newComment.length > 0 ? `${newComment.length} / ${MAX_LENGTH_DISPLAY}` : '' }}
           </span>
           <UButton
             :disabled="!canSubmit"
@@ -285,5 +442,57 @@ const currentUserAvatarColor = computed(() => {
         </div>
       </div>
     </div>
+
+    <!-- Delete confirmation modal -->
+    <ConfirmModal
+      :open="deleteTargetId !== null"
+      title="Delete comment"
+      description="Are you sure you want to delete this comment? This action cannot be undone."
+      confirm-label="Delete"
+      :loading="deletingId !== null"
+      :on-confirm="deleteComment"
+      :on-cancel="() => { deleteTargetId = null }"
+      @update:open="(val: boolean) => { if (!val) deleteTargetId = null }"
+    />
   </div>
 </template>
+
+<style scoped>
+@reference "~/assets/css/main.css";
+
+.comment-content :deep(pre) {
+  @apply bg-slate-100 dark:bg-slate-800 rounded-md p-3 overflow-x-auto text-sm;
+}
+
+.comment-content :deep(code) {
+  @apply bg-slate-100 dark:bg-slate-800 rounded px-1.5 py-0.5 text-sm font-mono;
+}
+
+.comment-content :deep(pre code) {
+  @apply bg-transparent p-0;
+}
+
+.comment-content :deep(blockquote) {
+  @apply border-l-4 border-slate-300 dark:border-slate-600 pl-4 italic text-slate-600 dark:text-slate-400;
+}
+
+.comment-content :deep(a) {
+  @apply text-primary-600 dark:text-primary-400 underline;
+}
+
+.comment-content :deep(ul) {
+  @apply list-disc pl-5;
+}
+
+.comment-content :deep(ol) {
+  @apply list-decimal pl-5;
+}
+
+.comment-editor :deep(.tiptap) {
+  @apply text-sm leading-relaxed text-slate-700 dark:text-slate-300;
+}
+
+.comment-editor :deep(.tiptap p.is-editor-empty:first-child::before) {
+  @apply text-slate-400 dark:text-slate-500;
+}
+</style>

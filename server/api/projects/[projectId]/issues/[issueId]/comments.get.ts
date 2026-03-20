@@ -35,7 +35,8 @@ export default defineEventHandler(async (event) => {
       authorName: profiles.name,
       authorEmail: profiles.email,
       content: issueComments.content,
-      createdAt: issueComments.createdAt
+      createdAt: issueComments.createdAt,
+      updatedAt: issueComments.updatedAt
     })
     .from(issueComments)
     .leftJoin(profiles, eq(issueComments.authorId, profiles.id))

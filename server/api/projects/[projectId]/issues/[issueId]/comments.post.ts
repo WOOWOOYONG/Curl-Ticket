@@ -4,6 +4,7 @@ import { createCommentSchema } from '~~/shared/schemas/issue-comment'
 import { NotificationType } from '~~/shared/constants'
 import { badRequest, notFound } from '~~/server/utils/errors'
 import { getAccessibleProject } from '~~/server/utils/project-access'
+import { stripHtmlTags, isAllowedHtml } from '~~/server/utils/html'
 
 export default defineEventHandler(async (event) => {
   const projectId = getRouterParam(event, 'projectId')
@@ -42,6 +43,10 @@ export default defineEventHandler(async (event) => {
     badRequest('Validation Error', result.error.issues)
   }
 
+  if (!isAllowedHtml(result.data.content)) {
+    badRequest('Comment contains disallowed HTML tags')
+  }
+
   const [comment] = await db
     .insert(issueComments)
     .values({
@@ -61,14 +66,16 @@ export default defineEventHandler(async (event) => {
   // Notify issue creator if commenter is not the creator
   if (issue.createdBy !== userId) {
     const friendlyId = `${issue.projectKey}-${issue.issueNumber}`
+    const plainText = stripHtmlTags(result.data.content)
+    const preview = plainText.length > 200
+      ? `${plainText.slice(0, 200)}...`
+      : plainText
     await db.insert(notifications).values({
       userId: issue.createdBy,
       issueId: issue.id,
       type: NotificationType.IssueComment,
       title: `New comment on ${friendlyId}`,
-      content: result.data.content.length > 200
-        ? `${result.data.content.slice(0, 200)}...`
-        : result.data.content
+      content: preview
     })
   }
 

@@ -1,8 +1,10 @@
 import { z } from 'zod'
 
 export const createCommentSchema = z.object({
-  content: z.string().min(1, 'Comment cannot be empty').max(2000, 'Comment cannot exceed 2000 characters')
+  content: z.string().min(1, 'Comment cannot be empty').max(5000, 'Comment cannot exceed 5000 characters')
 })
+
+export const updateCommentSchema = createCommentSchema
 
 export const commentSchema = z.object({
   id: z.number().int(),
@@ -11,8 +13,10 @@ export const commentSchema = z.object({
   authorName: z.string().nullable(),
   authorEmail: z.string(),
   content: z.string(),
-  createdAt: z.coerce.date()
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date().nullable()
 })
 
 export type CreateCommentInput = z.infer<typeof createCommentSchema>
+export type UpdateCommentInput = z.infer<typeof updateCommentSchema>
 export type Comment = z.infer<typeof commentSchema>
