@@ -59,15 +59,24 @@ async function sendInvitation(event: FormSubmitEvent<CreateProjectInvitationInpu
 }
 
 // 移除成員
-const removingUserId = ref<string | null>(null)
+const removeTarget = ref<{ userId: string, name: string } | null>(null)
+const removingMember = ref(false)
 
-async function removeMember(userId: string) {
-  removingUserId.value = userId
+function confirmRemoveMember(member: ProjectMember) {
+  removeTarget.value = { userId: member.userId, name: member.name || member.email || member.userId }
+}
+
+async function removeMember() {
+  const target = removeTarget.value
+  if (!target) return
+
+  removingMember.value = true
   try {
-    await $fetch(`/api/projects/${projectId.value}/members/${userId}`, {
+    await $fetch(`/api/projects/${projectId.value}/members/${target.userId}`, {
       method: 'DELETE'
     })
     toast.add({ title: '已移除成員', color: 'success' })
+    removeTarget.value = null
     refreshMembers()
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : '移除失敗'
@@ -77,7 +86,7 @@ async function removeMember(userId: string) {
       color: 'error'
     })
   } finally {
-    removingUserId.value = null
+    removingMember.value = false
   }
 }
 
@@ -249,8 +258,7 @@ function getStatusColor(status: InvitationStatus): BadgeColor {
                       variant="ghost"
                       size="xs"
                       icon="i-lucide-user-minus"
-                      :loading="removingUserId === member.userId"
-                      @click="removeMember(member.userId)"
+                      @click="confirmRemoveMember(member)"
                     >
                       移除
                     </UButton>
@@ -262,5 +270,17 @@ function getStatusColor(status: InvitationStatus): BadgeColor {
         </div>
       </div>
     </div>
+
+    <!-- Remove member confirmation modal -->
+    <ConfirmModal
+      :open="removeTarget !== null"
+      title="Remove Member"
+      :description="`Are you sure you want to remove ${removeTarget?.name} from this project?`"
+      confirm-label="Remove"
+      :loading="removingMember"
+      :on-confirm="removeMember"
+      :on-cancel="() => { removeTarget = null }"
+      @update:open="(val: boolean) => { if (!val) removeTarget = null }"
+    />
   </UDashboardPanel>
 </template>
