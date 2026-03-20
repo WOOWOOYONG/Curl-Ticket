@@ -31,6 +31,44 @@ const taskFields = {
   issueType: z.literal(IssueType.Task)
 }
 
+// ============================================
+// Derived Constants & Helpers
+// ============================================
+
+/**
+ * Field names that only exist on ApiBug issues (excludes the `issueType` discriminator).
+ * Single source of truth — POST route, PATCH route, and update schema all derive from this.
+ */
+export const API_BUG_ONLY_FIELDS = Object.keys(apiBugFields)
+  .filter((k): k is Exclude<keyof typeof apiBugFields, 'issueType'> => k !== 'issueType')
+
+export type ApiBugOnlyField = (typeof API_BUG_ONLY_FIELDS)[number]
+
+/**
+ * Returns { rawCurl: null, method: null, ... } for all API-only fields.
+ * Used when creating Task issues to explicitly null out API columns.
+ */
+export function nullifyApiBugFields(): Record<ApiBugOnlyField, null> {
+  return Object.fromEntries(
+    API_BUG_ONLY_FIELDS.map(field => [field, null])
+  ) as Record<ApiBugOnlyField, null>
+}
+
+/**
+ * Extracts API-only fields from a validated ApiBug input, coalescing undefined to null.
+ */
+export function pickApiBugFields(
+  data: CreateApiBugInput
+): Pick<CreateApiBugInput, ApiBugOnlyField> {
+  return Object.fromEntries(
+    API_BUG_ONLY_FIELDS.map(field => [field, data[field] ?? null])
+  ) as Pick<CreateApiBugInput, ApiBugOnlyField>
+}
+
+// ============================================
+// Schemas
+// ============================================
+
 /** 新增 Issue (discriminated union) */
 export const createIssueSchema = z.discriminatedUnion('issueType', [
   z.object({ ...issueBaseFields, ...apiBugFields }),
@@ -41,19 +79,22 @@ export const createIssueSchema = z.discriminatedUnion('issueType', [
 export const createApiBugFormSchema = z.object({ ...issueBaseFields, ...apiBugFields }).omit({ projectId: true, issueType: true })
 export const createTaskFormSchema = z.object({ ...issueBaseFields, ...taskFields }).omit({ projectId: true, issueType: true })
 
-/** 更新 Issue — flat partial，移除 default 避免 .partial() 時 Zod 自動填入預設值 */
-export const updateIssueSchema = z.object({
+/** Base fields for update (no defaults, so .partial() works correctly) */
+const issueBaseUpdateFields = {
   title: z.string().min(1, '標題不可為空').max(200, '標題不可超過 200 字'),
   description: z.string().nullish(),
-  status: z.enum(issueStatuses),
-  rawCurl: z.string().nullish(),
-  method: z.enum(httpMethods, { message: '無效的 HTTP 方法' }),
-  url: z.string().min(1, 'URL 不可為空'),
-  environment: z.enum(environments),
-  requestHeaders: z.record(z.string(), z.string()).nullish(),
-  requestBody: z.unknown().nullish(),
-  responseStatus: z.number('無效的狀態碼').int().min(100, '無效的狀態碼').max(599, '無效的狀態碼').nullish(),
-  responseBody: z.unknown().nullish()
+  status: z.enum(issueStatuses)
+}
+
+/** API Bug update fields — derived from apiBugFields, excluding issueType discriminator */
+const apiBugUpdateFields = Object.fromEntries(
+  API_BUG_ONLY_FIELDS.map(field => [field, apiBugFields[field]])
+) as { [K in ApiBugOnlyField]: (typeof apiBugFields)[K] }
+
+/** 更新 Issue — flat partial, API fields derived from apiBugFields */
+export const updateIssueSchema = z.object({
+  ...issueBaseUpdateFields,
+  ...apiBugUpdateFields
 }).partial()
 
 /** Issue 資料（完整） */

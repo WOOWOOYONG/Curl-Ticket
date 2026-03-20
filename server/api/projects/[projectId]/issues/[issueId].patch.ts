@@ -1,11 +1,9 @@
 import { and, eq } from 'drizzle-orm'
 import { issues } from '~~/server/database/schema'
-import { updateIssueSchema } from '~~/shared/schemas'
+import { updateIssueSchema, API_BUG_ONLY_FIELDS } from '~~/shared/schemas'
 import { IssueType } from '~~/shared/constants'
 import { badRequest, notFound } from '~~/server/utils/errors'
 import { getAccessibleProject } from '~~/server/utils/project-access'
-
-const API_ONLY_FIELDS = ['method', 'url', 'environment', 'rawCurl', 'requestHeaders', 'requestBody', 'responseStatus', 'responseBody'] as const
 
 export default defineEventHandler(async (event) => {
   const projectId = getRouterParam(event, 'projectId')
@@ -51,7 +49,7 @@ export default defineEventHandler(async (event) => {
 
   // Reject API-only fields for task type
   if (existing.issueType === IssueType.Task) {
-    const invalidFields = API_ONLY_FIELDS.filter(f => f in result.data)
+    const invalidFields = API_BUG_ONLY_FIELDS.filter(f => f in result.data)
     if (invalidFields.length > 0) {
       badRequest(`Cannot set API fields on a Task issue: ${invalidFields.join(', ')}`)
     }
