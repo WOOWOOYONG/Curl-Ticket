@@ -1,9 +1,9 @@
 import { and, eq } from 'drizzle-orm'
-import { issueComments } from '~~/server/database/schema'
+import { issueComments, issues } from '~~/server/database/schema'
 import { updateCommentSchema } from '~~/shared/schemas/issue-comment'
 import { badRequest, forbidden, notFound } from '~~/server/utils/errors'
 import { getAccessibleProject } from '~~/server/utils/project-access'
-import { sanitizeHtml } from '~~/shared/utils/html'
+import { sanitizeHtml } from '~~/server/utils/html'
 
 export default defineEventHandler(async (event) => {
   const projectId = getRouterParam(event, 'projectId')
@@ -18,6 +18,22 @@ export default defineEventHandler(async (event) => {
   const userId = event.context.userId as string
 
   await getAccessibleProject(db, projectId, userId)
+
+  // Verify issue belongs to this project
+  const [issue] = await db
+    .select({ id: issues.id })
+    .from(issues)
+    .where(
+      and(
+        eq(issues.id, Number(issueId)),
+        eq(issues.projectId, projectId)
+      )
+    )
+    .limit(1)
+
+  if (!issue) {
+    notFound('Issue not found')
+  }
 
   const [comment] = await db
     .select({ id: issueComments.id, authorId: issueComments.authorId })
