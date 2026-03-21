@@ -45,6 +45,17 @@ export function validateProjectId(projectId: string): void {
   }
 }
 
+const COMMENT_MAX_LENGTH = 5000
+
+export function validateCommentContent(content: string): void {
+  if (!content || content.trim().length === 0) {
+    throw new ValidationError('Comment content cannot be empty.')
+  }
+  if (content.length > COMMENT_MAX_LENGTH) {
+    throw new ValidationError(`Comment content cannot exceed ${COMMENT_MAX_LENGTH} characters.`)
+  }
+}
+
 export function normalizeType(type: string): IssueType {
   const lower = type.toLowerCase().replace(/-/g, '_')
   const valid = issueTypes as readonly string[]

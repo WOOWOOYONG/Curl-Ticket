@@ -7,6 +7,11 @@ import { projectsCommand } from './commands/projects.js'
 import { issuesCommand } from './commands/issues.js'
 import { issueCommand } from './commands/issue.js'
 import { updateStatusCommand } from './commands/update-status.js'
+import { commentsCommand } from './commands/comments.js'
+import { getCommentCommand } from './commands/get-comment.js'
+import { addCommentCommand } from './commands/add-comment.js'
+import { editCommentCommand } from './commands/edit-comment.js'
+import { deleteCommentCommand } from './commands/delete-comment.js'
 import { schemaCommand } from './commands/schema.js'
 import { authLoginCommand, authStatusCommand, authLogoutCommand } from './commands/auth.js'
 import { initSkillCommand } from './commands/init-skill/index.js'
@@ -164,6 +169,64 @@ program
   .action(async (projectId: string, issueId: string, status: string, options: { dryRun?: boolean }) => {
     try {
       await withAuth(client => updateStatusCommand(client, projectId, issueId, status, isJsonMode(), options.dryRun))
+    } catch (err) {
+      handleError(err, isJsonMode())
+    }
+  })
+
+// --- Comment commands ---
+
+program
+  .command('comments <projectId> <issueId>')
+  .description('List comments for an issue')
+  .action(async (projectId: string, issueId: string) => {
+    try {
+      await withAuth(client => commentsCommand(client, projectId, issueId, isJsonMode()))
+    } catch (err) {
+      handleError(err, isJsonMode())
+    }
+  })
+
+program
+  .command('comment <projectId> <issueId> <commentId>')
+  .description('Get a single comment')
+  .action(async (projectId: string, issueId: string, commentId: string) => {
+    try {
+      await withAuth(client => getCommentCommand(client, projectId, issueId, commentId, isJsonMode()))
+    } catch (err) {
+      handleError(err, isJsonMode())
+    }
+  })
+
+program
+  .command('add-comment <projectId> <issueId> <content>')
+  .description('Add a comment to an issue')
+  .action(async (projectId: string, issueId: string, content: string) => {
+    try {
+      await withAuth(client => addCommentCommand(client, projectId, issueId, content, isJsonMode()))
+    } catch (err) {
+      handleError(err, isJsonMode())
+    }
+  })
+
+program
+  .command('edit-comment <projectId> <issueId> <commentId> <content>')
+  .description('Edit a comment')
+  .action(async (projectId: string, issueId: string, commentId: string, content: string) => {
+    try {
+      await withAuth(client => editCommentCommand(client, projectId, issueId, commentId, content, isJsonMode()))
+    } catch (err) {
+      handleError(err, isJsonMode())
+    }
+  })
+
+program
+  .command('delete-comment <projectId> <issueId> <commentId>')
+  .description('Delete a comment')
+  .option('--force', 'Skip confirmation prompt')
+  .action(async (projectId: string, issueId: string, commentId: string, options: { force?: boolean }) => {
+    try {
+      await withAuth(client => deleteCommentCommand(client, projectId, issueId, commentId, isJsonMode(), options.force))
     } catch (err) {
       handleError(err, isJsonMode())
     }

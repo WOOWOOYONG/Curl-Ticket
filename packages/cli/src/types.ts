@@ -78,3 +78,26 @@ export interface DeviceTokenResponse {
   token?: string
   url?: string
 }
+
+export interface CommentItem {
+  id: number
+  issueId: number
+  authorId: string
+  authorName: string | null
+  authorEmail: string
+  content: string
+  createdAt: string
+  updatedAt: string | null
+}
+
+export interface CommentsResponse {
+  data: CommentItem[]
+}
+
+export interface CommentResponse {
+  data: CommentItem
+}
+
+export interface DeleteResponse {
+  success: boolean
+}

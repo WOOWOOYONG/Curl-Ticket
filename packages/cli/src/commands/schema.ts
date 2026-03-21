@@ -56,6 +56,62 @@ export function schemaCommand(): void {
           '--dry-run': { type: 'boolean', description: 'Preview update without applying' }
         }
       },
+      'comments': {
+        description: 'List comments for an issue',
+        args: [
+          { name: 'projectId', type: 'uuid', required: true },
+          { name: 'issueId', type: 'string', required: true, description: 'Numeric issue ID' }
+        ],
+        options: {
+          '--json': { type: 'boolean', description: 'Output raw JSON' }
+        }
+      },
+      'comment': {
+        description: 'Get a single comment',
+        args: [
+          { name: 'projectId', type: 'uuid', required: true },
+          { name: 'issueId', type: 'string', required: true, description: 'Numeric issue ID' },
+          { name: 'commentId', type: 'number', required: true, description: 'Numeric comment ID' }
+        ],
+        options: {
+          '--json': { type: 'boolean', description: 'Output raw JSON' }
+        }
+      },
+      'add-comment': {
+        description: 'Add a comment to an issue',
+        args: [
+          { name: 'projectId', type: 'uuid', required: true },
+          { name: 'issueId', type: 'string', required: true, description: 'Numeric issue ID' },
+          { name: 'content', type: 'string', required: true, description: 'Comment content (1-5000 chars)' }
+        ],
+        options: {
+          '--json': { type: 'boolean', description: 'Output raw JSON' }
+        }
+      },
+      'edit-comment': {
+        description: 'Edit a comment',
+        args: [
+          { name: 'projectId', type: 'uuid', required: true },
+          { name: 'issueId', type: 'string', required: true, description: 'Numeric issue ID' },
+          { name: 'commentId', type: 'number', required: true, description: 'Numeric comment ID' },
+          { name: 'content', type: 'string', required: true, description: 'New comment content (1-5000 chars)' }
+        ],
+        options: {
+          '--json': { type: 'boolean', description: 'Output raw JSON' }
+        }
+      },
+      'delete-comment': {
+        description: 'Delete a comment',
+        args: [
+          { name: 'projectId', type: 'uuid', required: true },
+          { name: 'issueId', type: 'string', required: true, description: 'Numeric issue ID' },
+          { name: 'commentId', type: 'number', required: true, description: 'Numeric comment ID' }
+        ],
+        options: {
+          '--json': { type: 'boolean', description: 'Output raw JSON' },
+          '--force': { type: 'boolean', description: 'Skip confirmation prompt' }
+        }
+      },
       'schema': {
         description: 'Print CLI schema for agent introspection',
         args: [],

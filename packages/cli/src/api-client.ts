@@ -2,7 +2,10 @@ import type {
   AuthConfig,
   ProjectsResponse,
   IssuesResponse,
-  IssueResponse
+  IssueResponse,
+  CommentsResponse,
+  CommentResponse,
+  DeleteResponse
 } from './types.js'
 import { DEFAULT_PAGE_SIZE, PROJECTS_PAGE_SIZE } from './constants.js'
 
@@ -85,6 +88,39 @@ export class CurlTicketClient {
     return this.request<IssueResponse>(`/api/projects/${projectId}/issues/${issueId}`, {
       method: 'PATCH',
       body: JSON.stringify({ status })
+    })
+  }
+
+  async getComments(projectId: string, issueId: string): Promise<CommentsResponse> {
+    return this.request<CommentsResponse>(`/api/projects/${projectId}/issues/${issueId}/comments`)
+  }
+
+  async getComment(projectId: string, issueId: string, commentId: string): Promise<CommentResponse> {
+    const res = await this.getComments(projectId, issueId)
+    const comment = res.data.find(c => c.id === Number(commentId))
+    if (!comment) {
+      throw new ApiError(404, 'Comment not found.')
+    }
+    return { data: comment }
+  }
+
+  async createComment(projectId: string, issueId: string, content: string): Promise<CommentResponse> {
+    return this.request<CommentResponse>(`/api/projects/${projectId}/issues/${issueId}/comments`, {
+      method: 'POST',
+      body: JSON.stringify({ content })
+    })
+  }
+
+  async updateComment(projectId: string, issueId: string, commentId: string, content: string): Promise<CommentResponse> {
+    return this.request<CommentResponse>(`/api/projects/${projectId}/issues/${issueId}/comments/${commentId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ content })
+    })
+  }
+
+  async deleteComment(projectId: string, issueId: string, commentId: string): Promise<DeleteResponse> {
+    return this.request<DeleteResponse>(`/api/projects/${projectId}/issues/${issueId}/comments/${commentId}`, {
+      method: 'DELETE'
     })
   }
 }
