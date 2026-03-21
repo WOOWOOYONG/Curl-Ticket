@@ -21,7 +21,12 @@ curl-ticket issue <projectId> <issueId|CT-42> --json                   # Issue d
 curl-ticket issue <projectId> <issueId> --json --fields status,url,method  # Fetch only specific fields (saves tokens)
 curl-ticket update-status <projectId> <issueId> <status> --json        # Update status (Open|in-progress|Done|Close)
 curl-ticket update-status <projectId> <issueId> <status> --dry-run --json  # Preview without applying
-curl-ticket schema                                                     # Print CLI schema (no auth needed)
+curl-ticket comments <projectId> <issueId> --json                        # List comments on an issue
+curl-ticket comment <projectId> <issueId> <commentId> --json             # Get a single comment
+curl-ticket add-comment <projectId> <issueId> "content" --json           # Add a comment
+curl-ticket edit-comment <projectId> <issueId> <commentId> "content" --json  # Edit a comment
+curl-ticket delete-comment <projectId> <issueId> <commentId> --json      # Delete a comment (no confirmation in --json mode)
+curl-ticket schema                                                       # Print CLI schema (no auth needed)
 ```
 
 Authentication is handled automatically; first run opens the browser for login.
@@ -74,6 +79,21 @@ Single-resource commands (`issue`, `update-status`) return:
 { "data": { "id": 1, "issueNumber": 42, "issueType": "api_bug", "title": "...", "status": "Open", "method": "GET", "url": "/api/users", "environment": "Prod", "responseStatus": 500, "rawCurl": "...", "responseBody": "...", ... }, "friendlyId": "PROJ-42" }
 ```
 
+Comment commands (`comments`) return:
+```json
+{ "data": [{ "id": 1, "issueId": 42, "authorId": "uuid", "authorName": "Name", "authorEmail": "email", "content": "...", "createdAt": "...", "updatedAt": null }] }
+```
+
+Single comment commands (`comment`, `add-comment`, `edit-comment`) return:
+```json
+{ "data": { "id": 1, "issueId": 42, "authorName": "Name", "content": "...", ... } }
+```
+
+Delete comment returns:
+```json
+{ "success": true }
+```
+
 # Input Validation
 
 - `projectId` must be a valid UUID — non-UUID values return exit code 4
@@ -94,7 +114,11 @@ Single-resource commands (`issue`, `update-status`) return:
    - **Task**: Search codebase using keywords from title and description
 6. Grep for keywords from the error message to pinpoint the failure location
 7. Trace the request chain: route → middleware → handler → business logic → DB query
-8. Provide fix suggestions, then update status with `update-status` after resolving
+8. Use comments to document progress:
+   - `add-comment` to post investigation findings, root cause analysis, or fix details
+   - `comments` to read prior discussion and context from other team members
+   - `edit-comment` to update your own comments with new findings
+9. Provide fix suggestions, then update status with `update-status` after resolving
 
 # Constraints
 

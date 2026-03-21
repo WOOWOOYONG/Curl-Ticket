@@ -101,6 +101,11 @@ export type NotificationType = typeof NotificationType[keyof typeof Notification
 export const notificationTypes = Object.values(NotificationType)
 
 // ============================================
+// 留言限制
+// ============================================
+export const COMMENT_MAX_LENGTH = 5000
+
+// ============================================
 // 敏感 Header 關鍵字（用於遮罩顯示）
 // ============================================
 export const SensitiveHeaderKeywords = [

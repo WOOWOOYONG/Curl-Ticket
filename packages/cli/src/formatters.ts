@@ -1,5 +1,5 @@
 import { IssueType, CurlNoiseHeaders } from '#shared/constants.js'
-import type { IssueSummary, IssueDetail } from './types.js'
+import type { IssueSummary, IssueDetail, CommentItem } from './types.js'
 
 export function truncate(str: string, maxLength: number): string {
   if (str.length <= maxLength) return str
@@ -66,6 +66,36 @@ export function extractErrorMessage(responseBody: unknown): string | null {
   }
 
   return String(obj)
+}
+
+export function stripHtml(html: string): string {
+  return html.replace(/<[^>]*>/g, '').trim()
+}
+
+export function formatCommentSummary(comment: CommentItem): string {
+  const author = comment.authorName ?? comment.authorEmail
+  const date = new Date(comment.createdAt).toLocaleString()
+  const content = stripHtml(comment.content)
+  return `[#${comment.id}] ${author} (${date}):\n  ${truncate(content, 300)}`
+}
+
+export function formatCommentDetail(comment: CommentItem): string {
+  const author = comment.authorName ?? comment.authorEmail
+  const created = new Date(comment.createdAt).toLocaleString()
+  const content = stripHtml(comment.content)
+
+  const fields: [string, string | number | null][] = [
+    ['Comment', `#${comment.id}`],
+    ['Author', author],
+    ['Created', created],
+    ['Updated', comment.updatedAt ? new Date(comment.updatedAt).toLocaleString() : null],
+    ['Content', content]
+  ]
+
+  return fields
+    .filter(([, value]) => value != null)
+    .map(([label, value]) => `${label}: ${value}`)
+    .join('\n')
 }
 
 export function simplifyCurl(rawCurl: string): string {

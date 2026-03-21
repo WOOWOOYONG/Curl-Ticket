@@ -53,6 +53,28 @@ ct update-status <projectId> <issueId> Done
 ct update-status <projectId> <issueId> Close
 ```
 
+#### Comments
+
+```bash
+# List comments on an issue
+ct comments <projectId> <issueId>
+
+# Get a single comment
+ct comment <projectId> <issueId> <commentId>
+
+# Add a comment
+ct add-comment <projectId> <issueId> "investigation complete, root cause is..."
+
+# Edit a comment
+ct edit-comment <projectId> <issueId> <commentId> "updated content"
+
+# Delete a comment (with confirmation prompt)
+ct delete-comment <projectId> <issueId> <commentId>
+
+# Delete without confirmation
+ct delete-comment <projectId> <issueId> <commentId> --force
+```
+
 #### JSON Output
 
 All data commands support `--json` for structured output, useful for scripts and AI agent integration:
@@ -173,6 +195,28 @@ ct update-status <projectId> <issueId> Open
 ct update-status <projectId> <issueId> in-progress
 ct update-status <projectId> <issueId> Done
 ct update-status <projectId> <issueId> Close
+```
+
+#### Comment 相關
+
+```bash
+# 列出 issue 的留言
+ct comments <projectId> <issueId>
+
+# 取得單一留言
+ct comment <projectId> <issueId> <commentId>
+
+# 新增留言
+ct add-comment <projectId> <issueId> "調查完成，根本原因是..."
+
+# 編輯留言
+ct edit-comment <projectId> <issueId> <commentId> "更新後的內容"
+
+# 刪除留言（會顯示確認提示）
+ct delete-comment <projectId> <issueId> <commentId>
+
+# 刪除留言（跳過確認）
+ct delete-comment <projectId> <issueId> <commentId> --force
 ```
 
 #### JSON 輸出

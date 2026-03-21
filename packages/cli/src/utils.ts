@@ -1,4 +1,4 @@
-import { IssueStatus, issueTypes } from '#shared/constants.js'
+import { IssueStatus, issueTypes, COMMENT_MAX_LENGTH } from '#shared/constants.js'
 import type { IssueType } from '#shared/constants.js'
 
 export class ValidationError extends Error {
@@ -42,6 +42,15 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 export function validateProjectId(projectId: string): void {
   if (!UUID_RE.test(projectId)) {
     throw new ValidationError(`Invalid projectId: "${projectId}" is not a valid UUID.`)
+  }
+}
+
+export function validateCommentContent(content: string): void {
+  if (!content || content.trim().length === 0) {
+    throw new ValidationError('Comment content cannot be empty.')
+  }
+  if (content.length > COMMENT_MAX_LENGTH) {
+    throw new ValidationError(`Comment content cannot exceed ${COMMENT_MAX_LENGTH} characters.`)
   }
 }
 
