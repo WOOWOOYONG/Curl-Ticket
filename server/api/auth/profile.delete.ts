@@ -1,13 +1,15 @@
 import { eq } from 'drizzle-orm'
 import { serverSupabaseServiceRole } from '#supabase/server'
-import { profiles, projects } from '~~/server/database/schema'
+import { apiTokens, deviceCodes, notifications, profiles, projectMembers, projects } from '~~/server/database/schema'
 import { badRequest } from '~~/server/utils/errors'
 
 /**
  * DELETE /api/auth/profile
- * 刪除目前登入用戶的帳號
+ * 軟刪除目前登入用戶的帳號
  * - 若用戶仍擁有專案，回傳 400 要求先轉移或刪除
- * - 刪除 profile 記錄 + Supabase auth user
+ * - 軟刪除 profile（設定 deletedAt）
+ * - 清理活躍資源（成員、通知、API tokens、device codes）
+ * - 刪除 Supabase auth user（防止再次登入）
  */
 export default defineEventHandler(async (event) => {
   const userId = event.context.userId as string
@@ -25,8 +27,19 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // 刪除 profile 記錄
-  await db.delete(profiles).where(eq(profiles.id, userId))
+  // 軟刪除 profile
+  await db
+    .update(profiles)
+    .set({ deletedAt: new Date() })
+    .where(eq(profiles.id, userId))
+
+  // 清理活躍資源
+  await Promise.all([
+    db.delete(projectMembers).where(eq(projectMembers.userId, userId)),
+    db.delete(notifications).where(eq(notifications.userId, userId)),
+    db.delete(apiTokens).where(eq(apiTokens.userId, userId)),
+    db.delete(deviceCodes).where(eq(deviceCodes.userId, userId))
+  ])
 
   // 刪除 Supabase auth user
   const supabase = serverSupabaseServiceRole(event)

@@ -1,7 +1,7 @@
 import type { H3Event } from 'h3'
-import { eq } from 'drizzle-orm'
+import { and, eq, isNull } from 'drizzle-orm'
 import { profiles } from '~~/server/database/schema'
-import { forbidden } from '~~/server/utils/errors'
+import { badRequest, forbidden } from '~~/server/utils/errors'
 
 /**
  * 檢查用戶是否為 Admin，不是就 throw 403
@@ -22,7 +22,7 @@ export async function getProfile(db: ReturnType<typeof useDB>, userId: string) {
   const [profile] = await db
     .select()
     .from(profiles)
-    .where(eq(profiles.id, userId))
+    .where(and(eq(profiles.id, userId), isNull(profiles.deletedAt)))
     .limit(1)
 
   return profile ?? null
@@ -44,6 +44,9 @@ export async function getOrCreateProfile(
     .limit(1)
 
   if (existing) {
+    if (existing.deletedAt) {
+      badRequest('This account has been deleted')
+    }
     return existing
   }
 
@@ -73,7 +76,7 @@ export async function getProfileByEmail(db: ReturnType<typeof useDB>, email: str
   const [profile] = await db
     .select()
     .from(profiles)
-    .where(eq(profiles.email, email))
+    .where(and(eq(profiles.email, email), isNull(profiles.deletedAt)))
     .limit(1)
 
   return profile ?? null

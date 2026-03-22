@@ -10,8 +10,10 @@ export const profiles = pgTable('profiles', {
   name: varchar('name', { length: 255 }),
   role: varchar('role', { length: 20 }).notNull().default('user'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  deletedAt: timestamp('deleted_at', { withTimezone: true })
 }, table => [
   index('profiles_email_idx').on(table.email),
-  index('profiles_role_idx').on(table.role)
+  index('profiles_role_idx').on(table.role),
+  index('profiles_deleted_at_idx').on(table.deletedAt)
 ])

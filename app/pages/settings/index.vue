@@ -129,7 +129,7 @@ function openDeleteModal() {
             Delete Account
           </p>
           <p class="text-sm text-gray-500 dark:text-gray-400">
-            Permanently delete your account and all associated data.
+            Delete your account. Your name will be preserved on historical records (comments, issues, etc.).
           </p>
         </div>
         <UButton
@@ -150,7 +150,7 @@ function openDeleteModal() {
             Delete Account
           </h3>
           <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
-            This action is irreversible. All your data will be permanently deleted.
+            This action cannot be undone. Your account will be deactivated, but your name will be preserved on historical records.
             Type <strong>DELETE</strong> to confirm.
           </p>
 
