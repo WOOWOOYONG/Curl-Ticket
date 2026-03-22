@@ -106,6 +106,11 @@ export const notificationTypes = Object.values(NotificationType)
 export const COMMENT_MAX_LENGTH = 5000
 
 // ============================================
+// Profile 限制
+// ============================================
+export const PROFILE_NAME_MAX_LENGTH = 50
+
+// ============================================
 // 敏感 Header 關鍵字（用於遮罩顯示）
 // ============================================
 export const SensitiveHeaderKeywords = [
