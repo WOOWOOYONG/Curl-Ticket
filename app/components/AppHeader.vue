@@ -82,6 +82,7 @@ const items = computed(() => [
 <template>
   <ClientOnly>
     <UHeader
+      :toggle="!!user"
       :ui="{
         root: 'bg-slate-50/85 dark:bg-slate-950/70 border-b border-slate-200/80 dark:border-white/10 backdrop-blur',
         container: 'max-w-full',
