@@ -61,11 +61,6 @@ const items = computed(() => [
     ]
   },
   {
-    label: 'API Tokens',
-    icon: 'i-lucide-key',
-    onSelect: () => navigateTo('/settings/tokens')
-  },
-  {
     type: 'separator' as const
   },
   {
