@@ -2,7 +2,7 @@
 
 ## 範圍
 
-本文件涵蓋登入、邀請碼註冊、Admin 邀請碼管理、用戶角色與使用者選單。
+本文件涵蓋登入、邀請碼註冊、Admin 邀請碼管理、用戶角色、使用者選單、用戶設定與帳號刪除。
 
 ## Functional Requirements
 
@@ -43,8 +43,24 @@
 
 ### 3.7 使用者選單 / Session 操作
 
-- `AUTH-024`：目前不提供 `/settings` 獨立頁面；使用者操作集中於全域 Header 的 Avatar 下拉選單。
+- `AUTH-024`：使用者設定頁面路徑為 `/settings`，Sidebar 提供 sub-menu 導航。
 - `AUTH-025`：使用者選單需提供至少登出能力，並提供主題切換（Light / Dark / System）。
+
+### 3.8 用戶設定 (Profile Settings)
+
+- `AUTH-026`：`/settings` 頁面顯示用戶 Email（唯讀）與 Display Name（可編輯）。
+- `AUTH-027`：Display Name 可透過 `PATCH /api/auth/profile` 更新，長度上限由 `PROFILE_NAME_MAX_LENGTH` 控制。
+- `AUTH-028`：更新成功後即時反映於 Header 及 Sidebar 等全域 UI。
+
+### 3.9 帳號刪除 (Account Deletion)
+
+- `AUTH-029`：`/settings` 頁面提供 Danger Zone 區塊，包含帳號刪除入口。
+- `AUTH-030`：刪除需二次確認：用戶必須在 Modal 中輸入 `DELETE` 才能送出。
+- `AUTH-031`：若用戶為任一專案的 Owner，Server 端阻止刪除並回傳所擁有的專案清單，UI 提示用戶先轉移或刪除專案。
+- `AUTH-032`：帳號刪除採 Soft-delete 機制，透過 `DELETE /api/auth/profile` 設定 `profiles.deleted_at` 時間戳，不實際移除資料。
+- `AUTH-033`：刪除後自動登出 Supabase session 並導向 `/login`。
+- `AUTH-034`：已刪除帳號的歷史記錄（Issues、Comments 等）保留用戶名稱，不做匿名化處理。
+- `AUTH-035`：已 Soft-delete 的帳號若重新以相同 Google OAuth 登入並兌換邀請碼，系統自動恢復（restore）該 Profile，清除 `deleted_at`。
 
 ## Cross-References
 

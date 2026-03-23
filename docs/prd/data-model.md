@@ -34,6 +34,9 @@ _(Supabase 內建 `auth.users`，本文件不重複定義欄位)_
 | `role` | varchar(20) | Not Null, Default `'user'` | 角色 (`admin` / `user`) |
 | `created_at` | timestamp | Default `now()` | 建立時間 |
 | `updated_at` | timestamp | Default `now()` | 更新時間 |
+| `deleted_at` | timestamptz | | Soft-delete 時間戳（null = 未刪除） |
+
+> 索引：`profiles_email_idx`、`profiles_role_idx`、`profiles_deleted_at_idx`。
 
 ### invitation_codes
 
@@ -160,6 +163,8 @@ _(Supabase 內建 `auth.users`，本文件不重複定義欄位)_
 | --- | --- | --- |
 | `AUTH-008` `AUTH-013` `AUTH-019` | `invitation_codes`, `profiles` | 邀請碼一次性 + 兌換後建立 Profile |
 | `AUTH-016` `AUTH-021` | `profiles.role` | `admin` / `user` 角色檢查 |
+| `AUTH-027` | `profiles.name` | Display Name 更新（長度上限） |
+| `AUTH-032` `AUTH-035` | `profiles.deleted_at` | Soft-delete 與 restore 機制 |
 | `PROJ-016` `PROJ-021` | `project_invitations` | 狀態集合 `pending/accepted/rejected/expired` + 去重驗證 |
 | `PROJ-019` | `project_members` | 複合 PK 保證同成員不重複加入 |
 | `ISSUE-004` `ISSUE-013` | `issues` 索引 `(project_id, status, updated_at)` | 專案範圍查詢與列表效能 |
