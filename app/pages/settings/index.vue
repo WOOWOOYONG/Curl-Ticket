@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { FetchError } from 'ofetch'
 import { PROFILE_NAME_MAX_LENGTH } from '~~/shared/constants'
 
 const toast = useToast()
@@ -52,17 +53,18 @@ async function deleteAccount() {
 
   try {
     await $fetch('/api/auth/profile', { method: 'DELETE' })
-    await supabase.auth.signOut()
     clearProfile()
+    supabase.auth.signOut().catch(() => {})
     navigateTo('/login')
-  } catch (e: unknown) {
-    const err = e as { data?: { data?: { ownedProjects?: { id: string, name: string }[] } }, statusMessage?: string }
-    const owned = err.data?.data?.ownedProjects
-    if (owned?.length) {
-      deleteError.value = `Please transfer or delete the following projects first: ${owned.map(p => p.name).join(', ')}`
-    } else {
-      deleteError.value = err.statusMessage ?? 'Failed to delete account'
+  } catch (e) {
+    if (!(e instanceof FetchError)) {
+      deleteError.value = 'Failed to delete account'
+      return
     }
+    const owned = e.data?.data?.ownedProjects as { name: string }[] | undefined
+    deleteError.value = owned?.length
+      ? `Please transfer or delete the following projects first: ${owned.map(p => p.name).join(', ')}`
+      : e.statusMessage ?? 'Failed to delete account'
   } finally {
     isDeleting.value = false
   }
@@ -137,7 +139,7 @@ function openDeleteModal() {
           variant="outline"
           @click="openDeleteModal"
         >
-          Delete Account
+          Delete
         </UButton>
       </div>
     </UCard>
@@ -164,7 +166,7 @@ function openDeleteModal() {
           <UInput
             v-model="deleteConfirmText"
             placeholder="Type DELETE to confirm"
-            class="mb-4"
+            class="mb-4 w-full"
           />
 
           <div class="flex justify-end gap-2">
