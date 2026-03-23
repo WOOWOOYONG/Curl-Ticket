@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm'
+import { and, eq, isNull } from 'drizzle-orm'
 import { projectMembers, profiles } from '~~/server/database/schema'
 import { badRequest } from '~~/server/utils/errors'
 import { getAccessibleProject } from '~~/server/utils/project-access'
@@ -23,7 +23,10 @@ export default defineEventHandler(async (event) => {
     })
     .from(projectMembers)
     .leftJoin(profiles, eq(projectMembers.userId, profiles.id))
-    .where(eq(projectMembers.projectId, projectId))
+    .where(and(
+      eq(projectMembers.projectId, projectId),
+      isNull(profiles.deletedAt)
+    ))
 
   return { data: members }
 })

@@ -78,7 +78,8 @@ export default defineEventHandler(async (event) => {
   // 僅需 OAuth 驗證、不需要 profile 的路由
   const authOnlyRoutes = [
     '/api/invitation-codes/redeem',
-    '/api/auth/me'
+    '/api/auth/me',
+    '/api/auth/profile'
   ]
 
   // 使用 Supabase Client 進行 Server-side 驗證（getUser 會向 Auth server 確認 token 真實性）
