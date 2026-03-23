@@ -1,5 +1,4 @@
-import { eq } from 'drizzle-orm'
-import { profiles } from '~~/server/database/schema'
+import { getProfile } from '~~/server/utils/profile'
 
 /**
  * GET /api/auth/me
@@ -9,11 +8,5 @@ export default defineEventHandler(async (event) => {
   const db = useDB()
   const userId = event.context.userId as string
 
-  const [profile] = await db
-    .select()
-    .from(profiles)
-    .where(eq(profiles.id, userId))
-    .limit(1)
-
-  return profile ?? null
+  return await getProfile(db, userId)
 })

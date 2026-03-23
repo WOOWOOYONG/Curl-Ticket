@@ -1,7 +1,7 @@
-import { eq } from 'drizzle-orm'
+import { and, eq, isNull } from 'drizzle-orm'
 import { profiles } from '~~/server/database/schema'
 import { updateProfileSchema } from '~~/shared/schemas/profile'
-import { badRequest } from '~~/server/utils/errors'
+import { badRequest, notFound } from '~~/server/utils/errors'
 
 /**
  * PATCH /api/auth/profile
@@ -23,8 +23,12 @@ export default defineEventHandler(async (event) => {
       name: parsed.data.name,
       updatedAt: new Date()
     })
-    .where(eq(profiles.id, userId))
+    .where(and(eq(profiles.id, userId), isNull(profiles.deletedAt)))
     .returning()
+
+  if (!updated) {
+    notFound('Profile not found')
+  }
 
   return updated
 })

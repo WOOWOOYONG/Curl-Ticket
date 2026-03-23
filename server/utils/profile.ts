@@ -1,7 +1,7 @@
 import type { H3Event } from 'h3'
 import { and, eq, isNull } from 'drizzle-orm'
 import { profiles } from '~~/server/database/schema'
-import { badRequest, forbidden } from '~~/server/utils/errors'
+import { forbidden } from '~~/server/utils/errors'
 
 /**
  * 檢查用戶是否為 Admin，不是就 throw 403
@@ -45,7 +45,12 @@ export async function getOrCreateProfile(
 
   if (existing) {
     if (existing.deletedAt) {
-      badRequest('This account has been deleted')
+      const [restored] = await db
+        .update(profiles)
+        .set({ deletedAt: null, email, name: name ?? existing.name, updatedAt: new Date() })
+        .where(eq(profiles.id, userId))
+        .returning()
+      return restored!
     }
     return existing
   }
