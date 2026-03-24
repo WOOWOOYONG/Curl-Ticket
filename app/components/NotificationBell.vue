@@ -70,7 +70,7 @@ function onInvitationResponded() {
       <div class="max-h-80 overflow-y-auto">
         <div class="border-b border-slate-200 px-4 py-3 dark:border-white/10">
           <h4 class="text-sm font-semibold text-slate-900 dark:text-white">
-            通知
+            {{ $t('notifications.title') }}
           </h4>
         </div>
 
@@ -78,7 +78,7 @@ function onInvitationResponded() {
           v-if="notifications.length === 0"
           class="px-4 py-8 text-center text-sm text-slate-400"
         >
-          暫無通知
+          {{ $t('notifications.noNotifications') }}
         </div>
 
         <div
@@ -108,7 +108,7 @@ function onInvitationResponded() {
                 v-if="notification.type === NotificationType.ProjectInvite && notification.invitationStatus === InvitationStatus.Pending"
                 class="mt-1 text-xs font-medium text-blue-600 dark:text-blue-400"
               >
-                點擊查看邀請
+                {{ $t('notifications.viewInvitation') }}
               </p>
             </div>
             <span

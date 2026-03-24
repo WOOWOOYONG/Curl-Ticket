@@ -8,6 +8,7 @@ definePageMeta({
 const route = useRoute()
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
+const { t } = useI18n()
 const { fetchProfile } = useProfile()
 
 const userCode = computed(() => {
@@ -36,9 +37,9 @@ async function verifyCode() {
   } catch (e: unknown) {
     const err = e as { statusCode?: number, data?: { statusMessage?: string } }
     if (err.statusCode === HttpStatus.Forbidden) {
-      errorMessage.value = '請先完成帳號註冊後再進行 CLI 登入'
+      errorMessage.value = t('device.registerFirst')
     } else {
-      errorMessage.value = err?.data?.statusMessage ?? '驗證失敗，請重新執行 CLI 登入指令'
+      errorMessage.value = err?.data?.statusMessage ?? t('device.verifyError')
     }
     status.value = 'error'
   }
@@ -58,14 +59,14 @@ watch(user, async (val) => {
   try {
     const profile = await fetchProfile()
     if (!profile) {
-      errorMessage.value = '請先完成帳號註冊後再進行 CLI 登入'
+      errorMessage.value = t('device.registerFirst')
       status.value = 'error'
       return
     }
   } catch (e: unknown) {
     const errStatus = (e as { statusCode?: number }).statusCode
     if (errStatus === HttpStatus.Forbidden) {
-      errorMessage.value = '請先完成帳號註冊後再進行 CLI 登入'
+      errorMessage.value = t('device.registerFirst')
       status.value = 'error'
       return
     }
@@ -85,7 +86,7 @@ async function signInWithGoogle() {
     }
   })
   if (error) {
-    errorMessage.value = 'Google 登入失敗，請重試'
+    errorMessage.value = t('device.loginFailed')
     status.value = 'error'
   }
 }
@@ -104,7 +105,7 @@ async function signInWithGoogle() {
           class="w-8 h-8 mx-auto animate-spin text-primary"
         />
         <p class="text-sm text-slate-500 dark:text-slate-400">
-          {{ status === 'verifying' ? '正在驗證...' : '載入中...' }}
+          {{ status === 'verifying' ? $t('device.verifying') : $t('common.loading') }}
         </p>
       </div>
 
@@ -118,11 +119,11 @@ async function signInWithGoogle() {
           class="w-10 h-10 mx-auto opacity-40"
         />
         <h2 class="text-lg font-semibold">
-          CLI 裝置驗證
+          {{ $t('device.title') }}
         </h2>
         <p class="text-sm text-slate-500 dark:text-slate-400">
-          此頁面用於 CLI 工具登入驗證。<br>
-          請從終端機執行登入指令以開始。
+          {{ $t('device.noCode') }}<br>
+          {{ $t('device.noCodeHint') }}
         </p>
       </div>
 
@@ -136,10 +137,10 @@ async function signInWithGoogle() {
           class="w-10 h-10 mx-auto opacity-40"
         />
         <h2 class="text-lg font-semibold">
-          CLI 裝置驗證
+          {{ $t('device.title') }}
         </h2>
         <p class="text-sm text-slate-500 dark:text-slate-400">
-          請登入您的帳號以完成 CLI 裝置授權
+          {{ $t('device.loginRequired') }}
         </p>
         <UButton
           icon="i-simple-icons-google"
@@ -148,7 +149,7 @@ async function signInWithGoogle() {
           block
           @click="signInWithGoogle"
         >
-          使用 Google 登入
+          {{ $t('auth.loginWithGoogle') }}
         </UButton>
       </div>
 
@@ -162,10 +163,10 @@ async function signInWithGoogle() {
           class="w-10 h-10 mx-auto text-green-500"
         />
         <h2 class="text-lg font-semibold">
-          登入成功
+          {{ $t('device.loginSuccess') }}
         </h2>
         <p class="text-sm text-slate-500 dark:text-slate-400">
-          已完成 CLI 裝置授權，您可以關閉此頁面回到終端機。
+          {{ $t('device.loginSuccessHint') }}
         </p>
       </div>
 
@@ -179,7 +180,7 @@ async function signInWithGoogle() {
           class="w-10 h-10 mx-auto text-red-500"
         />
         <h2 class="text-lg font-semibold">
-          驗證失敗
+          {{ $t('device.verifyFailed') }}
         </h2>
         <p class="text-sm text-red-500">
           {{ errorMessage }}

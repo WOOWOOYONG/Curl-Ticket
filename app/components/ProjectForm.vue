@@ -25,10 +25,12 @@ const emit = defineEmits<{
 
 const state = defineModel<CreateProjectInput>('state', { required: true })
 
+const { t } = useI18n()
+
 const isEditMode = computed(() => props.mode === 'edit')
 const keyDescription = computed(() => isEditMode.value
-  ? 'Project key is read-only to keep existing issue IDs stable.'
-  : '2-10 uppercase letters and numbers only (e.g., PROJ, API01)')
+  ? t('projects.form.keyDescriptionEdit')
+  : t('projects.form.keyDescriptionCreate'))
 const submitIcon = computed(() => isEditMode.value ? 'i-heroicons-pencil-square' : 'i-heroicons-check')
 
 const environmentOptions = environments.map(env => ({
@@ -49,7 +51,7 @@ function onSubmit(_event: FormSubmitEvent<CreateProjectInput>) {
         class="inline-flex items-center gap-2 text-sm text-gray-600 transition-colors group hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
       >
         <span class="transition-transform group-hover:-translate-x-0.5">&larr;</span>
-        <span>Back</span>
+        <span>{{ t('common.back') }}</span>
       </NuxtLink>
     </div>
 
@@ -72,13 +74,13 @@ function onSubmit(_event: FormSubmitEvent<CreateProjectInput>) {
         @submit="onSubmit"
       >
         <UFormField
-          label="Project Name"
+          :label="t('projects.form.name')"
           name="name"
           required
         >
           <UInput
             v-model="state.name"
-            placeholder="My Awesome Project"
+            :placeholder="t('projects.form.namePlaceholder')"
             size="lg"
             icon="i-heroicons-cube"
             class="w-full"
@@ -86,7 +88,7 @@ function onSubmit(_event: FormSubmitEvent<CreateProjectInput>) {
         </UFormField>
 
         <UFormField
-          label="Project Key"
+          :label="t('projects.form.key')"
           name="key"
           :description="keyDescription"
           required
@@ -103,12 +105,12 @@ function onSubmit(_event: FormSubmitEvent<CreateProjectInput>) {
         </UFormField>
 
         <UFormField
-          label="Description (Optional)"
+          :label="t('projects.form.description')"
           name="description"
         >
           <UTextarea
             v-model="state.description"
-            placeholder="Brief description of the project..."
+            :placeholder="t('projects.form.descriptionPlaceholder')"
             :rows="4"
             size="lg"
             class="w-full"
@@ -116,9 +118,9 @@ function onSubmit(_event: FormSubmitEvent<CreateProjectInput>) {
         </UFormField>
 
         <UFormField
-          label="Environments"
+          :label="t('projects.form.environments')"
           name="environments"
-          description="Select which environments this project will use"
+          :description="t('projects.form.environmentsHint')"
           required
         >
           <div class="grid grid-cols-2 gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-900 sm:grid-cols-4">
@@ -159,7 +161,7 @@ function onSubmit(_event: FormSubmitEvent<CreateProjectInput>) {
             size="lg"
             class="w-full sm:w-auto"
           >
-            Cancel
+            {{ t('common.cancel') }}
           </UButton>
           <UButton
             type="submit"

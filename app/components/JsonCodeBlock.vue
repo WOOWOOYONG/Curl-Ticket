@@ -126,7 +126,7 @@ function focusEditor() {
         v-if="lines.length > 0"
         class="text-xs text-gray-400"
       >
-        {{ lines.length }} lines
+        {{ $t('common.lines', { count: lines.length }) }}
       </span>
     </div>
     <div

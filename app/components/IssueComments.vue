@@ -48,7 +48,7 @@ const currentUserAvatarColor = computed(() => {
         class="size-4 text-slate-500 dark:text-slate-400"
       />
       <h3 class="text-sm font-semibold text-slate-900 dark:text-white">
-        Comments
+        {{ $t('comments.title') }}
       </h3>
       <span class="text-xs text-slate-400 dark:text-slate-500">
         ({{ comments.length }})
@@ -67,7 +67,7 @@ const currentUserAvatarColor = computed(() => {
           class="size-5 text-slate-300 dark:text-slate-600 mx-auto mb-1.5"
         />
         <p class="text-sm text-slate-400 dark:text-slate-500">
-          No comments yet
+          {{ $t('comments.noComments') }}
         </p>
       </div>
     </div>
@@ -114,7 +114,7 @@ const currentUserAvatarColor = computed(() => {
               ref="editorRef"
               v-model="newComment"
               content-type="html"
-              placeholder="Leave a comment..."
+              :placeholder="$t('comments.placeholder')"
               class="comment-editor"
               :image="false"
               :mention="false"
@@ -144,7 +144,7 @@ const currentUserAvatarColor = computed(() => {
             color="primary"
             @click="submitComment"
           >
-            Comment
+            {{ $t('comments.submit') }}
           </UButton>
         </div>
       </div>
@@ -153,9 +153,9 @@ const currentUserAvatarColor = computed(() => {
     <!-- Delete confirmation modal -->
     <ConfirmModal
       :open="deleteTargetId !== null"
-      title="Delete comment"
-      description="Are you sure you want to delete this comment? This action cannot be undone."
-      confirm-label="Delete"
+      :title="$t('comments.deleteComment')"
+      :description="$t('comments.deleteConfirm')"
+      :confirm-label="$t('common.delete')"
       :loading="deletingId !== null"
       :on-confirm="deleteComment"
       :on-cancel="() => { deleteTargetId = null }"

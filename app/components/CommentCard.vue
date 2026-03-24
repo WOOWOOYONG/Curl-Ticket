@@ -82,7 +82,7 @@ function getDisplayName(comment: Comment) {
                     name="i-lucide-pencil"
                     class="size-4 text-slate-500 dark:text-slate-400"
                   />
-                  Edit comment
+                  {{ $t('comments.editComment') }}
                 </button>
                 <button
                   type="button"
@@ -94,7 +94,7 @@ function getDisplayName(comment: Comment) {
                     name="i-lucide-trash-2"
                     class="size-4"
                   />
-                  Delete comment
+                  {{ $t('comments.deleteComment') }}
                 </button>
               </div>
             </template>
@@ -132,7 +132,7 @@ function getDisplayName(comment: Comment) {
             :disabled="saving"
             @click="emit('cancel-edit')"
           >
-            Cancel
+            {{ $t('common.cancel') }}
           </UButton>
           <UButton
             size="sm"
@@ -141,7 +141,7 @@ function getDisplayName(comment: Comment) {
             :loading="saving"
             @click="emit('save-edit')"
           >
-            Save
+            {{ $t('common.save') }}
           </UButton>
         </div>
       </div>

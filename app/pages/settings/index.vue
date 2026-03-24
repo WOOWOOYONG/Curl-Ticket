@@ -5,6 +5,7 @@ import { PROFILE_NAME_MAX_LENGTH } from '~~/shared/constants'
 const toast = useToast()
 const supabase = useSupabaseClient()
 const { profile, fetchProfile, clearProfile } = useProfile()
+const { t } = useI18n()
 
 // ── Profile edit ──
 const nameInput = ref(profile.value?.name ?? '')
@@ -29,9 +30,9 @@ async function updateName() {
     })
     clearProfile()
     await fetchProfile()
-    toast.add({ title: 'Profile updated', color: 'success' })
+    toast.add({ title: t('settings.profileUpdated'), color: 'success' })
   } catch {
-    toast.add({ title: 'Failed to update profile', color: 'error' })
+    toast.add({ title: t('settings.profileUpdateFailed'), color: 'error' })
   } finally {
     isSaving.value = false
   }
@@ -58,7 +59,7 @@ async function deleteAccount() {
     navigateTo('/login')
   } catch (e) {
     if (!(e instanceof FetchError)) {
-      deleteError.value = 'Failed to delete account'
+      deleteError.value = t('settings.deleteAccountFailed')
       return
     }
     const owned = e.data?.data?.ownedProjects as { name: string }[] | undefined
@@ -80,14 +81,14 @@ function openDeleteModal() {
 <template>
   <div class="mx-auto max-w-2xl px-6 py-8">
     <h1 class="text-2xl font-bold mb-6">
-      Profile
+      {{ $t('settings.profile') }}
     </h1>
 
     <!-- Profile Info -->
     <UCard class="mb-6">
       <div class="space-y-4">
         <div>
-          <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Email</label>
+          <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">{{ $t('settings.email') }}</label>
           <p class="text-sm">
             {{ profile?.email }}
           </p>
@@ -97,12 +98,12 @@ function openDeleteModal() {
           <label
             for="display-name"
             class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1"
-          >Display Name</label>
+          >{{ $t('settings.displayName') }}</label>
           <div class="flex gap-2">
             <UInput
               id="display-name"
               v-model="nameInput"
-              placeholder="Enter your name"
+              :placeholder="$t('settings.displayNamePlaceholder')"
               :maxlength="PROFILE_NAME_MAX_LENGTH"
               class="flex-1"
             />
@@ -111,7 +112,7 @@ function openDeleteModal() {
               :disabled="!nameInput.trim() || nameInput.trim() === profile?.name"
               @click="updateName"
             >
-              Save
+              {{ $t('common.save') }}
             </UButton>
           </div>
         </div>
@@ -122,16 +123,16 @@ function openDeleteModal() {
     <UCard>
       <template #header>
         <h2 class="text-lg font-semibold text-red-600 dark:text-red-400">
-          Danger Zone
+          {{ $t('settings.dangerZone') }}
         </h2>
       </template>
       <div class="flex items-center justify-between">
         <div>
           <p class="font-medium">
-            Delete Account
+            {{ $t('settings.deleteAccount') }}
           </p>
           <p class="text-sm text-gray-500 dark:text-gray-400">
-            Delete your account. Your name will be preserved on historical records (comments, issues, etc.).
+            {{ $t('settings.deleteAccountHint') }}
           </p>
         </div>
         <UButton
@@ -139,7 +140,7 @@ function openDeleteModal() {
           variant="outline"
           @click="openDeleteModal"
         >
-          Delete
+          {{ $t('common.delete') }}
         </UButton>
       </div>
     </UCard>
@@ -149,11 +150,18 @@ function openDeleteModal() {
       <template #content>
         <div class="p-6">
           <h3 class="text-lg font-semibold mb-2">
-            Delete Account
+            {{ $t('settings.deleteAccount') }}
           </h3>
           <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
-            This action cannot be undone. Your account will be deactivated, but your name will be preserved on historical records.
-            Type <strong>DELETE</strong> to confirm.
+            {{ $t('settings.deleteAccountConfirm') }}
+            <i18n-t
+              keypath="settings.deleteAccountConfirmType"
+              tag="span"
+            >
+              <template #keyword>
+                <strong>DELETE</strong>
+              </template>
+            </i18n-t>
           </p>
 
           <UAlert
@@ -165,7 +173,7 @@ function openDeleteModal() {
 
           <UInput
             v-model="deleteConfirmText"
-            placeholder="Type DELETE to confirm"
+            :placeholder="$t('settings.deleteAccountPlaceholder')"
             class="mb-4 w-full"
           />
 
@@ -175,7 +183,7 @@ function openDeleteModal() {
               variant="outline"
               @click="showDeleteModal = false"
             >
-              Cancel
+              {{ $t('common.cancel') }}
             </UButton>
             <UButton
               color="error"
@@ -183,7 +191,7 @@ function openDeleteModal() {
               :loading="isDeleting"
               @click="deleteAccount"
             >
-              Delete Account
+              {{ $t('settings.deleteAccount') }}
             </UButton>
           </div>
         </div>

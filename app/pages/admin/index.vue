@@ -4,6 +4,7 @@ definePageMeta({
 })
 
 const { copyToClipboard } = useCopy()
+const { t } = useI18n()
 
 const { data: response, refresh } = await useFetch('/api/invitation-codes')
 const codes = computed(() => response.value?.data ?? [])
@@ -20,8 +21,8 @@ async function createInvitationCode() {
     await refresh()
   } catch {
     useToast().add({
-      title: '錯誤',
-      description: '產生邀請碼失敗',
+      title: t('common.error'),
+      description: t('admin.generateFailed'),
       color: 'error'
     })
   } finally {
@@ -31,8 +32,8 @@ async function createInvitationCode() {
 
 function copyCode(code: string) {
   copyToClipboard(code, {
-    title: '已複製',
-    description: '邀請碼已複製到剪貼簿'
+    title: t('admin.copied'),
+    description: t('admin.copiedHint')
   })
 }
 </script>
@@ -56,7 +57,7 @@ function copyCode(code: string) {
                 Admin
               </div>
               <h1 class="text-xl font-semibold tracking-tight text-slate-900 dark:text-white">
-                Invitation Codes
+                {{ $t('admin.invitationCodes') }}
               </h1>
             </div>
             <UButton
@@ -65,7 +66,7 @@ function copyCode(code: string) {
               class="shrink-0 shadow-sm shadow-emerald-500/20"
               @click="createInvitationCode"
             >
-              產生邀請碼
+              {{ $t('admin.generateCode') }}
             </UButton>
           </header>
 
@@ -76,7 +77,7 @@ function copyCode(code: string) {
                 variant="subtle"
                 class="font-mono text-xs"
               >
-                共 {{ codes.length }} 筆
+                {{ $t('admin.totalCodes', { count: codes.length }) }}
               </UBadge>
             </div>
 
@@ -91,10 +92,10 @@ function copyCode(code: string) {
                 />
               </div>
               <h3 class="text-base font-semibold text-slate-900 dark:text-white">
-                尚無邀請碼
+                {{ $t('admin.noInvitationCodes') }}
               </h3>
               <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
-                點擊上方按鈕產生邀請碼，提供給需要註冊的使用者
+                {{ $t('admin.noInvitationCodesHint') }}
               </p>
             </div>
 
@@ -106,19 +107,19 @@ function copyCode(code: string) {
                 <thead>
                   <tr class="border-b border-slate-200/70 dark:border-white/10">
                     <th class="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">
-                      邀請碼
+                      {{ $t('admin.code') }}
                     </th>
                     <th class="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">
-                      狀態
+                      {{ $t('admin.codeStatus') }}
                     </th>
                     <th class="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">
-                      建立時間
+                      {{ $t('admin.createdAt') }}
                     </th>
                     <th class="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">
-                      使用時間
+                      {{ $t('admin.usedAt') }}
                     </th>
                     <th class="px-4 py-2.5 text-right text-xs font-medium text-slate-500 dark:text-slate-400">
-                      操作
+                      {{ $t('admin.actions') }}
                     </th>
                   </tr>
                 </thead>
@@ -138,7 +139,7 @@ function copyCode(code: string) {
                         variant="subtle"
                         class="text-xs"
                       >
-                        {{ code.isUsed ? '已使用' : '可使用' }}
+                        {{ code.isUsed ? $t('admin.used') : $t('admin.available') }}
                       </UBadge>
                     </td>
                     <td class="whitespace-nowrap px-4 py-3 text-xs text-slate-500 dark:text-slate-400">
@@ -156,7 +157,7 @@ function copyCode(code: string) {
                         size="xs"
                         @click="copyCode(code.code)"
                       >
-                        複製
+                        {{ $t('common.copy') }}
                       </UButton>
                     </td>
                   </tr>

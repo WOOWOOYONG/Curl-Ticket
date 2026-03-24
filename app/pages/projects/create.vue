@@ -5,6 +5,7 @@ definePageMeta({
   layout: 'header-only'
 })
 
+const { t } = useI18n()
 const toast = useToast()
 const loading = ref(false)
 const state = ref<CreateProjectInput>({
@@ -34,16 +35,16 @@ async function onSubmit() {
     })
 
     toast.add({
-      title: 'Success',
-      description: 'Project created successfully',
+      title: t('common.success'),
+      description: t('projects.projectCreated'),
       color: 'success'
     })
 
     await navigateTo('/')
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Failed to create project'
+    const message = err instanceof Error ? err.message : t('projects.createFailed')
     toast.add({
-      title: 'Error',
+      title: t('common.error'),
       description: message,
       color: 'error'
     })
@@ -56,9 +57,9 @@ async function onSubmit() {
 <template>
   <ProjectForm
     v-model:state="state"
-    title="Create New Project"
-    description="Set up a new project with custom environments"
-    submit-label="Create Project"
+    :title="$t('projects.createNewProject')"
+    :description="$t('projects.createDescription')"
+    :submit-label="$t('projects.createProject')"
     :loading="loading"
     @submit="onSubmit"
   />

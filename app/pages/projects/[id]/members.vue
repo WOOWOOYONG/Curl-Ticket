@@ -10,6 +10,7 @@ definePageMeta({
 })
 
 const route = useRoute()
+const { t } = useI18n()
 const toast = useToast()
 const projectId = computed(() => route.params.id as string)
 const user = useSupabaseUser()
@@ -43,11 +44,11 @@ async function sendInvitation(event: FormSubmitEvent<CreateProjectInvitationInpu
       method: 'POST',
       body: event.data
     })
-    toast.add({ title: '邀請已發送', color: 'success' })
+    toast.add({ title: t('members.invitationSent'), color: 'success' })
     inviteState.value.email = ''
     refreshInvitations()
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : '邀請失敗'
+    const message = error instanceof Error ? error.message : t('members.invitationFailed')
     const fetchError = error as { data?: { statusMessage?: string } }
     toast.add({
       title: fetchError.data?.statusMessage || message,
@@ -75,11 +76,11 @@ async function removeMember() {
     await $fetch(`/api/projects/${projectId.value}/members/${target.userId}`, {
       method: 'DELETE'
     })
-    toast.add({ title: 'Member removed', color: 'success' })
+    toast.add({ title: t('members.memberRemoved'), color: 'success' })
     removeTarget.value = null
     refreshMembers()
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Failed to remove member'
+    const message = error instanceof Error ? error.message : t('members.removeFailed')
     const fetchError = error as { data?: { statusMessage?: string } }
     toast.add({
       title: fetchError.data?.statusMessage || message,
@@ -123,17 +124,17 @@ function getStatusColor(status: InvitationStatus): BadgeColor {
                 />
               </div>
               <h2 class="text-lg font-semibold text-slate-900 dark:text-white">
-                無法存取
+                {{ $t('members.accessDenied') }}
               </h2>
               <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
-                只有專案擁有者可以存取成員管理頁面。
+                {{ $t('members.accessDeniedHint') }}
               </p>
               <UButton
                 :to="`/projects/${projectId}`"
                 variant="outline"
                 class="mt-6"
               >
-                返回專案
+                {{ $t('members.backToProject') }}
               </UButton>
             </div>
           </template>
@@ -152,10 +153,10 @@ function getStatusColor(status: InvitationStatus): BadgeColor {
               </NuxtLink>
               <div class="space-y-0.5">
                 <h1 class="text-xl font-semibold tracking-tight text-slate-900 dark:text-white">
-                  {{ project.name }} — 成員管理
+                  {{ $t('members.title', { name: project.name }) }}
                 </h1>
                 <p class="text-sm text-slate-500 dark:text-slate-400">
-                  管理專案成員與邀請
+                  {{ $t('members.subtitle') }}
                 </p>
               </div>
             </header>
@@ -163,7 +164,7 @@ function getStatusColor(status: InvitationStatus): BadgeColor {
             <!-- 邀請成員 -->
             <section class="rounded-2xl border border-slate-200/70 bg-white/80 p-5 shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60">
               <h2 class="mb-3 text-base font-semibold text-slate-900 dark:text-white">
-                邀請成員
+                {{ $t('members.inviteMembers') }}
               </h2>
               <UForm
                 :schema="createProjectInvitationSchema"
@@ -178,7 +179,7 @@ function getStatusColor(status: InvitationStatus): BadgeColor {
                   <UInput
                     v-model="inviteState.email"
                     type="email"
-                    placeholder="輸入 Email 地址"
+                    :placeholder="$t('members.emailPlaceholder')"
                     class="w-full"
                   />
                 </UFormField>
@@ -186,7 +187,7 @@ function getStatusColor(status: InvitationStatus): BadgeColor {
                   type="submit"
                   :loading="inviteLoading"
                 >
-                  發送邀請
+                  {{ $t('members.sendInvitation') }}
                 </UButton>
               </UForm>
 
@@ -196,7 +197,7 @@ function getStatusColor(status: InvitationStatus): BadgeColor {
                 class="mt-5"
               >
                 <h3 class="mb-2 text-sm font-medium text-slate-500 dark:text-slate-400">
-                  邀請記錄
+                  {{ $t('members.invitationHistory') }}
                 </h3>
                 <div class="divide-y divide-slate-100 rounded-lg border border-slate-200/70 dark:divide-white/5 dark:border-white/10">
                   <div
@@ -227,7 +228,7 @@ function getStatusColor(status: InvitationStatus): BadgeColor {
             <!-- 成員列表 -->
             <section class="rounded-2xl border border-slate-200/70 bg-white/80 p-5 shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60">
               <h2 class="mb-3 text-base font-semibold text-slate-900 dark:text-white">
-                成員列表
+                {{ $t('members.memberList') }}
               </h2>
               <div class="divide-y divide-slate-100 rounded-lg border border-slate-200/70 dark:divide-white/5 dark:border-white/10">
                 <div
@@ -250,7 +251,7 @@ function getStatusColor(status: InvitationStatus): BadgeColor {
                       variant="subtle"
                       class="text-xs"
                     >
-                      Owner
+                      {{ $t('members.owner') }}
                     </UBadge>
                     <UButton
                       v-if="member.userId !== user?.sub && member.userId !== project.ownerId"
@@ -260,7 +261,7 @@ function getStatusColor(status: InvitationStatus): BadgeColor {
                       icon="i-lucide-user-minus"
                       @click="confirmRemoveMember(member)"
                     >
-                      移除
+                      {{ $t('members.removeMember') }}
                     </UButton>
                   </div>
                 </div>
@@ -274,9 +275,9 @@ function getStatusColor(status: InvitationStatus): BadgeColor {
     <!-- Remove member confirmation modal -->
     <ConfirmModal
       :open="removeTarget !== null"
-      title="Remove Member"
-      :description="`Are you sure you want to remove ${removeTarget?.name} from this project?`"
-      confirm-label="Remove"
+      :title="$t('common.remove')"
+      :description="$t('members.removeConfirm', { name: removeTarget?.name })"
+      :confirm-label="$t('common.remove')"
       :loading="removingMember"
       :on-confirm="removeMember"
       :on-cancel="() => { removeTarget = null }"

@@ -28,7 +28,8 @@ async function respond() {
     emit('update:open', false)
   } catch (error: unknown) {
     const toast = useToast()
-    const message = error instanceof Error ? error.message : '操作失敗'
+    const { t } = useI18n()
+    const message = error instanceof Error ? error.message : t('invitation.failed')
     const fetchError = error as { data?: { statusMessage?: string } }
     toast.add({
       title: fetchError.data?.statusMessage || message,
@@ -47,7 +48,7 @@ async function respond() {
   >
     <template #header>
       <h3 class="text-lg font-semibold">
-        專案邀請
+        {{ $t('invitation.title') }}
       </h3>
     </template>
 
@@ -64,7 +65,7 @@ async function respond() {
           class="rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-white/10 dark:bg-gray-800"
         >
           <p class="text-sm font-medium text-slate-900 dark:text-white">
-            專案名稱：{{ invitation.projectName }}
+            {{ $t('invitation.projectName', { name: invitation.projectName }) }}
           </p>
         </div>
       </div>
@@ -76,7 +77,7 @@ async function respond() {
           :loading="loading"
           @click="respond"
         >
-          接受邀請
+          {{ $t('invitation.accept') }}
         </UButton>
       </div>
     </template>

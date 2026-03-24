@@ -15,6 +15,7 @@ definePageMeta({
 const route = useRoute()
 const { copyToClipboard } = useCopy()
 const toast = useToast()
+const { t } = useI18n()
 
 const projectId = computed(() => route.params.id as string)
 const issueId = computed(() => route.params.issueId as string)
@@ -60,11 +61,11 @@ watch(issue, (currentIssue) => {
 const headersArray = computed(() => toHeadersArray(issue.value?.requestHeaders))
 
 // Tab items — always show all 3 tabs (for API Bug only)
-const tabItems = [
-  { label: 'Request Body', slot: 'request-body' as const },
-  { label: 'Request Headers', slot: 'headers' as const },
-  { label: 'Response', slot: 'response' as const }
-]
+const tabItems = computed(() => [
+  { label: t('issues.requestBody'), slot: 'request-body' as const },
+  { label: t('issues.requestHeaders'), slot: 'headers' as const },
+  { label: t('issues.response'), slot: 'response' as const }
+])
 
 // Last updated relative time
 const lastUpdated = computed(() => {
@@ -119,16 +120,16 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
     issueResponse.value = response
 
     toast.add({
-      title: 'Status updated',
-      description: `Issue ${response.friendlyId} status is now ${IssueStatusLabel[response.data.status] || response.data.status}.`,
+      title: t('issues.statusUpdated'),
+      description: t('issues.statusUpdateHint', { id: response.friendlyId, status: IssueStatusLabel[response.data.status] || response.data.status }),
       color: 'success'
     })
   } catch (err: unknown) {
     const error = err as { data?: { message?: string } }
     selectedStatus.value = previousStatus
     toast.add({
-      title: 'Error',
-      description: error.data?.message || 'Failed to update issue status',
+      title: t('common.error'),
+      description: error.data?.message || t('issues.statusUpdateFailed'),
       color: 'error'
     })
   } finally {
@@ -164,17 +165,17 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
             class="size-16 text-gray-400 mb-4"
           />
           <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-            Issue not found
+            {{ $t('issues.notFound') }}
           </h2>
           <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">
-            The issue you're looking for doesn't exist or has been deleted.
+            {{ $t('issues.notFoundHint') }}
           </p>
           <UButton
             :to="backToListUrl"
             variant="outline"
             icon="i-lucide-arrow-left"
           >
-            Back to Project
+            {{ $t('issues.backToProject') }}
           </UButton>
         </div>
       </template>
@@ -193,10 +194,10 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
                 name="i-lucide-arrow-left"
                 class="size-4 group-hover:-translate-x-0.5 transition-transform"
               />
-              <span>Back to Issues</span>
+              <span>{{ $t('issues.backToIssues') }}</span>
             </NuxtLink>
             <span class="text-slate-300 dark:text-slate-700">|</span>
-            <span class="font-mono font-medium text-slate-700 dark:text-slate-300">Issue {{ friendlyId }}</span>
+            <span class="font-mono font-medium text-slate-700 dark:text-slate-300">{{ $t('issues.issueId') }} {{ friendlyId }}</span>
             <UBadge
               :color="IssueTypeColor[issue.issueType]"
               variant="subtle"
@@ -252,7 +253,7 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
                 icon="i-lucide-terminal"
                 @click="copyCurl"
               >
-                Copy as cURL
+                {{ $t('issues.copyAsCurl') }}
               </UButton>
             </div>
           </div>
@@ -290,7 +291,7 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
                   v-if="issue.responseStatus"
                   class="flex-1 px-5 py-3"
                 >
-                  <span class="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 font-semibold block mb-1">Status Code</span>
+                  <span class="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 font-semibold block mb-1">{{ $t('issues.statusCode') }}</span>
                   <div class="flex items-center gap-2">
                     <span
                       class="size-2 rounded-full"
@@ -308,7 +309,7 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
                   v-if="issue.environment"
                   class="flex-1 px-5 py-3"
                 >
-                  <span class="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 font-semibold block mb-1">Environment</span>
+                  <span class="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 font-semibold block mb-1">{{ $t('issues.environment') }}</span>
                   <UBadge
                     :color="EnvironmentColor[issue.environment] || 'neutral'"
                     variant="subtle"
@@ -352,7 +353,7 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
                     v-else
                     class="mt-4 py-12 text-center text-sm text-slate-400 dark:text-slate-500"
                   >
-                    No request body recorded
+                    {{ $t('issues.noRequestBody') }}
                   </div>
                 </template>
 
@@ -376,7 +377,7 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
                     v-else
                     class="mt-4 py-12 text-center text-sm text-slate-400 dark:text-slate-500"
                   >
-                    No request headers recorded
+                    {{ $t('issues.noHeaders') }}
                   </div>
                 </template>
 
@@ -408,7 +409,7 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
                     v-else
                     class="mt-4 py-12 text-center text-sm text-slate-400 dark:text-slate-500"
                   >
-                    No response data recorded
+                    {{ $t('issues.noResponse') }}
                   </div>
                 </template>
               </UTabs>
@@ -418,7 +419,7 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
             <template v-if="isTask">
               <div class="rounded-xl border border-slate-200/70 dark:border-slate-800/70 bg-white dark:bg-slate-900/50 p-6">
                 <h3 class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
-                  Description
+                  {{ $t('issues.description') }}
                 </h3>
                 <p
                   v-if="issue.description"
@@ -430,7 +431,7 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
                   v-else
                   class="text-sm text-slate-400 dark:text-slate-500 italic"
                 >
-                  No description provided
+                  {{ $t('common.noDescription') }}
                 </p>
               </div>
             </template>
@@ -446,12 +447,12 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
           <div class="space-y-6">
             <div class="rounded-xl border border-slate-200/70 dark:border-slate-800/70 bg-white dark:bg-slate-950 p-5 space-y-5">
               <h3 class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                Metadata
+                {{ $t('issues.metadata') }}
               </h3>
 
               <!-- Type -->
               <div class="space-y-1">
-                <span class="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">Type</span>
+                <span class="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ $t('issues.type') }}</span>
                 <div class="flex items-center gap-1.5">
                   <UIcon
                     :name="IssueTypeIcon[issue.issueType]"
@@ -465,7 +466,7 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
 
               <!-- Created -->
               <div class="space-y-1">
-                <span class="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">Created</span>
+                <span class="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ $t('issues.created') }}</span>
                 <p class="text-sm font-medium text-slate-900 dark:text-white">
                   {{ formatDate(issue.createdAt) }}
                 </p>
@@ -473,7 +474,7 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
 
               <!-- Last Updated -->
               <div class="space-y-1">
-                <span class="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">Last Updated</span>
+                <span class="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ $t('issues.lastUpdated') }}</span>
                 <p class="text-sm font-medium text-slate-900 dark:text-white">
                   {{ lastUpdated }}
                 </p>
@@ -487,7 +488,7 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
                 icon="i-lucide-pencil"
                 block
               >
-                Edit Details
+                {{ $t('issues.editDetails') }}
               </UButton>
             </div>
           </div>

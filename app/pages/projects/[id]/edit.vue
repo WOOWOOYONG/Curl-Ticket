@@ -8,6 +8,7 @@ definePageMeta({
 
 const route = useRoute()
 const user = useSupabaseUser()
+const { t } = useI18n()
 const toast = useToast()
 
 const projectId = computed(() => route.params.id as string)
@@ -65,17 +66,17 @@ async function onSubmit() {
     }
 
     toast.add({
-      title: 'Success',
-      description: 'Project updated successfully',
+      title: t('common.success'),
+      description: t('projects.projectUpdated'),
       color: 'success'
     })
 
     clearNuxtData(PROJECTS_CACHE_KEY)
     await navigateTo('/')
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Failed to update project'
+    const message = err instanceof Error ? err.message : t('projects.updateFailed')
     toast.add({
-      title: 'Error',
+      title: t('common.error'),
       description: message,
       color: 'error'
     })
@@ -99,17 +100,17 @@ async function onSubmit() {
         <UCard class="shadow-lg">
           <div class="space-y-3 text-center">
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-              Project not found
+              {{ $t('projects.notFound') }}
             </h1>
             <p class="text-sm text-gray-600 dark:text-gray-400">
-              The project you want to edit does not exist or is no longer available.
+              {{ $t('projects.editNotFound') }}
             </p>
             <div class="flex justify-center pt-2">
               <UButton
                 to="/"
                 variant="outline"
               >
-                Back to Projects
+                {{ $t('projects.backToProjects') }}
               </UButton>
             </div>
           </div>
@@ -122,17 +123,17 @@ async function onSubmit() {
         <UCard class="shadow-lg">
           <div class="space-y-3 text-center">
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-              Owner access required
+              {{ $t('projects.ownerRequired') }}
             </h1>
             <p class="text-sm text-gray-600 dark:text-gray-400">
-              Only the project owner can edit project details.
+              {{ $t('projects.ownerRequiredHint') }}
             </p>
             <div class="flex justify-center pt-2">
               <UButton
                 :to="`/projects/${project.id}`"
                 variant="outline"
               >
-                Back to Project
+                {{ $t('projects.backToProject') }}
               </UButton>
             </div>
           </div>
@@ -144,9 +145,9 @@ async function onSubmit() {
       v-else
       v-model:state="state"
       mode="edit"
-      title="Edit Project"
-      description="Update your project name, description, and environments"
-      submit-label="Save Changes"
+      :title="$t('projects.editProject')"
+      :description="$t('projects.editDescription')"
+      :submit-label="$t('projects.saveChanges')"
       :back-to="`/projects/${project.id}`"
       :loading="loading"
       @submit="onSubmit"

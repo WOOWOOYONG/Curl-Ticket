@@ -15,25 +15,26 @@ const route = useRoute()
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
 const colorMode = useColorMode()
+const { t } = useI18n()
 
 function isActive(item: NavItem) {
   return item.to === '/' ? route.path === '/' : route.path.startsWith(item.to)
 }
 
 const themePreferenceLabel = computed(() => {
-  if (colorMode.preference === 'dark') return 'Dark'
-  if (colorMode.preference === 'light') return 'Light'
-  return 'System'
+  if (colorMode.preference === 'dark') return t('nav.themeDark')
+  if (colorMode.preference === 'light') return t('nav.themeLight')
+  return t('nav.themeSystem')
 })
 
 const items = computed(() => [
   {
-    label: `Theme (${themePreferenceLabel.value})`,
+    label: `${t('nav.theme')} (${themePreferenceLabel.value})`,
     icon: 'i-lucide-palette',
     children: [
       {
         type: 'checkbox' as const,
-        label: 'Light',
+        label: t('nav.themeLight'),
         icon: 'i-lucide-sun',
         checked: colorMode.preference === 'light',
         onSelect: () => {
@@ -42,7 +43,7 @@ const items = computed(() => [
       },
       {
         type: 'checkbox' as const,
-        label: 'Dark',
+        label: t('nav.themeDark'),
         icon: 'i-lucide-moon',
         checked: colorMode.preference === 'dark',
         onSelect: () => {
@@ -51,7 +52,7 @@ const items = computed(() => [
       },
       {
         type: 'checkbox' as const,
-        label: 'System',
+        label: t('nav.themeSystem'),
         icon: 'i-lucide-monitor',
         checked: colorMode.preference === 'system',
         onSelect: () => {
@@ -64,7 +65,7 @@ const items = computed(() => [
     type: 'separator' as const
   },
   {
-    label: 'Log out',
+    label: t('nav.logout'),
     icon: 'i-lucide-log-out',
     onSelect: async () => {
       await supabase.auth.signOut()
@@ -107,6 +108,7 @@ const items = computed(() => [
       </template>
 
       <template #right>
+        <LocaleSwitcher />
         <NotificationBell v-if="user" />
         <UDropdownMenu
           v-if="user"
