@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { AppLocale } from '~~/shared/constants'
+
 const { locale, locales, setLocale } = useI18n()
 
 const availableLocales = computed(() =>
@@ -9,7 +11,7 @@ const availableLocales = computed(() =>
 )
 
 function onLocaleChange(value: string) {
-  setLocale(value)
+  setLocale(value as AppLocale)
 }
 </script>
 
