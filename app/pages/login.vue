@@ -51,10 +51,10 @@ async function signInWithGoogle() {
     <UCard class="max-w-md mx-auto text-center">
       <div class="space-y-4">
         <h1 class="text-2xl font-bold">
-          歡迎使用
+          {{ $t('auth.welcome') }}
         </h1>
         <p class="text-muted">
-          請使用 Google 帳號登入以繼續
+          {{ $t('auth.loginPrompt') }}
         </p>
       </div>
 
@@ -68,15 +68,15 @@ async function signInWithGoogle() {
             :loading="loading"
             @click="signInWithGoogle"
           >
-            使用 Google 登入
+            {{ $t('auth.loginWithGoogle') }}
           </UButton>
           <p class="text-xs text-center text-slate-400 dark:text-slate-500">
-            尚未有帳號？請向管理員索取邀請碼
+            {{ $t('auth.noAccount') }}
             <NuxtLink
               to="/register"
               class="ml-1 text-primary hover:underline"
             >
-              前往註冊
+              {{ $t('auth.goToRegister') }}
             </NuxtLink>
           </p>
         </div>

@@ -18,6 +18,7 @@ const isEditMode = computed(() => props.mode === 'edit')
 
 const route = useRoute()
 const toast = useToast()
+const { t } = useI18n()
 const projectId = computed(() => route.params.id as string)
 const issueId = computed(() => route.params.issueId as string | undefined)
 
@@ -153,7 +154,7 @@ watch(() => apiBugState.value.url, (newUrl) => {
   }
 })
 
-const submitLabel = computed(() => (isEditMode.value ? 'Save Changes' : 'Create Issue'))
+const submitLabel = computed(() => (isEditMode.value ? t('projects.saveChanges') : t('issues.createIssue')))
 const submitIcon = computed(() => (isEditMode.value ? 'i-lucide-save' : 'i-lucide-plus'))
 
 function discardChanges() {
@@ -216,8 +217,8 @@ async function onSubmit(event: FormSubmitEvent<Record<string, unknown>>) {
     })
 
     toast.add({
-      title: isEditMode.value ? 'Issue updated' : 'Issue created',
-      description: `Issue ${response.friendlyId} has been ${isEditMode.value ? 'updated' : 'created'} successfully.`,
+      title: t(isEditMode.value ? 'issues.issueUpdated' : 'issues.issueCreated'),
+      description: t(isEditMode.value ? 'issues.issueUpdatedHint' : 'issues.issueCreatedHint', { id: response.friendlyId }),
       color: 'success'
     })
 
@@ -231,10 +232,10 @@ async function onSubmit(event: FormSubmitEvent<Record<string, unknown>>) {
       ? `/projects/${projectId.value}/issues/${issueId.value}`
       : `/projects/${projectId.value}`)
   } catch (err: unknown) {
-    const fallback = isEditMode.value ? 'Failed to update issue' : 'Failed to create issue'
+    const fallback = isEditMode.value ? t('issues.updateFailed') : t('issues.createFailed')
     const message = err instanceof Error ? err.message : fallback
     toast.add({
-      title: 'Error',
+      title: t('common.error'),
       description: message,
       color: 'error'
     })
@@ -261,17 +262,17 @@ async function onSubmit(event: FormSubmitEvent<Record<string, unknown>>) {
             class="size-16 text-gray-400 mb-4"
           />
           <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-            Issue not found
+            {{ $t('issues.notFound') }}
           </h2>
           <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">
-            The issue you're looking for doesn't exist or has been deleted.
+            {{ $t('issues.notFoundHint') }}
           </p>
           <UButton
             :to="`/projects/${projectId}`"
             variant="outline"
             icon="i-lucide-arrow-left"
           >
-            Back to Project
+            {{ $t('issues.backToProject') }}
           </UButton>
         </div>
       </template>
@@ -287,13 +288,8 @@ async function onSubmit(event: FormSubmitEvent<Record<string, unknown>>) {
               class="size-4 group-hover:-translate-x-0.5 transition-transform"
             />
             <span>
-              Back to
-              <template v-if="isEditMode">
-                Issue
-              </template>
-              <template v-else>
-                {{ project?.name || 'Project' }}
-              </template>
+              <template v-if="isEditMode">{{ $t('issues.backToIssue') }}</template>
+              <template v-else>{{ $t('common.back') }} {{ project?.name || $t('nav.projects') }}</template>
             </span>
           </NuxtLink>
         </div>
@@ -343,7 +339,7 @@ async function onSubmit(event: FormSubmitEvent<Record<string, unknown>>) {
                   name="i-lucide-check"
                   class="size-3 inline mr-1"
                 />
-                Parsed from cURL
+                {{ $t('issues.parsedFromCurl') }}
               </template>
             </span>
             <div class="flex gap-3">
@@ -352,7 +348,7 @@ async function onSubmit(event: FormSubmitEvent<Record<string, unknown>>) {
                 variant="outline"
                 @click="discardChanges"
               >
-                Discard
+                {{ $t('common.discard') }}
               </UButton>
               <UButton
                 type="submit"

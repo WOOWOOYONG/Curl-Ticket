@@ -124,6 +124,12 @@ export const SensitiveHeaderKeywords = [
 export type SensitiveHeaderKeyword = typeof SensitiveHeaderKeywords[number]
 
 // ============================================
+// 語系（i18n Locales）
+// ============================================
+export const AppLocales = ['en', 'zh-TW'] as const
+export type AppLocale = typeof AppLocales[number]
+
+// ============================================
 // cURL 簡化時移除的 Header（瀏覽器/噪音 Header）
 // ============================================
 export const CurlNoiseHeaders = [

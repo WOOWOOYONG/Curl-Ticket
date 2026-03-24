@@ -12,6 +12,7 @@ definePageMeta({
 
 const route = useRoute()
 const user = useSupabaseUser()
+const { t } = useI18n()
 const projectId = computed(() => route.params.id as string)
 
 const { data: response, status } = await useProject(projectId)
@@ -108,27 +109,27 @@ const columns: TableColumn<IssueListItem>[] = [
   },
   {
     accessorKey: 'title',
-    header: '標題',
+    header: t('issues.table.title'),
     meta: { class: { td: 'max-w-xs' } }
   },
   {
     accessorKey: 'method',
-    header: '方法',
+    header: t('issues.table.method'),
     meta: { class: { th: 'w-24 text-center', td: 'text-center' } }
   },
   {
     accessorKey: 'status',
-    header: '狀態',
+    header: t('issues.table.status'),
     meta: { class: { th: 'w-28 text-center', td: 'text-center' } }
   },
   {
     accessorKey: 'environment',
-    header: '環境',
+    header: t('issues.table.environment'),
     meta: { class: { th: 'w-24 text-center', td: 'text-center' } }
   },
   {
     accessorKey: 'updatedAt',
-    header: '更新時間',
+    header: t('issues.table.updatedAt'),
     meta: { class: { th: 'w-40 text-right', td: 'text-right whitespace-nowrap' } }
   }
 ]
@@ -166,17 +167,17 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
               />
             </div>
             <h2 class="text-lg font-semibold text-slate-900 dark:text-white">
-              Project not found
+              {{ $t('projects.notFound') }}
             </h2>
             <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
-              The project you're looking for doesn't exist or has been deleted.
+              {{ $t('projects.notFoundHint') }}
             </p>
             <UButton
               to="/"
               variant="outline"
               class="mt-6"
             >
-              Back to Projects
+              {{ $t('projects.backToProjects') }}
             </UButton>
           </div>
         </template>
@@ -197,7 +198,7 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
               <div class="space-y-2">
                 <div class="inline-flex items-center gap-2 rounded-full border border-emerald-100/80 bg-emerald-50/80 px-3 py-1 text-[11px] font-semibold uppercase  text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-200">
                   <span class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                  Project
+                  {{ $t('nav.projects') }}
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
                   <h1 class="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl dark:text-white">
@@ -223,7 +224,7 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
                 size="lg"
                 variant="outline"
               >
-                Members
+                {{ $t('projects.inviteMembers') }}
               </UButton>
               <UButton
                 icon="i-lucide-plus"
@@ -231,7 +232,7 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
                 size="lg"
                 class="shadow-sm shadow-emerald-500/20"
               >
-                Create Issue
+                {{ $t('issues.createIssue') }}
               </UButton>
             </div>
           </header>
@@ -240,21 +241,21 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
             <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div class="flex items-center gap-3">
                 <h2 class="text-lg font-semibold text-slate-900 dark:text-white">
-                  Issues
+                  {{ $t('issues.title') }}
                 </h2>
                 <UBadge
                   color="neutral"
                   variant="subtle"
                   class="font-mono text-xs"
                 >
-                  {{ totalIssuesCount }} total
+                  {{ totalIssuesCount }} {{ $t('common.total') }}
                 </UBadge>
               </div>
               <UInput
                 v-model="searchQuery"
                 icon="i-lucide-search"
                 size="lg"
-                placeholder="Search issues by title or URL"
+                :placeholder="$t('issues.searchPlaceholder')"
                 class="w-full sm:w-80"
                 :ui="{ base: 'bg-white/80 dark:bg-gray-900/60 border-slate-200/70 dark:border-white/10' }"
               />
@@ -289,7 +290,7 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
                         : 'pr-3 text-slate-600 dark:text-slate-300'
                     ]"
                   >
-                    {{ activeStatusFilter ? IssueStatusLabel[activeStatusFilter] : 'Status' }}
+                    {{ activeStatusFilter ? IssueStatusLabel[activeStatusFilter] : $t('issues.table.status') }}
                     <UIcon
                       name="i-lucide-chevron-down"
                       class="size-3.5 opacity-50"
@@ -348,7 +349,7 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
                         : 'pr-3 text-slate-600 dark:text-slate-300'
                     ]"
                   >
-                    {{ activeEnvironmentFilter || 'Environment' }}
+                    {{ activeEnvironmentFilter || $t('issues.table.environment') }}
                     <UIcon
                       name="i-lucide-chevron-down"
                       class="size-3.5 opacity-50"
@@ -407,7 +408,7 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
                         : 'pr-3 text-slate-600 dark:text-slate-300'
                     ]"
                   >
-                    {{ activeMethodFilter || 'Method' }}
+                    {{ activeMethodFilter || $t('issues.table.method') }}
                     <UIcon
                       name="i-lucide-chevron-down"
                       class="size-3.5 opacity-50"
@@ -452,7 +453,7 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
                 class="ml-2 cursor-pointer text-sm font-medium text-slate-500 transition-colors hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100"
                 @click="clearAllFilters"
               >
-                Clear filters
+                {{ $t('issues.clearFilters') }}
               </button>
             </div>
 
@@ -468,17 +469,17 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
                 />
               </div>
               <h3 class="text-lg font-semibold text-slate-900 dark:text-white">
-                No issues yet
+                {{ $t('issues.noIssues') }}
               </h3>
               <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
-                Start tracking API requests and bugs as soon as they appear.
+                {{ $t('issues.noIssuesHint') }}
               </p>
               <UButton
                 icon="i-lucide-plus"
                 :to="`/projects/${projectId}/issues/create?type=${activeTypeFilter}`"
                 class="mt-6"
               >
-                Create First Issue
+                {{ $t('issues.createFirstIssue') }}
               </UButton>
             </div>
 
@@ -595,9 +596,9 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
                 class="flex flex-col gap-3 border-t border-slate-200/70 bg-white/70 px-4 py-3 text-sm text-slate-500 dark:border-white/10 dark:bg-gray-900/60 dark:text-slate-400 sm:flex-row sm:items-center sm:justify-between"
               >
                 <span>
-                  Showing <span class="font-medium text-slate-700 dark:text-slate-300">{{ pageStart }}</span>
-                  to <span class="font-medium text-slate-700 dark:text-slate-300">{{ pageEnd }}</span>
-                  of <span class="font-medium text-slate-700 dark:text-slate-300">{{ pagination.total }}</span> results
+                  {{ $t('common.showing') }} <span class="font-medium text-slate-700 dark:text-slate-300">{{ pageStart }}</span>
+                  {{ $t('common.to') }} <span class="font-medium text-slate-700 dark:text-slate-300">{{ pageEnd }}</span>
+                  {{ $t('common.of') }} <span class="font-medium text-slate-700 dark:text-slate-300">{{ pagination.total }}</span> {{ $t('common.results') }}
                 </span>
                 <UPagination
                   :page="issuesOptions.page"

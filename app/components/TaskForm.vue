@@ -8,6 +8,7 @@ export interface TaskFormState {
 }
 
 const state = defineModel<TaskFormState>('state', { required: true })
+const { t } = useI18n()
 
 defineProps<{
   isEditMode: boolean
@@ -32,10 +33,10 @@ defineProps<{
           </div>
           <div>
             <h2 class="font-semibold text-gray-900 dark:text-white text-base">
-              Task Details
+              {{ t('task.details') }}
             </h2>
             <p class="text-xs text-gray-500 dark:text-gray-400">
-              Describe the task to be done
+              {{ t('task.describe') }}
             </p>
           </div>
         </div>
@@ -49,7 +50,7 @@ defineProps<{
             name="i-lucide-check-circle"
             class="size-3.5"
           />
-          {{ isEditMode ? 'Ready to Save' : 'Ready to Create' }}
+          {{ isEditMode ? t('task.readyToSave') : t('task.readyToCreate') }}
         </UBadge>
         <UBadge
           v-else
@@ -61,7 +62,7 @@ defineProps<{
             name="i-lucide-circle-dashed"
             class="size-3.5"
           />
-          Incomplete
+          {{ t('task.incomplete') }}
         </UBadge>
       </div>
     </template>
@@ -69,14 +70,14 @@ defineProps<{
     <div class="space-y-6">
       <!-- Title -->
       <UFormField
-        label="Task Title"
+        :label="t('task.title')"
         name="title"
         required
         class="w-full"
       >
         <UInput
           v-model="state.title"
-          placeholder="What needs to be done?"
+          :placeholder="t('task.titlePlaceholder')"
           size="lg"
           class="w-full"
         />
@@ -84,13 +85,13 @@ defineProps<{
 
       <!-- Description -->
       <UFormField
-        label="Description (Optional)"
+        :label="t('task.descriptionOptional')"
         name="description"
         class="w-full"
       >
         <UTextarea
           v-model="state.description"
-          placeholder="Add details, context, or acceptance criteria..."
+          :placeholder="t('task.descriptionPlaceholder')"
           :rows="6"
           class="w-full"
         />

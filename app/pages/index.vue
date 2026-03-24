@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const user = useSupabaseUser()
 const toast = useToast()
+const { t } = useI18n()
 
 const searchQuery = ref('')
 const debouncedSearch = refDebounced(searchQuery, 300)
@@ -57,16 +58,16 @@ const projectMenuUi = {
 function getProjectMenuItems(project: { id: string, name: string }) {
   return [
     [{
-      label: 'Edit Project',
+      label: t('projects.editProjectMenu'),
       iconVariant: 'edit' as const,
       onSelect: () => navigateTo(`/projects/${project.id}/edit`)
     }, {
-      label: 'Invite Members',
+      label: t('projects.inviteMembers'),
       iconVariant: 'invite' as const,
       onSelect: () => navigateTo(`/projects/${project.id}/members`)
     }],
     [{
-      label: 'Delete Project',
+      label: t('projects.deleteProject'),
       iconVariant: 'delete' as const,
       color: 'error' as const,
       onSelect: () => { deleteTarget.value = { id: project.id, name: project.name } }
@@ -84,11 +85,11 @@ async function confirmDelete() {
   deleteLoading.value = true
   try {
     await $fetch(`/api/projects/${deleteTarget.value.id}`, { method: 'DELETE' })
-    toast.add({ title: '專案已刪除', color: 'success' })
+    toast.add({ title: t('projects.deleted'), color: 'success' })
     deleteTarget.value = null
     refresh()
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : '刪除失敗'
+    const message = error instanceof Error ? error.message : t('projects.deleteFailed')
     const fetchError = error as { data?: { statusMessage?: string } }
     toast.add({
       title: fetchError.data?.statusMessage || message,
@@ -115,11 +116,11 @@ async function confirmDelete() {
           <div class="space-y-3">
             <div class="inline-flex items-center gap-2 rounded-full border border-emerald-100/80 bg-emerald-50/80 px-3 py-1 text-[11px] font-semibold uppercase  text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-200">
               <span class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              Workspace
+              {{ $t('projects.workspace') }}
             </div>
             <div class="space-y-2">
               <h1 class="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl dark:text-white">
-                Projects
+                {{ $t('projects.title') }}
               </h1>
             </div>
           </div>
@@ -128,7 +129,7 @@ async function confirmDelete() {
               v-model="searchQuery"
               icon="i-lucide-search"
               size="lg"
-              placeholder="Search projects, keys, descriptions"
+              :placeholder="$t('projects.searchPlaceholder')"
               class="w-full sm:w-80"
               :ui="{ base: 'bg-white/80 dark:bg-gray-900/60 border-slate-200/70 dark:border-white/10' }"
             />
@@ -138,7 +139,7 @@ async function confirmDelete() {
               size="lg"
               class="shadow-sm shadow-emerald-500/20"
             >
-              New Project
+              {{ $t('projects.newProject') }}
             </UButton>
           </div>
         </header>
@@ -147,7 +148,7 @@ async function confirmDelete() {
           <div class="rounded-2xl border border-white/60 bg-white/75 p-4 shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60">
             <div class="flex items-start justify-between">
               <span class="text-[11px] font-semibold uppercase  text-slate-500 dark:text-slate-400">
-                Total
+                {{ $t('stats.total') }}
               </span>
               <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100/80 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/20">
                 <UIcon
@@ -160,14 +161,14 @@ async function confirmDelete() {
               {{ totalProjects }}
             </div>
             <p class="text-xs text-slate-500 dark:text-slate-400">
-              Active workspaces
+              {{ $t('stats.activeWorkspaces') }}
             </p>
           </div>
 
           <div class="rounded-2xl border border-white/60 bg-white/75 p-4 shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60">
             <div class="flex items-start justify-between">
               <span class="text-[11px] font-semibold uppercase  text-slate-500 dark:text-slate-400">
-                Open
+                {{ $t('stats.open') }}
               </span>
               <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-50 text-amber-600 ring-1 ring-amber-100/80 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-500/20">
                 <UIcon
@@ -180,14 +181,14 @@ async function confirmDelete() {
               {{ totalOpenIssues }}
             </div>
             <p class="text-xs text-slate-500 dark:text-slate-400">
-              Unresolved issues
+              {{ $t('stats.unresolvedIssues') }}
             </p>
           </div>
 
           <div class="rounded-2xl border border-white/60 bg-white/75 p-4 shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60">
             <div class="flex items-start justify-between">
               <span class="text-[11px] font-semibold uppercase  text-slate-500 dark:text-slate-400">
-                Total Issues
+                {{ $t('stats.totalIssues') }}
               </span>
               <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-700 ring-1 ring-slate-200/80 dark:bg-white/10 dark:text-slate-200 dark:ring-white/10">
                 <UIcon
@@ -200,14 +201,14 @@ async function confirmDelete() {
               {{ totalIssues }}
             </div>
             <p class="text-xs text-slate-500 dark:text-slate-400">
-              Logged events
+              {{ $t('stats.loggedEvents') }}
             </p>
           </div>
 
           <div class="rounded-2xl border border-white/60 bg-white/75 p-4 shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60">
             <div class="flex items-start justify-between">
               <span class="text-[11px] font-semibold uppercase  text-slate-500 dark:text-slate-400">
-                Resolution
+                {{ $t('stats.resolution') }}
               </span>
               <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100/80 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/20">
                 <UIcon
@@ -232,14 +233,14 @@ async function confirmDelete() {
           <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div class="flex items-center gap-3">
               <h2 class="text-lg font-semibold text-slate-900 dark:text-white">
-                Project Overview
+                {{ $t('projects.overview') }}
               </h2>
               <UBadge
                 color="neutral"
                 variant="subtle"
                 class="font-mono text-xs"
               >
-                {{ pagination?.total ?? 0 }} visible
+                {{ pagination?.total ?? 0 }} {{ $t('common.visible') }}
               </UBadge>
             </div>
           </div>
@@ -266,17 +267,17 @@ async function confirmDelete() {
               />
             </div>
             <h3 class="text-lg font-semibold text-slate-900 dark:text-white">
-              Start your first project
+              {{ $t('projects.startFirst') }}
             </h3>
             <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
-              Create a workspace to capture curl requests, logs, and environment-specific issues.
+              {{ $t('projects.startFirstHint') }}
             </p>
             <UButton
               to="/projects/create"
               class="mt-6"
               icon="i-lucide-plus"
             >
-              Create Project
+              {{ $t('projects.createProject') }}
             </UButton>
           </div>
 
@@ -311,7 +312,7 @@ async function confirmDelete() {
                           </span>
                         </div>
                         <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                          {{ project.description || 'No description provided' }}
+                          {{ project.description || $t('common.noDescription') }}
                         </p>
                       </div>
                     </div>
@@ -345,11 +346,11 @@ async function confirmDelete() {
                   <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
                     <span>
                       <span class="text-sm font-semibold text-slate-900 dark:text-white">{{ project.openIssues }}</span>
-                      Open
+                      {{ $t('stats.open') }}
                     </span>
                     <span>
                       <span class="text-sm font-semibold text-slate-900 dark:text-white">{{ project.totalIssues }}</span>
-                      Total
+                      {{ $t('stats.total') }}
                     </span>
                   </div>
 
@@ -362,7 +363,7 @@ async function confirmDelete() {
 
                   <div class="flex items-center justify-between">
                     <span class="text-xs text-slate-500 dark:text-slate-400">
-                      Resolution rate
+                      {{ $t('projects.resolutionRate') }}
                     </span>
                     <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                       {{ getProgressPercentage(project.openIssues, project.totalIssues) }}%
@@ -375,11 +376,11 @@ async function confirmDelete() {
                         Updated {{ getTimeAgo(project.lastUpdated) }}
                       </template>
                       <template v-else>
-                        New project
+                        {{ $t('projects.newProjectLabel') }}
                       </template>
                     </span>
                     <span class="text-emerald-600 transition group-hover:translate-x-1 dark:text-emerald-400">
-                      View Details →
+                      {{ $t('projects.viewDetails') }} →
                     </span>
                   </div>
                 </div>
@@ -399,10 +400,10 @@ async function confirmDelete() {
                 </div>
                 <div>
                   <p class="text-sm font-semibold text-slate-900 dark:text-white">
-                    Create New Project
+                    {{ $t('projects.createNewProject') }}
                   </p>
                   <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                    Set environments, invite teammates, and start tracking issues.
+                    {{ $t('projects.createDescription') }}
                   </p>
                 </div>
               </div>
@@ -414,9 +415,9 @@ async function confirmDelete() {
             class="flex flex-col gap-3 rounded-2xl border border-white/60 bg-white/75 px-4 py-3 text-sm text-slate-500 shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60 dark:text-slate-400 sm:flex-row sm:items-center sm:justify-between"
           >
             <span>
-              Showing <span class="font-medium text-slate-700 dark:text-slate-300">{{ pageStart }}</span>
-              to <span class="font-medium text-slate-700 dark:text-slate-300">{{ pageEnd }}</span>
-              of <span class="font-medium text-slate-700 dark:text-slate-300">{{ pagination.total }}</span> results
+              {{ $t('common.showing') }} <span class="font-medium text-slate-700 dark:text-slate-300">{{ pageStart }}</span>
+              {{ $t('common.to') }} <span class="font-medium text-slate-700 dark:text-slate-300">{{ pageEnd }}</span>
+              {{ $t('common.of') }} <span class="font-medium text-slate-700 dark:text-slate-300">{{ pagination.total }}</span> {{ $t('common.results') }}
             </span>
             <UPagination
               :page="projectsOptions.page"
@@ -432,9 +433,9 @@ async function confirmDelete() {
     <!-- Delete Confirmation Modal -->
     <ConfirmModal
       :open="!!deleteTarget"
-      title="Delete Project"
-      :description="`Are you sure you want to delete project ${deleteTarget?.name}? This action cannot be undone. All related issues, members, and invitations will be permanently removed.`"
-      confirm-label="Delete"
+      :title="$t('projects.deleteProject')"
+      :description="$t('projects.deleteConfirm', { name: deleteTarget?.name })"
+      :confirm-label="$t('common.delete')"
       :loading="deleteLoading"
       :on-confirm="confirmDelete"
       :on-cancel="() => { deleteTarget = null }"

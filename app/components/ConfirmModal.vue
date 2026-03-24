@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const { t } = useI18n()
 const open = defineModel<boolean>('open', { default: false })
 
 const props = withDefaults(defineProps<{
@@ -39,7 +40,7 @@ function handleCancel() {
     <template #footer>
       <div class="flex justify-end w-full gap-2">
         <UButton
-          label="Cancel"
+          :label="t('common.cancel')"
           color="neutral"
           variant="ghost"
           :disabled="loading"

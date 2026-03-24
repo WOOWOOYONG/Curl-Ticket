@@ -33,6 +33,7 @@ const emit = defineEmits<{
 
 const toast = useToast()
 const { copyToClipboard } = useCopy()
+const { t } = useI18n()
 
 const curlPlaceholderText = `curl -X POST https://api.example.com/v1/issues \
   -H 'Content-Type: application/json' \
@@ -107,7 +108,7 @@ async function parseCurl() {
   parseError.value = null
 
   if (!localCurlInput.value.trim()) {
-    parseError.value = 'Please enter a cURL command'
+    parseError.value = t('apiBug.parseEmpty')
     return
   }
 
@@ -137,13 +138,13 @@ async function parseCurl() {
     isParsed.value = true
 
     toast.add({
-      title: 'Parsed successfully',
-      description: 'cURL command has been parsed and form fields are filled.',
+      title: t('apiBug.parsedSuccess'),
+      description: t('apiBug.parsedHint'),
       color: 'success'
     })
   } catch (err: unknown) {
     const error = err as { data?: { message?: string } }
-    parseError.value = error.data?.message || 'Failed to parse cURL command'
+    parseError.value = error.data?.message || t('apiBug.parseFailed')
   } finally {
     parsing.value = false
   }
@@ -209,7 +210,7 @@ defineExpose({ isParsed, clearCurl, initParsedState })
                   class="size-4 text-gray-400"
                 />
                 <span class="text-sm font-medium text-gray-300">
-                  cURL Input
+                  {{ t('apiBug.curlInput') }}
                 </span>
               </div>
             </div>
@@ -222,7 +223,7 @@ defineExpose({ isParsed, clearCurl, initParsedState })
               class="text-gray-400"
               @click="clearCurl"
             >
-              Clear
+              {{ t('common.clear') }}
             </UButton>
           </div>
         </div>
@@ -259,7 +260,7 @@ defineExpose({ isParsed, clearCurl, initParsedState })
             class="font-semibold"
             @click="parseCurl"
           >
-            Parse and Extract
+            {{ t('apiBug.parseAndExtract') }}
           </UButton>
         </div>
       </div>
@@ -280,10 +281,10 @@ defineExpose({ isParsed, clearCurl, initParsedState })
             </div>
             <div class="text-left">
               <span class="font-semibold text-gray-900 dark:text-white text-sm block">
-                Response
+                {{ t('apiBug.responseSection') }}
               </span>
               <span class="text-xs text-gray-500 dark:text-gray-400">
-                Optional - Add response details
+                {{ t('apiBug.responseHint') }}
               </span>
             </div>
           </div>
@@ -298,7 +299,7 @@ defineExpose({ isParsed, clearCurl, initParsedState })
           class="p-5 space-y-5 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900"
         >
           <UFormField
-            label="Status Code"
+            :label="t('issues.statusCode')"
             name="responseStatus"
           >
             <UInput
@@ -306,12 +307,12 @@ defineExpose({ isParsed, clearCurl, initParsedState })
               inputmode="numeric"
               pattern="[0-9]*"
               class="w-1/4"
-              placeholder="e.g., 400, 500"
+              :placeholder="t('apiBug.statusCodePlaceholder')"
             />
           </UFormField>
 
           <UFormField
-            label="Response"
+            :label="t('apiBug.responseLabel')"
             name="responseBody"
           >
             <JsonCodeBlock
@@ -345,10 +346,10 @@ defineExpose({ isParsed, clearCurl, initParsedState })
               </div>
               <div>
                 <h2 class="font-semibold text-gray-900 dark:text-white text-base">
-                  Issue Details
+                  {{ t('apiBug.issueDetails') }}
                 </h2>
                 <p class="text-xs text-gray-500 dark:text-gray-400">
-                  Fill in the extracted information
+                  {{ t('apiBug.fillInfo') }}
                 </p>
               </div>
             </div>
@@ -362,7 +363,7 @@ defineExpose({ isParsed, clearCurl, initParsedState })
                 name="i-lucide-check-circle"
                 class="size-3.5"
               />
-              {{ isEditMode ? 'Ready to Save' : 'Ready to Create' }}
+              {{ isEditMode ? t('apiBug.readyToSave') : t('apiBug.readyToCreate') }}
             </UBadge>
             <UBadge
               v-else
@@ -374,7 +375,7 @@ defineExpose({ isParsed, clearCurl, initParsedState })
                 name="i-lucide-circle-dashed"
                 class="size-3.5"
               />
-              Incomplete
+              {{ t('apiBug.incomplete') }}
             </UBadge>
           </div>
         </template>
@@ -382,14 +383,14 @@ defineExpose({ isParsed, clearCurl, initParsedState })
         <div class="space-y-6">
           <!-- Title -->
           <UFormField
-            label="Issue Title"
+            :label="t('apiBug.issueTitle')"
             name="title"
             required
             class="w-full"
           >
             <UInput
               v-model="state.title"
-              placeholder="Brief description of the issue"
+              :placeholder="t('apiBug.issueTitlePlaceholder')"
               size="lg"
               class="w-full"
             />
@@ -397,7 +398,7 @@ defineExpose({ isParsed, clearCurl, initParsedState })
 
           <!-- Environment (editable) -->
           <UFormField
-            label="Environment"
+            :label="t('issues.environment')"
             name="environment"
             required
           >
@@ -417,13 +418,13 @@ defineExpose({ isParsed, clearCurl, initParsedState })
             >
               <!-- Header -->
               <div class="flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
-                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Request Preview</span>
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('apiBug.requestPreview') }}</span>
                 <UBadge
                   color="neutral"
                   variant="outline"
                   size="xs"
                 >
-                  Read Only
+                  {{ t('apiBug.readOnly') }}
                 </UBadge>
               </div>
 
@@ -456,7 +457,7 @@ defineExpose({ isParsed, clearCurl, initParsedState })
                 class="px-4 py-3 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800"
               >
                 <div class="flex items-center gap-2.5">
-                  <span class="text-sm font-medium text-gray-600 dark:text-gray-300">Payload Size</span>
+                  <span class="text-sm font-medium text-gray-600 dark:text-gray-300">{{ t('apiBug.payloadSize') }}</span>
                   <UBadge
                     color="info"
                     variant="subtle"
@@ -481,7 +482,7 @@ defineExpose({ isParsed, clearCurl, initParsedState })
                     :name="headersExpanded ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'"
                     class="size-3"
                   />
-                  Request Headers
+                  {{ t('issues.requestHeaders') }}
                   <UBadge
                     color="neutral"
                     variant="subtle"
@@ -520,7 +521,7 @@ defineExpose({ isParsed, clearCurl, initParsedState })
                       :name="requestBodyExpanded ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'"
                       class="size-3"
                     />
-                    Request Body
+                    {{ t('issues.requestBody') }}
                     <UBadge
                       color="neutral"
                       variant="subtle"
@@ -563,20 +564,20 @@ defineExpose({ isParsed, clearCurl, initParsedState })
                 class="size-8 text-gray-300 dark:text-gray-600 mx-auto mb-2"
               />
               <p class="text-sm text-gray-400">
-                Parse a cURL command to see request preview
+                {{ t('apiBug.parsePrompt') }}
               </p>
             </div>
           </UFormField>
 
           <!-- Description -->
           <UFormField
-            label="Description (Optional)"
+            :label="t('apiBug.descriptionOptional')"
             name="description"
             class="w-full"
           >
             <UTextarea
               v-model="state.description"
-              placeholder="Describe the expected behavior vs actual behavior..."
+              :placeholder="t('apiBug.descriptionPlaceholder')"
               :rows="3"
               class="w-full"
             />

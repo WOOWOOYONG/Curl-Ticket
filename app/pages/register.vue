@@ -16,6 +16,7 @@ const validating = ref(false)
 const valid = ref(false)
 const errorMessage = ref('')
 
+const { t } = useI18n()
 const { fetchProfile, clearProfile } = useProfile()
 
 // 已登入且有 profile 才導回首頁；已登入但無 profile 留在此頁繼續輸入邀請碼
@@ -51,7 +52,7 @@ async function validateCode(event: FormSubmitEvent<ValidateInvitationCodeInput>)
       await redeemAndEnter(trimmed)
     }
   } catch {
-    errorMessage.value = '邀請碼無效或已被使用'
+    errorMessage.value = t('auth.invalidCode')
   } finally {
     validating.value = false
   }
@@ -69,7 +70,7 @@ async function redeemAndEnter(invitationCode: string) {
     clearProfile()
     await navigateTo('/')
   } catch {
-    errorMessage.value = '兌換邀請碼失敗，請重試'
+    errorMessage.value = t('auth.redeemFailed')
     loading.value = false
   }
 }
@@ -103,7 +104,7 @@ async function signInWithGoogle() {
           class="w-8 h-8 animate-spin text-primary"
         />
         <p class="text-sm text-slate-500 dark:text-slate-400">
-          正在完成註冊...
+          {{ $t('auth.registering') }}
         </p>
         <p
           v-if="errorMessage"
@@ -126,10 +127,10 @@ async function signInWithGoogle() {
         </div>
         <div class="space-y-2">
           <h1 class="text-xl font-semibold text-slate-900 dark:text-white">
-            歡迎加入 Curl Ticket
+            {{ $t('auth.welcomeJoin') }}
           </h1>
           <p class="text-sm text-slate-500 dark:text-slate-400">
-            邀請碼驗證通過，請使用 Google 帳號完成註冊
+            {{ $t('auth.codeValidated') }}
           </p>
         </div>
 
@@ -143,7 +144,7 @@ async function signInWithGoogle() {
           class="mt-4"
           @click="signInWithGoogle"
         >
-          使用 Google 註冊
+          {{ $t('auth.registerWithGoogle') }}
         </UButton>
       </div>
 
@@ -154,10 +155,10 @@ async function signInWithGoogle() {
       >
         <div class="space-y-2">
           <h1 class="text-xl font-semibold text-slate-900 dark:text-white">
-            註冊帳號
+            {{ $t('auth.register') }}
           </h1>
           <p class="text-sm text-slate-500 dark:text-slate-400">
-            請輸入管理員提供的 6 位邀請碼
+            {{ $t('auth.enterInvitationCode') }}
           </p>
         </div>
 
@@ -173,7 +174,7 @@ async function signInWithGoogle() {
           >
             <UInput
               v-model="codeState.code"
-              placeholder="例如：A3X9K2"
+              :placeholder="$t('auth.invitationCodePlaceholder')"
               size="lg"
               class="w-full max-w-50 text-center font-mono tracking-widest uppercase"
               :maxlength="6"
@@ -193,7 +194,7 @@ async function signInWithGoogle() {
             :loading="validating"
             class="mt-2"
           >
-            驗證邀請碼
+            {{ $t('auth.validateCode') }}
           </UButton>
         </UForm>
 
@@ -201,7 +202,7 @@ async function signInWithGoogle() {
           to="/login"
           class="text-xs text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
         >
-          已有帳號？返回登入
+          {{ $t('auth.hasAccount') }}
         </NuxtLink>
       </div>
     </UCard>

@@ -3,6 +3,7 @@ import type { Token, CreateTokenResponse } from '~~/shared/schemas/api-token'
 
 const toast = useToast()
 const { copyToClipboard } = useCopy()
+const { t } = useI18n()
 
 const { data: tokens, refresh } = await useFetch<Token[]>('/api/tokens')
 
@@ -45,7 +46,7 @@ async function createToken() {
     await refresh()
   } catch (e: unknown) {
     const err = e as { data?: { statusMessage?: string } }
-    createError.value = err?.data?.statusMessage ?? '建立失敗，請稍後再試'
+    createError.value = err?.data?.statusMessage ?? t('tokens.createFailed')
   } finally {
     isCreating.value = false
   }
@@ -56,11 +57,11 @@ async function confirmRevoke() {
   isRevoking.value = true
   try {
     await $fetch(`/api/tokens/${revokeTarget.value.id}`, { method: 'DELETE' })
-    toast.add({ title: 'Token 已撤銷', color: 'success' })
+    toast.add({ title: t('tokens.revoked'), color: 'success' })
     revokeTarget.value = null
     await refresh()
   } catch {
-    toast.add({ title: '撤銷失敗，請稍後再試', color: 'error' })
+    toast.add({ title: t('tokens.revokeFailed'), color: 'error' })
   } finally {
     isRevoking.value = false
   }
@@ -85,15 +86,15 @@ function isExpired(expiresAt: string | Date | null) {
     <div class="flex items-center justify-between mb-6">
       <div>
         <h1 class="text-2xl font-bold">
-          API Tokens
+          {{ $t('tokens.title') }}
         </h1>
         <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
-          供 CLI 工具或外部整合存取 Curl Ticket 的長效憑證
+          {{ $t('tokens.subtitle') }}
         </p>
       </div>
       <UButton
         icon="i-lucide-plus"
-        label="新增 Token"
+        :label="$t('tokens.createToken')"
         @click="showCreateModal = true"
       />
     </div>
@@ -111,7 +112,7 @@ function isExpired(expiresAt: string | Date | null) {
               <span class="font-medium text-sm">{{ token.name }}</span>
               <UBadge
                 v-if="isExpired(token.expiresAt)"
-                label="已過期"
+                :label="$t('tokens.expired')"
                 color="error"
                 variant="soft"
                 size="xs"
@@ -119,13 +120,13 @@ function isExpired(expiresAt: string | Date | null) {
             </div>
             <code class="text-xs text-slate-500 dark:text-slate-400 font-mono">{{ token.prefix }}…</code>
             <div class="flex gap-4 mt-1 text-xs text-slate-400 dark:text-slate-500">
-              <span>建立：{{ formatDate(token.createdAt) }}</span>
-              <span>最後使用：{{ formatDate(token.lastUsedAt) }}</span>
-              <span>到期：{{ formatDate(token.expiresAt) }}</span>
+              <span>{{ $t('tokens.createdAt') }}：{{ formatDate(token.createdAt) }}</span>
+              <span>{{ $t('tokens.lastUsedAt') }}：{{ formatDate(token.lastUsedAt) }}</span>
+              <span>{{ $t('tokens.expiresAt') }}：{{ formatDate(token.expiresAt) }}</span>
             </div>
           </div>
           <UButton
-            label="撤銷"
+            :label="$t('tokens.revoke')"
             color="error"
             variant="ghost"
             size="sm"
@@ -142,10 +143,10 @@ function isExpired(expiresAt: string | Date | null) {
           class="w-10 h-10 mx-auto mb-3 opacity-40"
         />
         <p class="text-sm">
-          尚無 API Token
+          {{ $t('tokens.noTokens') }}
         </p>
         <p class="text-xs mt-1">
-          點擊「新增 Token」以建立第一組憑證
+          {{ $t('tokens.noTokensHint') }}
         </p>
       </div>
     </UCard>
@@ -153,22 +154,22 @@ function isExpired(expiresAt: string | Date | null) {
     <!-- Create token modal -->
     <UModal
       v-model:open="showCreateModal"
-      title="新增 API Token"
+      :title="$t('tokens.createToken')"
     >
       <template #body>
         <div class="space-y-4">
           <UFormField
-            label="名稱"
+            :label="$t('tokens.name')"
             required
           >
             <UInput
               v-model="createForm.name"
-              placeholder="如：Claude Code - MacBook"
+              :placeholder="$t('tokens.namePlaceholder')"
               class="w-full"
               maxlength="100"
             />
           </UFormField>
-          <UFormField label="有效天數（留空為永不過期）">
+          <UFormField :label="$t('tokens.expiresInDays')">
             <UInput
               v-model.number="createForm.expiresInDays"
               type="number"
@@ -189,13 +190,13 @@ function isExpired(expiresAt: string | Date | null) {
       <template #footer>
         <div class="flex justify-end gap-2">
           <UButton
-            label="取消"
+            :label="$t('common.cancel')"
             color="neutral"
             variant="ghost"
             @click="showCreateModal = false"
           />
           <UButton
-            label="建立"
+            :label="$t('common.create')"
             :loading="isCreating"
             :disabled="!createForm.name.trim()"
             @click="createToken"
@@ -207,7 +208,7 @@ function isExpired(expiresAt: string | Date | null) {
     <!-- Show created token modal -->
     <UModal
       v-model:open="showTokenModal"
-      title="Token 已建立"
+      :title="$t('tokens.tokenCreated')"
       :dismissible="false"
     >
       <template #body>
@@ -218,7 +219,7 @@ function isExpired(expiresAt: string | Date | null) {
             variant="soft"
             :description="newToken?.message"
           />
-          <UFormField label="你的 API Token">
+          <UFormField :label="$t('tokens.yourToken')">
             <div class="flex gap-2">
               <UInput
                 :model-value="newToken?.token"
@@ -229,7 +230,7 @@ function isExpired(expiresAt: string | Date | null) {
                 icon="i-lucide-copy"
                 color="neutral"
                 variant="outline"
-                @click="copyToClipboard(newToken?.token ?? '', { title: 'Token 已複製' }); hasCopied = true"
+                @click="copyToClipboard(newToken?.token ?? '', { title: t('tokens.tokenCopied') }); hasCopied = true"
               />
             </div>
           </UFormField>
@@ -238,7 +239,7 @@ function isExpired(expiresAt: string | Date | null) {
       <template #footer>
         <div class="flex justify-end">
           <UButton
-            label="關閉"
+            :label="$t('common.close')"
             :disabled="!hasCopied"
             @click="showTokenModal = false; newToken = null"
           />
@@ -249,9 +250,9 @@ function isExpired(expiresAt: string | Date | null) {
     <!-- Revoke confirm modal -->
     <ConfirmModal
       v-model:open="showRevokeModal"
-      title="Revoke Token"
-      :description="`Are you sure you want to revoke ${revokeTarget?.name}? This takes effect immediately and any services using this token will lose access.`"
-      confirm-label="Revoke"
+      :title="$t('tokens.revoke')"
+      :description="$t('tokens.revokeConfirm', { name: revokeTarget?.name })"
+      :confirm-label="$t('tokens.revoke')"
       :loading="isRevoking"
       :on-confirm="confirmRevoke"
       :on-cancel="() => { revokeTarget = null }"
