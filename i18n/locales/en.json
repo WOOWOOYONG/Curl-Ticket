@@ -163,6 +163,10 @@
     "createFailed": "Failed to create issue",
     "updateFailed": "Failed to update issue",
     "copyAsCurl": "Copy as cURL",
+    "deleteIssue": "Delete Issue",
+    "deleteConfirm": "Are you sure you want to delete {id}? This action cannot be undone. All related comments and notifications will be permanently removed.",
+    "deleteSuccess": "Issue deleted successfully",
+    "deleteFailed": "Failed to delete issue",
     "editDetails": "Edit Details",
     "parsedFromCurl": "Parsed from cURL",
     "status": {
