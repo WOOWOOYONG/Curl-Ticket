@@ -230,7 +230,7 @@ async function onSubmit(event: FormSubmitEvent<Record<string, unknown>>) {
     }
     navigateTo(isEditMode.value
       ? `/projects/${projectId.value}/issues/${issueId.value}`
-      : `/projects/${projectId.value}`)
+      : `/projects/${projectId.value}?type=${activeIssueType.value}`)
   } catch (err: unknown) {
     const fallback = isEditMode.value ? t('issues.updateFailed') : t('issues.createFailed')
     const message = err instanceof Error ? err.message : fallback
