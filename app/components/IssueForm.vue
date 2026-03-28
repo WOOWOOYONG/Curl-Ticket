@@ -280,7 +280,7 @@ async function onSubmit(event: FormSubmitEvent<Record<string, unknown>>) {
         <!-- Back link -->
         <div class="mb-6">
           <NuxtLink
-            :to="isEditMode ? `/projects/${projectId}/issues/${issueId}` : `/projects/${projectId}`"
+            :to="isEditMode ? `/projects/${projectId}/issues/${issueId}` : `/projects/${projectId}?type=${activeIssueType}`"
             class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors group"
           >
             <UIcon
