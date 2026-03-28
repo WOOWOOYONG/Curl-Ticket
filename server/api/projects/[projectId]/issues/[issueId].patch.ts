@@ -49,7 +49,7 @@ export default defineEventHandler(async (event) => {
 
   // Reject API-only fields for task type
   if (existing.issueType === IssueType.Task) {
-    const invalidFields = API_BUG_ONLY_FIELDS.filter(f => f in result.data)
+    const invalidFields = API_BUG_ONLY_FIELDS.filter(f => result.data[f] !== undefined)
     if (invalidFields.length > 0) {
       badRequest(`Cannot set API fields on a Task issue: ${invalidFields.join(', ')}`)
     }

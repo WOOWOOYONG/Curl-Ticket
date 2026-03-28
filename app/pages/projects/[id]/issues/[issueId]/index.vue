@@ -103,6 +103,36 @@ watch(selectedStatus, async (nextStatus) => {
   await updateIssueStatus(nextStatus)
 })
 
+// Delete issue
+const showDeleteModal = ref(false)
+const deleteLoading = ref(false)
+
+async function deleteIssue() {
+  deleteLoading.value = true
+  try {
+    await $fetch(`/api/projects/${projectId.value}/issues/${issueId.value}`, {
+      method: 'DELETE'
+    })
+    clearNuxtData(getIssuesCacheKey(projectId.value))
+    clearNuxtData(getIssueCacheKey(projectId.value, issueId.value))
+    toast.add({
+      title: t('issues.deleteSuccess'),
+      color: 'success'
+    })
+    navigateTo(`/projects/${projectId.value}`)
+  } catch (err: unknown) {
+    const error = err as { data?: { message?: string } }
+    toast.add({
+      title: t('common.error'),
+      description: error.data?.message || t('issues.deleteFailed'),
+      color: 'error'
+    })
+  } finally {
+    deleteLoading.value = false
+    showDeleteModal.value = false
+  }
+}
+
 async function updateIssueStatus(nextStatus: IssueStatus) {
   if (!issue.value || updatingStatus.value) return
 
@@ -490,10 +520,32 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
               >
                 {{ $t('issues.editDetails') }}
               </UButton>
+
+              <!-- Delete Issue Button -->
+              <UButton
+                color="error"
+                variant="outline"
+                icon="i-lucide-trash-2"
+                block
+                @click="showDeleteModal = true"
+              >
+                {{ $t('issues.deleteIssue') }}
+              </UButton>
             </div>
           </div>
         </div>
       </template>
     </UContainer>
+
+    <!-- Delete Confirmation Modal -->
+    <ConfirmModal
+      v-model:open="showDeleteModal"
+      :title="$t('issues.deleteIssue')"
+      :description="$t('issues.deleteConfirm', { id: friendlyId || issueId })"
+      :confirm-label="$t('common.delete')"
+      :loading="deleteLoading"
+      :on-confirm="deleteIssue"
+      :on-cancel="() => { showDeleteModal = false }"
+    />
   </div>
 </template>

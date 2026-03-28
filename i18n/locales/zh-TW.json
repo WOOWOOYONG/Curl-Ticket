@@ -163,6 +163,10 @@
     "createFailed": "建立 Issue 失敗",
     "updateFailed": "更新 Issue 失敗",
     "copyAsCurl": "複製為 cURL",
+    "deleteIssue": "刪除 Issue",
+    "deleteConfirm": "確定要刪除 {id} 嗎？此操作無法復原，所有相關留言與通知將被永久刪除。",
+    "deleteSuccess": "Issue 已成功刪除",
+    "deleteFailed": "刪除 Issue 失敗",
     "editDetails": "編輯詳情",
     "parsedFromCurl": "已從 cURL 解析",
     "status": {

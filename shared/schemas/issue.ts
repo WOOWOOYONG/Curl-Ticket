@@ -86,10 +86,14 @@ const issueBaseUpdateFields = {
   status: z.enum(issueStatuses)
 }
 
-/** API Bug update fields — derived from apiBugFields, excluding issueType discriminator */
+/** API Bug update fields — derived from apiBugFields, excluding issueType discriminator.
+ *  Defaults are stripped so PATCH only includes explicitly sent fields. */
 const apiBugUpdateFields = Object.fromEntries(
-  API_BUG_ONLY_FIELDS.map(field => [field, apiBugFields[field]])
-) as { [K in ApiBugOnlyField]: (typeof apiBugFields)[K] }
+  API_BUG_ONLY_FIELDS.map((field) => {
+    const schema = apiBugFields[field]
+    return [field, schema instanceof z.ZodDefault ? schema.removeDefault() : schema]
+  })
+) as unknown as { [K in ApiBugOnlyField]: (typeof apiBugFields)[K] }
 
 /** 更新 Issue — flat partial, API fields derived from apiBugFields */
 export const updateIssueSchema = z.object({
