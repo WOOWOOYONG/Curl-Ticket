@@ -10,25 +10,23 @@ interface SubMenu {
   children: NavItem[]
 }
 
-type NavState = {
-  mode: 'main'
-  items: NavItem[]
-} | {
-  mode: 'sub'
-  menu: SubMenu
-  activeItem: NavItem | undefined
-}
+type NavState =
+  | {
+      mode: 'main'
+      items: NavItem[]
+    }
+  | {
+      mode: 'sub'
+      menu: SubMenu
+      activeItem: NavItem | undefined
+    }
 
-function resolveNavState(
-  path: string,
-  mainItems: NavItem[],
-  subMenus: SubMenu[]
-): NavState {
-  const matched = subMenus.find(m => path.startsWith(m.prefix))
+function resolveNavState(path: string, mainItems: NavItem[], subMenus: SubMenu[]): NavState {
+  const matched = subMenus.find((m) => path.startsWith(m.prefix))
   if (matched) {
-    const exact = matched.children.find(c => c.to === path)
+    const exact = matched.children.find((c) => c.to === path)
     const byPrefix = matched.children
-      .filter(c => c.to !== matched.prefix && path.startsWith(c.to))
+      .filter((c) => c.to !== matched.prefix && path.startsWith(c.to))
       .sort((a, b) => b.to.length - a.to.length)[0]
     return { mode: 'sub', menu: matched, activeItem: exact ?? byPrefix }
   }
@@ -47,9 +45,7 @@ const { profile, fetchProfile } = useProfile()
 await fetchProfile().catch(() => {})
 
 const navItems = computed<NavItem[]>(() => {
-  const items: NavItem[] = [
-    { to: '/', icon: 'i-lucide-folder', label: 'Projects' }
-  ]
+  const items: NavItem[] = [{ to: '/', icon: 'i-lucide-folder', label: 'Projects' }]
   if (profile.value?.role === UserRole.Admin) {
     items.push({ to: '/admin', icon: 'i-lucide-shield', label: 'Invitations' })
   }
@@ -92,7 +88,7 @@ const navState = computed(() => resolveNavState(route.path, navItems.value, subM
             icon="i-lucide-chevron-left"
             color="neutral"
             variant="ghost"
-            class="w-full justify-start mb-2 font-semibold"
+            class="mb-2 w-full justify-start font-semibold"
           >
             {{ navState.menu.label }}
           </UButton>
@@ -103,7 +99,10 @@ const navState = computed(() => resolveNavState(route.path, navItems.value, subM
             :icon="item.icon"
             :color="navState.activeItem?.to === item.to ? 'primary' : 'neutral'"
             :variant="navState.activeItem?.to === item.to ? 'soft' : 'ghost'"
-            :class="['w-full justify-start', navState.activeItem?.to === item.to && 'font-semibold']"
+            :class="[
+              'w-full justify-start',
+              navState.activeItem?.to === item.to && 'font-semibold'
+            ]"
           >
             {{ item.label }}
           </UButton>
@@ -132,7 +131,7 @@ const navState = computed(() => resolveNavState(route.path, navItems.value, subM
             :icon="menu.icon"
             color="neutral"
             variant="ghost"
-            class="w-full justify-start mt-auto"
+            class="mt-auto w-full justify-start"
           >
             {{ menu.label }}
             <UIcon

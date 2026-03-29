@@ -34,7 +34,9 @@ export async function initSkillCommand(): Promise<void> {
         hints: agent.postInstallHints
       })
     } else {
-      const customPath = await askText('Enter target file path (e.g. .windsurf/skills/curl-ticket/SKILL.md):')
+      const customPath = await askText(
+        'Enter target file path (e.g. .windsurf/skills/curl-ticket/SKILL.md):'
+      )
       targets.push({
         path: join(process.cwd(), customPath),
         format: 'plain-md',

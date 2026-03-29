@@ -101,14 +101,14 @@ No authentication required. Useful for AI agents to discover available commands 
 
 #### Exit Codes
 
-| Code | Meaning |
-|------|---------|
-| 0 | Success |
-| 1 | General error |
-| 2 | Authentication / authorization error (401/403) |
-| 3 | Resource not found (404) |
-| 4 | Validation error (invalid input) |
-| 5 | Network connection error |
+| Code | Meaning                                        |
+| ---- | ---------------------------------------------- |
+| 0    | Success                                        |
+| 1    | General error                                  |
+| 2    | Authentication / authorization error (401/403) |
+| 3    | Resource not found (404)                       |
+| 4    | Validation error (invalid input)               |
+| 5    | Network connection error                       |
 
 #### Authentication
 
@@ -245,14 +245,14 @@ ct schema
 
 #### Exit Code
 
-| 代碼 | 意義 |
-|------|------|
-| 0 | 成功 |
-| 1 | 一般錯誤 |
-| 2 | 認證 / 授權錯誤 (401/403) |
-| 3 | 資源不存在 (404) |
-| 4 | 輸入驗證錯誤 |
-| 5 | 網路連線錯誤 |
+| 代碼 | 意義                      |
+| ---- | ------------------------- |
+| 0    | 成功                      |
+| 1    | 一般錯誤                  |
+| 2    | 認證 / 授權錯誤 (401/403) |
+| 3    | 資源不存在 (404)          |
+| 4    | 輸入驗證錯誤              |
+| 5    | 網路連線錯誤              |
 
 #### 認證
 

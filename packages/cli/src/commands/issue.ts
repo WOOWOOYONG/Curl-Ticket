@@ -13,17 +13,20 @@ export async function issueCommand(
   validateProjectId(projectId)
   const parsed = parseIssueId(issueId)
 
-  const res = parsed.type === 'id'
-    ? await client.getIssue(projectId, parsed.value)
-    : await client.getIssueByNumber(projectId, parsed.value)
+  const res =
+    parsed.type === 'id'
+      ? await client.getIssue(projectId, parsed.value)
+      : await client.getIssueByNumber(projectId, parsed.value)
 
   if (json) {
     if (fields) {
-      const requested = fields.split(',').map(f => f.trim())
+      const requested = fields.split(',').map((f) => f.trim())
       const validFields = ISSUE_FIELDS as readonly string[]
-      const invalid = requested.filter(f => !validFields.includes(f))
+      const invalid = requested.filter((f) => !validFields.includes(f))
       if (invalid.length > 0) {
-        throw new ValidationError(`Invalid fields: ${invalid.join(', ')}. Valid fields: ${ISSUE_FIELDS.join(', ')}`)
+        throw new ValidationError(
+          `Invalid fields: ${invalid.join(', ')}. Valid fields: ${ISSUE_FIELDS.join(', ')}`
+        )
       }
 
       // Always include id
@@ -35,7 +38,9 @@ export async function issueCommand(
           filtered[key] = data[key]
         }
       }
-      process.stdout.write(JSON.stringify({ data: filtered, friendlyId: res.friendlyId }, null, 2) + '\n')
+      process.stdout.write(
+        JSON.stringify({ data: filtered, friendlyId: res.friendlyId }, null, 2) + '\n'
+      )
     } else {
       process.stdout.write(JSON.stringify(res, null, 2) + '\n')
     }

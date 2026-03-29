@@ -14,7 +14,10 @@ const avatarPalette = [
  */
 export function getInitials(nameOrEmail: string | null): string {
   if (!nameOrEmail) return '?'
-  const parts = nameOrEmail.trim().split(/[\s@.]+/).filter(Boolean)
+  const parts = nameOrEmail
+    .trim()
+    .split(/[\s@.]+/)
+    .filter(Boolean)
   if (parts.length >= 2) {
     return (parts[0]!.charAt(0) + parts[1]!.charAt(0)).toUpperCase()
   }
@@ -27,7 +30,7 @@ export function getInitials(nameOrEmail: string | null): string {
 export function getAvatarColor(id: string): string {
   let hash = 0
   for (let i = 0; i < id.length; i++) {
-    hash = ((hash << 5) - hash) + id.charCodeAt(i)
+    hash = (hash << 5) - hash + id.charCodeAt(i)
     hash |= 0
   }
   return avatarPalette[Math.abs(hash) % avatarPalette.length]!

@@ -54,7 +54,7 @@ export default defineEventHandler(async (event) => {
   const paginatedProjects = projectsWithTotal.map(({ total: _, ...p }) => p)
 
   // 5. 針對這些 projects 查詢統計資料 + 全域 summary（並行執行）
-  const projectIds = paginatedProjects.map(p => p.id)
+  const projectIds = paginatedProjects.map((p) => p.id)
 
   const [stats, summaryResult] = await Promise.all([
     projectIds.length > 0
@@ -86,8 +86,8 @@ export default defineEventHandler(async (event) => {
   ])
 
   // 6. 合併資料
-  const statsMap = new Map(stats.map(s => [s.projectId, s]))
-  const data = paginatedProjects.map(p => ({
+  const statsMap = new Map(stats.map((s) => [s.projectId, s]))
+  const data = paginatedProjects.map((p) => ({
     ...p,
     totalIssues: statsMap.get(p.id)?.totalIssues ?? 0,
     openIssues: statsMap.get(p.id)?.openIssues ?? 0,

@@ -55,28 +55,35 @@ const projectMenuUi = {
 } as const
 
 // Project dropdown menu
-function getProjectMenuItems(project: { id: string, name: string }) {
+function getProjectMenuItems(project: { id: string; name: string }) {
   return [
-    [{
-      label: t('projects.editProjectMenu'),
-      iconVariant: 'edit' as const,
-      onSelect: () => navigateTo(`/projects/${project.id}/edit`)
-    }, {
-      label: t('projects.inviteMembers'),
-      iconVariant: 'invite' as const,
-      onSelect: () => navigateTo(`/projects/${project.id}/members`)
-    }],
-    [{
-      label: t('projects.deleteProject'),
-      iconVariant: 'delete' as const,
-      color: 'error' as const,
-      onSelect: () => { deleteTarget.value = { id: project.id, name: project.name } }
-    }]
+    [
+      {
+        label: t('projects.editProjectMenu'),
+        iconVariant: 'edit' as const,
+        onSelect: () => navigateTo(`/projects/${project.id}/edit`)
+      },
+      {
+        label: t('projects.inviteMembers'),
+        iconVariant: 'invite' as const,
+        onSelect: () => navigateTo(`/projects/${project.id}/members`)
+      }
+    ],
+    [
+      {
+        label: t('projects.deleteProject'),
+        iconVariant: 'delete' as const,
+        color: 'error' as const,
+        onSelect: () => {
+          deleteTarget.value = { id: project.id, name: project.name }
+        }
+      }
+    ]
   ]
 }
 
 // Delete project
-const deleteTarget = ref<{ id: string, name: string } | null>(null)
+const deleteTarget = ref<{ id: string; name: string } | null>(null)
 const deleteLoading = ref(false)
 
 async function confirmDelete() {
@@ -114,12 +121,16 @@ async function confirmDelete() {
       <div class="relative z-10 flex flex-col gap-8 p-6 sm:p-8 lg:p-10">
         <header class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div class="space-y-3">
-            <div class="inline-flex items-center gap-2 rounded-full border border-emerald-100/80 bg-emerald-50/80 px-3 py-1 text-[11px] font-semibold uppercase  text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-200">
+            <div
+              class="inline-flex items-center gap-2 rounded-full border border-emerald-100/80 bg-emerald-50/80 px-3 py-1 text-[11px] font-semibold text-emerald-700 uppercase dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-200"
+            >
               <span class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
               {{ $t('projects.workspace') }}
             </div>
             <div class="space-y-2">
-              <h1 class="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl dark:text-white">
+              <h1
+                class="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl dark:text-white"
+              >
                 {{ $t('projects.title') }}
               </h1>
             </div>
@@ -131,7 +142,9 @@ async function confirmDelete() {
               size="lg"
               :placeholder="$t('projects.searchPlaceholder')"
               class="w-full sm:w-80"
-              :ui="{ base: 'bg-white/80 dark:bg-gray-900/60 border-slate-200/70 dark:border-white/10' }"
+              :ui="{
+                base: 'bg-white/80 dark:bg-gray-900/60 border-slate-200/70 dark:border-white/10'
+              }"
             />
             <UButton
               icon="i-lucide-plus"
@@ -145,12 +158,16 @@ async function confirmDelete() {
         </header>
 
         <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div class="rounded-2xl border border-white/60 bg-white/75 p-4 shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60">
+          <div
+            class="rounded-2xl border border-white/60 bg-white/75 p-4 shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60"
+          >
             <div class="flex items-start justify-between">
-              <span class="text-[11px] font-semibold uppercase  text-slate-500 dark:text-slate-400">
+              <span class="text-[11px] font-semibold text-slate-500 uppercase dark:text-slate-400">
                 {{ $t('stats.total') }}
               </span>
-              <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100/80 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/20">
+              <div
+                class="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100/80 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/20"
+              >
                 <UIcon
                   name="i-lucide-folder"
                   class="size-4"
@@ -165,12 +182,16 @@ async function confirmDelete() {
             </p>
           </div>
 
-          <div class="rounded-2xl border border-white/60 bg-white/75 p-4 shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60">
+          <div
+            class="rounded-2xl border border-white/60 bg-white/75 p-4 shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60"
+          >
             <div class="flex items-start justify-between">
-              <span class="text-[11px] font-semibold uppercase  text-slate-500 dark:text-slate-400">
+              <span class="text-[11px] font-semibold text-slate-500 uppercase dark:text-slate-400">
                 {{ $t('stats.open') }}
               </span>
-              <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-50 text-amber-600 ring-1 ring-amber-100/80 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-500/20">
+              <div
+                class="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-50 text-amber-600 ring-1 ring-amber-100/80 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-500/20"
+              >
                 <UIcon
                   name="i-lucide-alert-circle"
                   class="size-4"
@@ -185,12 +206,16 @@ async function confirmDelete() {
             </p>
           </div>
 
-          <div class="rounded-2xl border border-white/60 bg-white/75 p-4 shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60">
+          <div
+            class="rounded-2xl border border-white/60 bg-white/75 p-4 shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60"
+          >
             <div class="flex items-start justify-between">
-              <span class="text-[11px] font-semibold uppercase  text-slate-500 dark:text-slate-400">
+              <span class="text-[11px] font-semibold text-slate-500 uppercase dark:text-slate-400">
                 {{ $t('stats.totalIssues') }}
               </span>
-              <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-700 ring-1 ring-slate-200/80 dark:bg-white/10 dark:text-slate-200 dark:ring-white/10">
+              <div
+                class="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-700 ring-1 ring-slate-200/80 dark:bg-white/10 dark:text-slate-200 dark:ring-white/10"
+              >
                 <UIcon
                   name="i-lucide-layers"
                   class="size-4"
@@ -205,12 +230,16 @@ async function confirmDelete() {
             </p>
           </div>
 
-          <div class="rounded-2xl border border-white/60 bg-white/75 p-4 shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60">
+          <div
+            class="rounded-2xl border border-white/60 bg-white/75 p-4 shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60"
+          >
             <div class="flex items-start justify-between">
-              <span class="text-[11px] font-semibold uppercase  text-slate-500 dark:text-slate-400">
+              <span class="text-[11px] font-semibold text-slate-500 uppercase dark:text-slate-400">
                 {{ $t('stats.resolution') }}
               </span>
-              <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100/80 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/20">
+              <div
+                class="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100/80 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/20"
+              >
                 <UIcon
                   name="i-lucide-trending-up"
                   class="size-4"
@@ -260,7 +289,9 @@ async function confirmDelete() {
             v-else-if="projects.length === 0"
             class="rounded-3xl border border-dashed border-slate-200/80 bg-white/70 p-10 text-center shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60"
           >
-            <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300">
+            <div
+              class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300"
+            >
               <UIcon
                 name="i-lucide-folder-plus"
                 class="size-6"
@@ -291,12 +322,18 @@ async function confirmDelete() {
               :to="`/projects/${project.id}`"
               class="group"
             >
-              <article class="relative h-full overflow-hidden rounded-2xl border border-slate-200/70 bg-white/80 p-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-white/10 dark:bg-gray-900/60">
-                <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.08),transparent_60%)] opacity-0 transition duration-300 group-hover:opacity-100 dark:bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.12),transparent_60%)]" />
+              <article
+                class="relative h-full overflow-hidden rounded-2xl border border-slate-200/70 bg-white/80 p-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-white/10 dark:bg-gray-900/60"
+              >
+                <div
+                  class="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.08),transparent_60%)] opacity-0 transition duration-300 group-hover:opacity-100 dark:bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.12),transparent_60%)]"
+                />
                 <div class="relative z-10 flex h-full flex-col gap-4">
                   <div class="flex items-start justify-between gap-3">
                     <div class="flex items-start gap-3">
-                      <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100/80 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/20">
+                      <div
+                        class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100/80 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/20"
+                      >
                         <UIcon
                           name="i-lucide-folder"
                           class="size-5"
@@ -304,10 +341,14 @@ async function confirmDelete() {
                       </div>
                       <div class="min-w-0">
                         <div class="flex items-center gap-2">
-                          <h3 class="truncate text-base font-semibold text-slate-900 dark:text-white">
+                          <h3
+                            class="truncate text-base font-semibold text-slate-900 dark:text-white"
+                          >
                             {{ project.name }}
                           </h3>
-                          <span class="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-semibold tracking-wide text-slate-600 dark:border-white/10 dark:bg-white/10 dark:text-slate-200">
+                          <span
+                            class="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-semibold tracking-wide text-slate-600 dark:border-white/10 dark:bg-white/10 dark:text-slate-200"
+                          >
                             {{ project.key }}
                           </span>
                         </div>
@@ -323,7 +364,9 @@ async function confirmDelete() {
                         :ui="projectMenuUi"
                       >
                         <template #item-leading="{ item }">
-                          <span class="flex size-4 shrink-0 items-center justify-center self-center">
+                          <span
+                            class="flex size-4 shrink-0 items-center justify-center self-center"
+                          >
                             <ProjectMenuIcon
                               :variant="item.iconVariant"
                               class="size-4"
@@ -343,13 +386,19 @@ async function confirmDelete() {
                     </div>
                   </div>
 
-                  <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                  <div
+                    class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400"
+                  >
                     <span>
-                      <span class="text-sm font-semibold text-slate-900 dark:text-white">{{ project.openIssues }}</span>
+                      <span class="text-sm font-semibold text-slate-900 dark:text-white">{{
+                        project.openIssues
+                      }}</span>
                       {{ $t('stats.open') }}
                     </span>
                     <span>
-                      <span class="text-sm font-semibold text-slate-900 dark:text-white">{{ project.totalIssues }}</span>
+                      <span class="text-sm font-semibold text-slate-900 dark:text-white">{{
+                        project.totalIssues
+                      }}</span>
                       {{ $t('stats.total') }}
                     </span>
                   </div>
@@ -357,7 +406,9 @@ async function confirmDelete() {
                   <div class="h-2 w-full rounded-full bg-slate-200/70 dark:bg-slate-800">
                     <div
                       class="h-2 rounded-full bg-linear-to-r from-emerald-500 via-emerald-400 to-lime-400 transition-all"
-                      :style="{ width: `${getProgressPercentage(project.openIssues, project.totalIssues)}%` }"
+                      :style="{
+                        width: `${getProgressPercentage(project.openIssues, project.totalIssues)}%`
+                      }"
                     />
                   </div>
 
@@ -370,7 +421,9 @@ async function confirmDelete() {
                     </span>
                   </div>
 
-                  <div class="flex items-center justify-between pt-2 text-sm font-semibold text-slate-900 dark:text-white">
+                  <div
+                    class="flex items-center justify-between pt-2 text-sm font-semibold text-slate-900 dark:text-white"
+                  >
                     <span class="text-[11px] text-slate-500 dark:text-slate-400">
                       <template v-if="project.lastUpdated">
                         Updated {{ getTimeAgo(project.lastUpdated) }}
@@ -379,7 +432,9 @@ async function confirmDelete() {
                         {{ $t('projects.newProjectLabel') }}
                       </template>
                     </span>
-                    <span class="text-emerald-600 transition group-hover:translate-x-1 dark:text-emerald-400">
+                    <span
+                      class="text-emerald-600 transition group-hover:translate-x-1 dark:text-emerald-400"
+                    >
                       {{ $t('projects.viewDetails') }} →
                     </span>
                   </div>
@@ -391,8 +446,12 @@ async function confirmDelete() {
               to="/projects/create"
               class="group"
             >
-              <div class="relative flex h-full min-h-52 flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-emerald-200/70 bg-white/60 p-6 text-center shadow-sm transition duration-300 hover:-translate-y-1 hover:border-emerald-300 hover:bg-emerald-50/70 dark:border-emerald-500/30 dark:bg-gray-900/50 dark:hover:bg-emerald-500/10">
-                <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300">
+              <div
+                class="relative flex h-full min-h-52 flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-emerald-200/70 bg-white/60 p-6 text-center shadow-sm transition duration-300 hover:-translate-y-1 hover:border-emerald-300 hover:bg-emerald-50/70 dark:border-emerald-500/30 dark:bg-gray-900/50 dark:hover:bg-emerald-500/10"
+              >
+                <div
+                  class="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300"
+                >
                   <UIcon
                     name="i-lucide-plus"
                     class="size-6"
@@ -412,12 +471,18 @@ async function confirmDelete() {
 
           <div
             v-if="pagination && pagination.totalPages > 1"
-            class="flex flex-col gap-3 rounded-2xl border border-white/60 bg-white/75 px-4 py-3 text-sm text-slate-500 shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60 dark:text-slate-400 sm:flex-row sm:items-center sm:justify-between"
+            class="flex flex-col gap-3 rounded-2xl border border-white/60 bg-white/75 px-4 py-3 text-sm text-slate-500 shadow-sm backdrop-blur sm:flex-row sm:items-center sm:justify-between dark:border-white/10 dark:bg-gray-900/60 dark:text-slate-400"
           >
             <span>
-              {{ $t('common.showing') }} <span class="font-medium text-slate-700 dark:text-slate-300">{{ pageStart }}</span>
-              {{ $t('common.to') }} <span class="font-medium text-slate-700 dark:text-slate-300">{{ pageEnd }}</span>
-              {{ $t('common.of') }} <span class="font-medium text-slate-700 dark:text-slate-300">{{ pagination.total }}</span> {{ $t('common.results') }}
+              {{ $t('common.showing') }}
+              <span class="font-medium text-slate-700 dark:text-slate-300">{{ pageStart }}</span>
+              {{ $t('common.to') }}
+              <span class="font-medium text-slate-700 dark:text-slate-300">{{ pageEnd }}</span>
+              {{ $t('common.of') }}
+              <span class="font-medium text-slate-700 dark:text-slate-300">{{
+                pagination.total
+              }}</span>
+              {{ $t('common.results') }}
             </span>
             <UPagination
               :page="projectsOptions.page"
@@ -438,8 +503,16 @@ async function confirmDelete() {
       :confirm-label="$t('common.delete')"
       :loading="deleteLoading"
       :on-confirm="confirmDelete"
-      :on-cancel="() => { deleteTarget = null }"
-      @update:open="(val: boolean) => { if (!val && !deleteLoading) deleteTarget = null }"
+      :on-cancel="
+        () => {
+          deleteTarget = null
+        }
+      "
+      @update:open="
+        (val: boolean) => {
+          if (!val && !deleteLoading) deleteTarget = null
+        }
+      "
     />
   </UDashboardPanel>
 </template>

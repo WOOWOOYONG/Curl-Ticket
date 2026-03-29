@@ -36,12 +36,7 @@ export default defineEventHandler(async (event) => {
   const [existing] = await db
     .select({ issueType: issues.issueType })
     .from(issues)
-    .where(
-      and(
-        eq(issues.id, Number(issueId)),
-        eq(issues.projectId, projectId)
-      )
-    )
+    .where(and(eq(issues.id, Number(issueId)), eq(issues.projectId, projectId)))
 
   if (!existing) {
     notFound('Issue not found')
@@ -49,7 +44,7 @@ export default defineEventHandler(async (event) => {
 
   // Reject API-only fields for task type
   if (existing.issueType === IssueType.Task) {
-    const invalidFields = API_BUG_ONLY_FIELDS.filter(f => result.data[f] !== undefined)
+    const invalidFields = API_BUG_ONLY_FIELDS.filter((f) => result.data[f] !== undefined)
     if (invalidFields.length > 0) {
       badRequest(`Cannot set API fields on a Task issue: ${invalidFields.join(', ')}`)
     }
@@ -61,12 +56,7 @@ export default defineEventHandler(async (event) => {
       ...result.data,
       updatedAt: new Date()
     })
-    .where(
-      and(
-        eq(issues.id, Number(issueId)),
-        eq(issues.projectId, projectId)
-      )
-    )
+    .where(and(eq(issues.id, Number(issueId)), eq(issues.projectId, projectId)))
     .returning()
 
   if (!updatedIssue) {

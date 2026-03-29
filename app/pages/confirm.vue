@@ -8,34 +8,38 @@ definePageMeta({
 const user = useSupabaseUser()
 const processedSub = ref<string | null>(null)
 
-watch(() => user.value?.sub, async (sub) => {
-  if (!sub || processedSub.value === sub) {
-    return
-  }
+watch(
+  () => user.value?.sub,
+  async (sub) => {
+    if (!sub || processedSub.value === sub) {
+      return
+    }
 
-  processedSub.value = sub
+    processedSub.value = sub
 
-  if (import.meta.client) {
-    const pendingToken = sessionStorage.getItem(PENDING_INVITATION_TOKEN_KEY)
+    if (import.meta.client) {
+      const pendingToken = sessionStorage.getItem(PENDING_INVITATION_TOKEN_KEY)
 
-    if (pendingToken) {
-      await nextTick()
+      if (pendingToken) {
+        await nextTick()
 
-      try {
-        await $fetch('/api/invitation-codes/redeem', {
-          method: 'POST',
-          body: { code: pendingToken }
-        })
-      } catch (e) {
-        console.error('Failed to redeem invitation code:', e)
-      } finally {
-        sessionStorage.removeItem(PENDING_INVITATION_TOKEN_KEY)
+        try {
+          await $fetch('/api/invitation-codes/redeem', {
+            method: 'POST',
+            body: { code: pendingToken }
+          })
+        } catch (e) {
+          console.error('Failed to redeem invitation code:', e)
+        } finally {
+          sessionStorage.removeItem(PENDING_INVITATION_TOKEN_KEY)
+        }
       }
     }
-  }
 
-  await navigateTo('/')
-}, { immediate: true })
+    await navigateTo('/')
+  },
+  { immediate: true }
+)
 </script>
 
 <template>
@@ -43,7 +47,7 @@ watch(() => user.value?.sub, async (sub) => {
     <div class="flex justify-center">
       <UIcon
         name="i-heroicons-arrow-path"
-        class="w-8 h-8 animate-spin"
+        class="h-8 w-8 animate-spin"
       />
     </div>
   </UContainer>

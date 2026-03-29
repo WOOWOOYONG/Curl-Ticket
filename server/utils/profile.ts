@@ -8,7 +8,7 @@ import { forbidden } from '~~/server/utils/errors'
  * 優先使用 event.context.profile（middleware 已查詢），避免重複查 DB
  */
 export async function requireAdmin(db: ReturnType<typeof useDB>, userId: string, event?: H3Event) {
-  const profile = event?.context.profile ?? await getProfile(db, userId)
+  const profile = event?.context.profile ?? (await getProfile(db, userId))
 
   if (profile?.role !== 'admin') {
     forbidden('需要管理員權限')
@@ -37,11 +37,7 @@ export async function getOrCreateProfile(
   email: string,
   name?: string
 ) {
-  const [existing] = await db
-    .select()
-    .from(profiles)
-    .where(eq(profiles.id, userId))
-    .limit(1)
+  const [existing] = await db.select().from(profiles).where(eq(profiles.id, userId)).limit(1)
 
   if (existing) {
     if (existing.deletedAt) {
@@ -66,12 +62,9 @@ export async function getOrCreateProfile(
     .onConflictDoNothing()
     .returning()
 
-  return newProfile ?? (await db
-    .select()
-    .from(profiles)
-    .where(eq(profiles.id, userId))
-    .limit(1)
-  )[0]!
+  return (
+    newProfile ?? (await db.select().from(profiles).where(eq(profiles.id, userId)).limit(1))[0]!
+  )
 }
 
 /**

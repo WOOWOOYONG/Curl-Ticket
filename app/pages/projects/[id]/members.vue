@@ -2,7 +2,11 @@
 import { InvitationStatusColor, type BadgeColor } from '~/constants/invitation'
 import type { InvitationStatus } from '~~/shared/constants'
 import type { ProjectMember } from '~~/shared/schemas/project'
-import { createProjectInvitationSchema, type CreateProjectInvitationInput, type ProjectInvitation } from '~~/shared/schemas/project-invitation'
+import {
+  createProjectInvitationSchema,
+  type CreateProjectInvitationInput,
+  type ProjectInvitation
+} from '~~/shared/schemas/project-invitation'
 import type { FormSubmitEvent } from '@nuxt/ui'
 
 definePageMeta({
@@ -27,10 +31,11 @@ const { data: membersResponse, refresh: refreshMembers } = useFetch<{ data: Proj
 const members = computed(() => membersResponse.value?.data ?? [])
 
 // 邀請列表
-const { data: invitationsResponse, refresh: refreshInvitations } = useFetch<{ data: ProjectInvitation[] }>(
-  () => `/api/projects/${projectId.value}/invitations`,
-  { key: `project-invitations-${projectId.value}` }
-)
+const { data: invitationsResponse, refresh: refreshInvitations } = useFetch<{
+  data: ProjectInvitation[]
+}>(() => `/api/projects/${projectId.value}/invitations`, {
+  key: `project-invitations-${projectId.value}`
+})
 const invitations = computed(() => invitationsResponse.value?.data ?? [])
 
 // 邀請表單
@@ -60,7 +65,7 @@ async function sendInvitation(event: FormSubmitEvent<CreateProjectInvitationInpu
 }
 
 // 移除成員
-const removeTarget = ref<{ userId: string, name: string } | null>(null)
+const removeTarget = ref<{ userId: string; name: string } | null>(null)
 const removingMember = ref(false)
 
 function confirmRemoveMember(member: ProjectMember) {
@@ -98,7 +103,7 @@ function getStatusColor(status: InvitationStatus): BadgeColor {
 
 <template>
   <UDashboardPanel>
-    <div class="relative isolate flex-1 min-h-full overflow-hidden">
+    <div class="relative isolate min-h-full flex-1 overflow-hidden">
       <div class="page-bg">
         <div class="page-bg-blob-left -top-28 -left-32" />
         <div class="page-bg-blob-right-compact top-12 -right-40" />
@@ -106,8 +111,8 @@ function getStatusColor(status: InvitationStatus): BadgeColor {
         <div class="page-bg-grid" />
       </div>
 
-      <div class="relative z-10 flex flex-1 min-h-0 flex-col items-center p-6 sm:p-8 lg:p-10">
-        <div class="w-full max-w-xl flex flex-col gap-6">
+      <div class="relative z-10 flex min-h-0 flex-1 flex-col items-center p-6 sm:p-8 lg:p-10">
+        <div class="flex w-full max-w-xl flex-col gap-6">
           <!-- Loading State -->
           <template v-if="status === 'pending'">
             <USkeleton class="h-10 w-48" />
@@ -116,8 +121,12 @@ function getStatusColor(status: InvitationStatus): BadgeColor {
 
           <!-- Not Found / Not Owner -->
           <template v-else-if="!project || !isOwner">
-            <div class="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-200/80 bg-white/70 py-16 text-center shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60">
-              <div class="mb-4 flex size-14 items-center justify-center rounded-2xl bg-rose-50 text-rose-500 dark:bg-rose-500/10 dark:text-rose-300">
+            <div
+              class="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-200/80 bg-white/70 py-16 text-center shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60"
+            >
+              <div
+                class="mb-4 flex size-14 items-center justify-center rounded-2xl bg-rose-50 text-rose-500 dark:bg-rose-500/10 dark:text-rose-300"
+              >
                 <UIcon
                   name="i-lucide-alert-circle"
                   class="size-6"
@@ -162,7 +171,9 @@ function getStatusColor(status: InvitationStatus): BadgeColor {
             </header>
 
             <!-- 邀請成員 -->
-            <section class="rounded-2xl border border-slate-200/70 bg-white/80 p-5 shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60">
+            <section
+              class="rounded-2xl border border-slate-200/70 bg-white/80 p-5 shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60"
+            >
               <h2 class="mb-3 text-base font-semibold text-slate-900 dark:text-white">
                 {{ $t('members.inviteMembers') }}
               </h2>
@@ -199,7 +210,9 @@ function getStatusColor(status: InvitationStatus): BadgeColor {
                 <h3 class="mb-2 text-sm font-medium text-slate-500 dark:text-slate-400">
                   {{ $t('members.invitationHistory') }}
                 </h3>
-                <div class="divide-y divide-slate-100 rounded-lg border border-slate-200/70 dark:divide-white/5 dark:border-white/10">
+                <div
+                  class="divide-y divide-slate-100 rounded-lg border border-slate-200/70 dark:divide-white/5 dark:border-white/10"
+                >
                   <div
                     v-for="inv in invitations"
                     :key="inv.id"
@@ -226,11 +239,15 @@ function getStatusColor(status: InvitationStatus): BadgeColor {
             </section>
 
             <!-- 成員列表 -->
-            <section class="rounded-2xl border border-slate-200/70 bg-white/80 p-5 shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60">
+            <section
+              class="rounded-2xl border border-slate-200/70 bg-white/80 p-5 shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60"
+            >
               <h2 class="mb-3 text-base font-semibold text-slate-900 dark:text-white">
                 {{ $t('members.memberList') }}
               </h2>
-              <div class="divide-y divide-slate-100 rounded-lg border border-slate-200/70 dark:divide-white/5 dark:border-white/10">
+              <div
+                class="divide-y divide-slate-100 rounded-lg border border-slate-200/70 dark:divide-white/5 dark:border-white/10"
+              >
                 <div
                   v-for="member in members"
                   :key="member.userId"
@@ -280,8 +297,16 @@ function getStatusColor(status: InvitationStatus): BadgeColor {
       :confirm-label="$t('common.remove')"
       :loading="removingMember"
       :on-confirm="removeMember"
-      :on-cancel="() => { removeTarget = null }"
-      @update:open="(val: boolean) => { if (!val) removeTarget = null }"
+      :on-cancel="
+        () => {
+          removeTarget = null
+        }
+      "
+      @update:open="
+        (val: boolean) => {
+          if (!val) removeTarget = null
+        }
+      "
     />
   </UDashboardPanel>
 </template>

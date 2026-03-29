@@ -2,7 +2,13 @@
 import { environments, HttpMethod, Environment } from '~~/shared/constants'
 import type { IssueStatus } from '~~/shared/constants'
 import { getHttpMethodColor } from '~/constants/http'
-import { maskValue, formatJson, detectEnvironment, toHeadersArray, formatPayloadSize } from '~/utils/issue'
+import {
+  maskValue,
+  formatJson,
+  detectEnvironment,
+  toHeadersArray,
+  formatPayloadSize
+} from '~/utils/issue'
 
 export interface ApiBugFormState {
   title: string
@@ -90,11 +96,13 @@ function copyUrl() {
 // Copy request body to clipboard
 function copyRequestBody() {
   if (!state.value.requestBody) return
-  copyToClipboard(formatJson(state.value.requestBody), { description: 'Request body copied to clipboard' })
+  copyToClipboard(formatJson(state.value.requestBody), {
+    description: 'Request body copied to clipboard'
+  })
 }
 
 // Options
-const environmentOptions = environments.map(env => ({
+const environmentOptions = environments.map((env) => ({
   label: env,
   value: env
 }))
@@ -191,12 +199,14 @@ defineExpose({ isParsed, clearCurl, initParsedState })
 </script>
 
 <template>
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
     <!-- Left Panel: cURL Input -->
     <div class="space-y-6">
-      <div class="rounded-xl overflow-hidden shadow-lg border border-gray-200 dark:border-gray-800">
+      <div class="overflow-hidden rounded-xl border border-gray-200 shadow-lg dark:border-gray-800">
         <!-- Terminal Header -->
-        <div class="bg-linear-to-r from-gray-800 to-gray-900 dark:from-gray-900 dark:to-gray-950 px-4 py-3">
+        <div
+          class="bg-linear-to-r from-gray-800 to-gray-900 px-4 py-3 dark:from-gray-900 dark:to-gray-950"
+        >
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
               <div class="flex items-center gap-1.5">
@@ -204,7 +214,7 @@ defineExpose({ isParsed, clearCurl, initParsedState })
                 <span class="size-3 rounded-full bg-yellow-500" />
                 <span class="size-3 rounded-full bg-green-500" />
               </div>
-              <div class="flex items-center gap-2 ml-2">
+              <div class="ml-2 flex items-center gap-2">
                 <UIcon
                   name="i-lucide-terminal"
                   class="size-4 text-gray-400"
@@ -229,20 +239,20 @@ defineExpose({ isParsed, clearCurl, initParsedState })
         </div>
 
         <!-- cURL Input Area -->
-        <div class="bg-gray-900 dark:bg-gray-900 p-4 relative">
-          <div class="absolute left-4 top-4 text-emerald-400 font-mono text-sm select-none">
-            $
-          </div>
+        <div class="relative bg-gray-900 p-4 dark:bg-gray-900">
+          <div class="absolute top-4 left-4 font-mono text-sm text-emerald-400 select-none">$</div>
           <textarea
             v-model="localCurlInput"
             :placeholder="curlPlaceholderText"
             rows="12"
-            class="w-full pl-5 bg-transparent text-emerald-300 font-mono text-sm resize-none focus:outline-none placeholder:text-gray-600 leading-relaxed"
+            class="w-full resize-none bg-transparent pl-5 font-mono text-sm leading-relaxed text-emerald-300 placeholder:text-gray-600 focus:outline-none"
           />
         </div>
 
         <!-- Parse Button -->
-        <div class="p-4 bg-gray-100 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-800">
+        <div
+          class="border-t border-gray-200 bg-gray-100 p-4 dark:border-gray-800 dark:bg-gray-900/50"
+        >
           <UAlert
             v-if="parseError"
             color="error"
@@ -266,21 +276,23 @@ defineExpose({ isParsed, clearCurl, initParsedState })
       </div>
 
       <!-- Response Section (Collapsible) -->
-      <div class="rounded-xl overflow-hidden shadow-md border border-gray-200 dark:border-gray-800">
+      <div class="overflow-hidden rounded-xl border border-gray-200 shadow-md dark:border-gray-800">
         <button
           type="button"
-          class="w-full flex items-center justify-between px-4 py-3.5 bg-linear-to-r from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-900/80 hover:from-gray-100 hover:to-gray-150 dark:hover:from-gray-800 dark:hover:to-gray-850 transition-all"
+          class="hover:to-gray-150 dark:hover:to-gray-850 flex w-full items-center justify-between bg-linear-to-r from-gray-50 to-gray-100 px-4 py-3.5 transition-all hover:from-gray-100 dark:from-gray-900 dark:to-gray-900/80 dark:hover:from-gray-800"
           @click="responseExpanded = !responseExpanded"
         >
           <div class="flex items-center gap-3">
-            <div class="flex items-center justify-center size-8 rounded-lg bg-amber-500/10 dark:bg-amber-500/20">
+            <div
+              class="flex size-8 items-center justify-center rounded-lg bg-amber-500/10 dark:bg-amber-500/20"
+            >
               <UIcon
                 name="i-lucide-reply"
                 class="size-4 text-amber-600 dark:text-amber-400"
               />
             </div>
             <div class="text-left">
-              <span class="font-semibold text-gray-900 dark:text-white text-sm block">
+              <span class="block text-sm font-semibold text-gray-900 dark:text-white">
                 {{ t('apiBug.responseSection') }}
               </span>
               <span class="text-xs text-gray-500 dark:text-gray-400">
@@ -296,7 +308,7 @@ defineExpose({ isParsed, clearCurl, initParsedState })
 
         <div
           v-if="responseExpanded"
-          class="p-5 space-y-5 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900"
+          class="space-y-5 border-t border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900"
         >
           <UFormField
             :label="t('issues.statusCode')"
@@ -317,7 +329,7 @@ defineExpose({ isParsed, clearCurl, initParsedState })
           >
             <JsonCodeBlock
               v-model="localResponseBodyInput"
-              placeholder="{&quot;error&quot;: &quot;Something went wrong&quot;}"
+              placeholder='{"error": "Something went wrong"}'
               :rows="8"
               @input="handleResponseBodyInput"
               @blur="handleResponseBodyBlur"
@@ -332,20 +344,23 @@ defineExpose({ isParsed, clearCurl, initParsedState })
       <UCard
         :ui="{
           root: 'overflow-hidden shadow-lg',
-          header: 'bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-900/80 border-b border-gray-200 dark:border-gray-800'
+          header:
+            'bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-900/80 border-b border-gray-200 dark:border-gray-800'
         }"
       >
         <template #header>
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
-              <div class="flex items-center justify-center size-8 rounded-lg bg-primary/10 dark:bg-primary/20">
+              <div
+                class="bg-primary/10 dark:bg-primary/20 flex size-8 items-center justify-center rounded-lg"
+              >
                 <UIcon
                   name="i-lucide-file-text"
-                  class="size-4 text-primary"
+                  class="text-primary size-4"
                 />
               </div>
               <div>
-                <h2 class="font-semibold text-gray-900 dark:text-white text-base">
+                <h2 class="text-base font-semibold text-gray-900 dark:text-white">
                   {{ t('apiBug.issueDetails') }}
                 </h2>
                 <p class="text-xs text-gray-500 dark:text-gray-400">
@@ -414,11 +429,15 @@ defineExpose({ isParsed, clearCurl, initParsedState })
           <UFormField name="url">
             <div
               v-if="state.url"
-              class="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden"
+              class="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-800"
             >
               <!-- Header -->
-              <div class="flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
-                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('apiBug.requestPreview') }}</span>
+              <div
+                class="flex items-center justify-between border-b border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-800 dark:bg-gray-900"
+              >
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{
+                  t('apiBug.requestPreview')
+                }}</span>
                 <UBadge
                   color="neutral"
                   variant="outline"
@@ -429,7 +448,7 @@ defineExpose({ isParsed, clearCurl, initParsedState })
               </div>
 
               <!-- Method + URL -->
-              <div class="p-4 bg-white dark:bg-gray-900">
+              <div class="bg-white p-4 dark:bg-gray-900">
                 <div class="flex items-center gap-3">
                   <UBadge
                     :color="getHttpMethodColor(state.method)"
@@ -438,7 +457,7 @@ defineExpose({ isParsed, clearCurl, initParsedState })
                   >
                     {{ state.method }}
                   </UBadge>
-                  <span class="flex-1 font-mono text-sm text-gray-900 dark:text-white truncate">
+                  <span class="flex-1 truncate font-mono text-sm text-gray-900 dark:text-white">
                     {{ state.url }}
                   </span>
                   <UButton
@@ -454,10 +473,12 @@ defineExpose({ isParsed, clearCurl, initParsedState })
               <!-- Payload Size -->
               <div
                 v-if="payloadSize"
-                class="px-4 py-3 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800"
+                class="border-t border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-800 dark:bg-gray-900"
               >
                 <div class="flex items-center gap-2.5">
-                  <span class="text-sm font-medium text-gray-600 dark:text-gray-300">{{ t('apiBug.payloadSize') }}</span>
+                  <span class="text-sm font-medium text-gray-600 dark:text-gray-300">{{
+                    t('apiBug.payloadSize')
+                  }}</span>
                   <UBadge
                     color="info"
                     variant="subtle"
@@ -471,11 +492,11 @@ defineExpose({ isParsed, clearCurl, initParsedState })
               <!-- Headers (collapsible) -->
               <div
                 v-if="headersArray.length > 0"
-                class="px-4 py-3 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800"
+                class="border-t border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-800 dark:bg-gray-900"
               >
                 <button
                   type="button"
-                  class="flex items-center gap-2 text-xs font-medium text-gray-500 uppercase hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                  class="flex items-center gap-2 text-xs font-medium text-gray-500 uppercase transition-colors hover:text-gray-700 dark:hover:text-gray-300"
                   @click="headersExpanded = !headersExpanded"
                 >
                   <UIcon
@@ -501,7 +522,9 @@ defineExpose({ isParsed, clearCurl, initParsedState })
                     class="font-mono text-sm"
                   >
                     <span class="text-teal-600 dark:text-teal-400">{{ header.key }}:</span>
-                    <span class="text-gray-500 dark:text-gray-400 ml-1">{{ maskValue(header.key, header.value) }}</span>
+                    <span class="ml-1 text-gray-500 dark:text-gray-400">{{
+                      maskValue(header.key, header.value)
+                    }}</span>
                   </div>
                 </div>
               </div>
@@ -509,16 +532,18 @@ defineExpose({ isParsed, clearCurl, initParsedState })
               <!-- Request Body (collapsible) -->
               <div
                 v-if="state.requestBody"
-                class="px-4 py-3 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800"
+                class="border-t border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-800 dark:bg-gray-900"
               >
                 <div class="flex items-center justify-between">
                   <button
                     type="button"
-                    class="flex items-center gap-2 text-xs font-medium text-gray-500 uppercase hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                    class="flex items-center gap-2 text-xs font-medium text-gray-500 uppercase transition-colors hover:text-gray-700 dark:hover:text-gray-300"
                     @click="requestBodyExpanded = !requestBodyExpanded"
                   >
                     <UIcon
-                      :name="requestBodyExpanded ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'"
+                      :name="
+                        requestBodyExpanded ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'
+                      "
                       class="size-3"
                     />
                     {{ t('issues.requestBody') }}
@@ -557,11 +582,11 @@ defineExpose({ isParsed, clearCurl, initParsedState })
             <!-- No URL placeholder -->
             <div
               v-else
-              class="border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-lg p-6 text-center"
+              class="rounded-lg border-2 border-dashed border-gray-200 p-6 text-center dark:border-gray-800"
             >
               <UIcon
                 name="i-lucide-link"
-                class="size-8 text-gray-300 dark:text-gray-600 mx-auto mb-2"
+                class="mx-auto mb-2 size-8 text-gray-300 dark:text-gray-600"
               />
               <p class="text-sm text-gray-400">
                 {{ t('apiBug.parsePrompt') }}

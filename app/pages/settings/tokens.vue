@@ -23,7 +23,9 @@ const revokeTarget = ref<Token | null>(null)
 const isRevoking = ref(false)
 const showRevokeModal = computed({
   get: () => revokeTarget.value !== null,
-  set: (val) => { if (!val) revokeTarget.value = null }
+  set: (val) => {
+    if (!val) revokeTarget.value = null
+  }
 })
 
 async function createToken() {
@@ -79,16 +81,26 @@ function formatDate(date: string | Date | null) {
 function isExpired(expiresAt: string | Date | null) {
   return expiresAt ? new Date(expiresAt) < new Date() : false
 }
+
+function copyToken() {
+  copyToClipboard(newToken.value?.token ?? '', { title: t('tokens.tokenCopied') })
+  hasCopied.value = true
+}
+
+function closeTokenModal() {
+  showTokenModal.value = false
+  newToken.value = null
+}
 </script>
 
 <template>
-  <div class="max-w-3xl mx-auto px-4 py-8">
-    <div class="flex items-center justify-between mb-6">
+  <div class="mx-auto max-w-3xl px-4 py-8">
+    <div class="mb-6 flex items-center justify-between">
       <div>
         <h1 class="text-2xl font-bold">
           {{ $t('tokens.title') }}
         </h1>
-        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
           {{ $t('tokens.subtitle') }}
         </p>
       </div>
@@ -105,11 +117,11 @@ function isExpired(expiresAt: string | Date | null) {
         <li
           v-for="token in tokens"
           :key="token.id"
-          class="flex items-start justify-between py-4 gap-4"
+          class="flex items-start justify-between gap-4 py-4"
         >
           <div class="min-w-0">
             <div class="flex items-center gap-2">
-              <span class="font-medium text-sm">{{ token.name }}</span>
+              <span class="text-sm font-medium">{{ token.name }}</span>
               <UBadge
                 v-if="isExpired(token.expiresAt)"
                 :label="$t('tokens.expired')"
@@ -118,8 +130,10 @@ function isExpired(expiresAt: string | Date | null) {
                 size="xs"
               />
             </div>
-            <code class="text-xs text-slate-500 dark:text-slate-400 font-mono">{{ token.prefix }}…</code>
-            <div class="flex gap-4 mt-1 text-xs text-slate-400 dark:text-slate-500">
+            <code class="font-mono text-xs text-slate-500 dark:text-slate-400"
+              >{{ token.prefix }}…</code
+            >
+            <div class="mt-1 flex gap-4 text-xs text-slate-400 dark:text-slate-500">
               <span>{{ $t('tokens.createdAt') }}：{{ formatDate(token.createdAt) }}</span>
               <span>{{ $t('tokens.lastUsedAt') }}：{{ formatDate(token.lastUsedAt) }}</span>
               <span>{{ $t('tokens.expiresAt') }}：{{ formatDate(token.expiresAt) }}</span>
@@ -140,12 +154,12 @@ function isExpired(expiresAt: string | Date | null) {
       <div class="py-10 text-center text-slate-500 dark:text-slate-400">
         <UIcon
           name="i-lucide-key"
-          class="w-10 h-10 mx-auto mb-3 opacity-40"
+          class="mx-auto mb-3 h-10 w-10 opacity-40"
         />
         <p class="text-sm">
           {{ $t('tokens.noTokens') }}
         </p>
-        <p class="text-xs mt-1">
+        <p class="mt-1 text-xs">
           {{ $t('tokens.noTokensHint') }}
         </p>
       </div>
@@ -230,7 +244,7 @@ function isExpired(expiresAt: string | Date | null) {
                 icon="i-lucide-copy"
                 color="neutral"
                 variant="outline"
-                @click="copyToClipboard(newToken?.token ?? '', { title: t('tokens.tokenCopied') }); hasCopied = true"
+                @click="copyToken"
               />
             </div>
           </UFormField>
@@ -241,7 +255,7 @@ function isExpired(expiresAt: string | Date | null) {
           <UButton
             :label="$t('common.close')"
             :disabled="!hasCopied"
-            @click="showTokenModal = false; newToken = null"
+            @click="closeTokenModal"
           />
         </div>
       </template>
@@ -255,7 +269,11 @@ function isExpired(expiresAt: string | Date | null) {
       :confirm-label="$t('tokens.revoke')"
       :loading="isRevoking"
       :on-confirm="confirmRevoke"
-      :on-cancel="() => { revokeTarget = null }"
+      :on-cancel="
+        () => {
+          revokeTarget = null
+        }
+      "
     />
   </div>
 </template>

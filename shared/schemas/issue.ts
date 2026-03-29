@@ -1,5 +1,13 @@
 import { z } from 'zod'
-import { environments, issueStatuses, httpMethods, issueTypes, Environment, IssueStatus, IssueType } from '../constants'
+import {
+  environments,
+  issueStatuses,
+  httpMethods,
+  issueTypes,
+  Environment,
+  IssueStatus,
+  IssueType
+} from '../constants'
 
 // ============================================
 // Issue Schemas
@@ -22,7 +30,12 @@ const apiBugFields = {
   environment: z.enum(environments).default(Environment.Dev),
   requestHeaders: z.record(z.string(), z.string()).nullish(),
   requestBody: z.unknown().nullish(),
-  responseStatus: z.number('無效的狀態碼').int().min(100, '無效的狀態碼').max(599, '無效的狀態碼').nullish(),
+  responseStatus: z
+    .number('無效的狀態碼')
+    .int()
+    .min(100, '無效的狀態碼')
+    .max(599, '無效的狀態碼')
+    .nullish(),
   responseBody: z.unknown().nullish()
 }
 
@@ -39,8 +52,9 @@ const taskFields = {
  * Field names that only exist on ApiBug issues (excludes the `issueType` discriminator).
  * Single source of truth — POST route, PATCH route, and update schema all derive from this.
  */
-export const API_BUG_ONLY_FIELDS = Object.keys(apiBugFields)
-  .filter((k): k is Exclude<keyof typeof apiBugFields, 'issueType'> => k !== 'issueType')
+export const API_BUG_ONLY_FIELDS = Object.keys(apiBugFields).filter(
+  (k): k is Exclude<keyof typeof apiBugFields, 'issueType'> => k !== 'issueType'
+)
 
 export type ApiBugOnlyField = (typeof API_BUG_ONLY_FIELDS)[number]
 
@@ -49,9 +63,10 @@ export type ApiBugOnlyField = (typeof API_BUG_ONLY_FIELDS)[number]
  * Used when creating Task issues to explicitly null out API columns.
  */
 export function nullifyApiBugFields(): Record<ApiBugOnlyField, null> {
-  return Object.fromEntries(
-    API_BUG_ONLY_FIELDS.map(field => [field, null])
-  ) as Record<ApiBugOnlyField, null>
+  return Object.fromEntries(API_BUG_ONLY_FIELDS.map((field) => [field, null])) as Record<
+    ApiBugOnlyField,
+    null
+  >
 }
 
 /**
@@ -61,7 +76,7 @@ export function pickApiBugFields(
   data: CreateApiBugInput
 ): Pick<CreateApiBugInput, ApiBugOnlyField> {
   return Object.fromEntries(
-    API_BUG_ONLY_FIELDS.map(field => [field, data[field] ?? null])
+    API_BUG_ONLY_FIELDS.map((field) => [field, data[field] ?? null])
   ) as Pick<CreateApiBugInput, ApiBugOnlyField>
 }
 
@@ -76,8 +91,12 @@ export const createIssueSchema = z.discriminatedUnion('issueType', [
 ])
 
 /** 前端表單用 schema（omit projectId + issueType，這兩個由程式邏輯決定） */
-export const createApiBugFormSchema = z.object({ ...issueBaseFields, ...apiBugFields }).omit({ projectId: true, issueType: true })
-export const createTaskFormSchema = z.object({ ...issueBaseFields, ...taskFields }).omit({ projectId: true, issueType: true })
+export const createApiBugFormSchema = z
+  .object({ ...issueBaseFields, ...apiBugFields })
+  .omit({ projectId: true, issueType: true })
+export const createTaskFormSchema = z
+  .object({ ...issueBaseFields, ...taskFields })
+  .omit({ projectId: true, issueType: true })
 
 /** Base fields for update (no defaults, so .partial() works correctly) */
 const issueBaseUpdateFields = {
@@ -96,10 +115,12 @@ const apiBugUpdateFields = Object.fromEntries(
 ) as unknown as { [K in ApiBugOnlyField]: (typeof apiBugFields)[K] }
 
 /** 更新 Issue — flat partial, API fields derived from apiBugFields */
-export const updateIssueSchema = z.object({
-  ...issueBaseUpdateFields,
-  ...apiBugUpdateFields
-}).partial()
+export const updateIssueSchema = z
+  .object({
+    ...issueBaseUpdateFields,
+    ...apiBugUpdateFields
+  })
+  .partial()
 
 /** Issue 資料（完整） */
 export const issueSchema = z.object({
@@ -145,8 +166,8 @@ export const issueListItemSchema = issueSchema.pick({
 // ============================================
 
 export type CreateIssueInput = z.infer<typeof createIssueSchema>
-export type CreateApiBugInput = z.infer<typeof createIssueSchema.options[0]>
-export type CreateTaskInput = z.infer<typeof createIssueSchema.options[1]>
+export type CreateApiBugInput = z.infer<(typeof createIssueSchema.options)[0]>
+export type CreateTaskInput = z.infer<(typeof createIssueSchema.options)[1]>
 export type CreateApiBugFormInput = z.infer<typeof createApiBugFormSchema>
 export type CreateTaskFormInput = z.infer<typeof createTaskFormSchema>
 export type UpdateIssueInput = z.infer<typeof updateIssueSchema>

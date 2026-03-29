@@ -49,10 +49,12 @@ function copyCode(code: string) {
       </div>
 
       <div class="relative z-10 flex flex-col items-center p-6 sm:p-8 lg:p-10">
-        <div class="w-full max-w-2xl flex flex-col gap-6">
+        <div class="flex w-full max-w-2xl flex-col gap-6">
           <header class="flex items-end justify-between gap-4">
             <div class="space-y-2">
-              <div class="inline-flex items-center gap-2 rounded-full border border-violet-100/80 bg-violet-50/80 px-3 py-1 text-[11px] font-semibold uppercase text-violet-700 dark:border-violet-500/20 dark:bg-violet-500/10 dark:text-violet-200">
+              <div
+                class="inline-flex items-center gap-2 rounded-full border border-violet-100/80 bg-violet-50/80 px-3 py-1 text-[11px] font-semibold text-violet-700 uppercase dark:border-violet-500/20 dark:bg-violet-500/10 dark:text-violet-200"
+              >
                 <span class="h-1.5 w-1.5 rounded-full bg-violet-500" />
                 Admin
               </div>
@@ -85,7 +87,9 @@ function copyCode(code: string) {
               v-if="codes.length === 0"
               class="rounded-3xl border border-dashed border-slate-200/80 bg-white/70 py-12 text-center shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60"
             >
-              <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-300">
+              <div
+                class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-300"
+              >
                 <UIcon
                   name="i-lucide-ticket"
                   class="size-6"
@@ -118,7 +122,9 @@ function copyCode(code: string) {
                     <th class="px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">
                       {{ $t('admin.usedAt') }}
                     </th>
-                    <th class="px-4 py-2.5 text-right text-xs font-medium text-slate-500 dark:text-slate-400">
+                    <th
+                      class="px-4 py-2.5 text-right text-xs font-medium text-slate-500 dark:text-slate-400"
+                    >
                       {{ $t('admin.actions') }}
                     </th>
                   </tr>
@@ -129,7 +135,9 @@ function copyCode(code: string) {
                     :key="code.id"
                   >
                     <td class="px-4 py-3">
-                      <code class="text-sm font-bold tracking-widest text-slate-700 dark:text-slate-300">
+                      <code
+                        class="text-sm font-bold tracking-widest text-slate-700 dark:text-slate-300"
+                      >
                         {{ code.code }}
                       </code>
                     </td>
@@ -142,10 +150,14 @@ function copyCode(code: string) {
                         {{ code.isUsed ? $t('admin.used') : $t('admin.available') }}
                       </UBadge>
                     </td>
-                    <td class="whitespace-nowrap px-4 py-3 text-xs text-slate-500 dark:text-slate-400">
+                    <td
+                      class="px-4 py-3 text-xs whitespace-nowrap text-slate-500 dark:text-slate-400"
+                    >
                       {{ formatDateTime(code.createdAt) }}
                     </td>
-                    <td class="whitespace-nowrap px-4 py-3 text-xs text-slate-500 dark:text-slate-400">
+                    <td
+                      class="px-4 py-3 text-xs whitespace-nowrap text-slate-500 dark:text-slate-400"
+                    >
                       {{ code.usedAt ? formatDateTime(code.usedAt) : '—' }}
                     </td>
                     <td class="px-4 py-3 text-right">

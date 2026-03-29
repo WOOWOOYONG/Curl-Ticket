@@ -8,10 +8,7 @@ import { badRequest } from '~~/server/utils/errors'
  */
 export function generateInvitationToken(): string {
   const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
-  return Array.from(
-    { length: 6 },
-    () => chars[Math.floor(Math.random() * chars.length)]
-  ).join('')
+  return Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
 }
 
 /**
@@ -22,12 +19,7 @@ export async function validateInvitationToken(db: ReturnType<typeof useDB>, toke
   const [code] = await db
     .select()
     .from(invitationCodes)
-    .where(
-      and(
-        eq(invitationCodes.code, token),
-        eq(invitationCodes.isUsed, false)
-      )
-    )
+    .where(and(eq(invitationCodes.code, token), eq(invitationCodes.isUsed, false)))
     .limit(1)
 
   if (!code) {

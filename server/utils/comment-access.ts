@@ -19,12 +19,7 @@ export async function getProjectIssue(db: DB, projectId: string, issueId: string
       createdBy: issues.createdBy
     })
     .from(issues)
-    .where(
-      and(
-        eq(issues.id, Number(issueId)),
-        eq(issues.projectId, projectId)
-      )
-    )
+    .where(and(eq(issues.id, Number(issueId)), eq(issues.projectId, projectId)))
     .limit(1)
 
   if (!issue) {
@@ -42,12 +37,7 @@ export async function getIssueComment(db: DB, issueId: string, commentId: string
   const [comment] = await db
     .select({ id: issueComments.id, authorId: issueComments.authorId })
     .from(issueComments)
-    .where(
-      and(
-        eq(issueComments.id, Number(commentId)),
-        eq(issueComments.issueId, Number(issueId))
-      )
-    )
+    .where(and(eq(issueComments.id, Number(commentId)), eq(issueComments.issueId, Number(issueId))))
     .limit(1)
 
   if (!comment) {

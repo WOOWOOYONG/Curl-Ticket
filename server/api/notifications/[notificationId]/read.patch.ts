@@ -11,7 +11,8 @@ export default defineEventHandler(async (event) => {
   const db = useDB()
   const userId = event.context.userId as string
 
-  const [updated] = await db.update(notifications)
+  const [updated] = await db
+    .update(notifications)
     .set({ isRead: true })
     .where(and(eq(notifications.id, id), eq(notifications.userId, userId)))
     .returning()

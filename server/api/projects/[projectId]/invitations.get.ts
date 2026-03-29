@@ -19,14 +19,17 @@ export default defineEventHandler(async (event) => {
   }
 
   // 讀取前先同步過期狀態，確保列表顯示正確
-  await db.update(projectInvitations)
+  await db
+    .update(projectInvitations)
     .set({ status: InvitationStatus.Expired })
-    .where(and(
-      eq(projectInvitations.projectId, projectId),
-      eq(projectInvitations.status, InvitationStatus.Pending),
-      isNotNull(projectInvitations.expiresAt),
-      lt(projectInvitations.expiresAt, new Date())
-    ))
+    .where(
+      and(
+        eq(projectInvitations.projectId, projectId),
+        eq(projectInvitations.status, InvitationStatus.Pending),
+        isNotNull(projectInvitations.expiresAt),
+        lt(projectInvitations.expiresAt, new Date())
+      )
+    )
 
   const invitations = await db
     .select({

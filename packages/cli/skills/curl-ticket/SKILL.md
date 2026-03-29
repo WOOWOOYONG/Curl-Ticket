@@ -33,16 +33,17 @@ Authentication is handled automatically; first run opens the browser for login.
 
 # Exit Codes
 
-| Code | Meaning |
-|------|---------|
-| 0 | Success |
-| 1 | General error |
-| 2 | Authentication / authorization error (401/403) |
-| 3 | Resource not found (404) |
-| 4 | Validation error (invalid input) |
-| 5 | Network connection error |
+| Code | Meaning                                        |
+| ---- | ---------------------------------------------- |
+| 0    | Success                                        |
+| 1    | General error                                  |
+| 2    | Authentication / authorization error (401/403) |
+| 3    | Resource not found (404)                       |
+| 4    | Validation error (invalid input)               |
+| 5    | Network connection error                       |
 
 In `--json` mode, errors include `exitCode` in the response:
+
 ```json
 { "error": true, "code": 404, "exitCode": 3, "message": "Resource not found." }
 ```
@@ -70,26 +71,44 @@ Returns a preview object with `dryRun: true` and the resolved `issueId`, `friend
 # JSON Output Format
 
 List commands (`projects`, `issues`) return:
+
 ```json
 { "data": [...], "pagination": { "page": 1, "pageSize": 10, "total": 42, "totalPages": 5 } }
 ```
 
 Single-resource commands (`issue`, `update-status`) return:
+
 ```json
 { "data": { "id": 1, "issueNumber": 42, "issueType": "api_bug", "title": "...", "status": "Open", "method": "GET", "url": "/api/users", "environment": "Prod", "responseStatus": 500, "rawCurl": "...", "responseBody": "...", ... }, "friendlyId": "PROJ-42" }
 ```
 
 Comment commands (`comments`) return:
+
 ```json
-{ "data": [{ "id": 1, "issueId": 42, "authorId": "uuid", "authorName": "Name", "authorEmail": "email", "content": "...", "createdAt": "...", "updatedAt": null }] }
+{
+  "data": [
+    {
+      "id": 1,
+      "issueId": 42,
+      "authorId": "uuid",
+      "authorName": "Name",
+      "authorEmail": "email",
+      "content": "...",
+      "createdAt": "...",
+      "updatedAt": null
+    }
+  ]
+}
 ```
 
 Single comment commands (`comment`, `add-comment`, `edit-comment`) return:
+
 ```json
 { "data": { "id": 1, "issueId": 42, "authorName": "Name", "content": "...", ... } }
 ```
 
 Delete comment returns:
+
 ```json
 { "success": true }
 ```

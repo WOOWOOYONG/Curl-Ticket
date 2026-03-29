@@ -28,16 +28,19 @@ export const PROJECTS_CACHE_KEY = 'projects-list'
  * @param options - 分頁與搜尋選項 (Ref<UseProjectsOptions>)
  */
 export function useProjects(options: Ref<UseProjectsOptions>) {
-  return useFetch<ProjectsResponse>(() => {
-    const { page = 1, pageSize = 12, search } = options.value
-    const params = new URLSearchParams()
-    params.set('page', String(page))
-    params.set('pageSize', String(pageSize))
-    if (search) params.set('search', search)
-    return `/api/projects?${params.toString()}`
-  }, {
-    key: PROJECTS_CACHE_KEY,
-    watch: [options],
-    deep: true
-  })
+  return useFetch<ProjectsResponse>(
+    () => {
+      const { page = 1, pageSize = 12, search } = options.value
+      const params = new URLSearchParams()
+      params.set('page', String(page))
+      params.set('pageSize', String(pageSize))
+      if (search) params.set('search', search)
+      return `/api/projects?${params.toString()}`
+    },
+    {
+      key: PROJECTS_CACHE_KEY,
+      watch: [options],
+      deep: true
+    }
+  )
 }

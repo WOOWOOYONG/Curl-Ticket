@@ -19,20 +19,23 @@ defineProps<{
   <UCard
     :ui="{
       root: 'overflow-hidden shadow-lg',
-      header: 'bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-900/80 border-b border-gray-200 dark:border-gray-800'
+      header:
+        'bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-900/80 border-b border-gray-200 dark:border-gray-800'
     }"
   >
     <template #header>
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <div class="flex items-center justify-center size-8 rounded-lg bg-primary/10 dark:bg-primary/20">
+          <div
+            class="bg-primary/10 dark:bg-primary/20 flex size-8 items-center justify-center rounded-lg"
+          >
             <UIcon
               name="i-lucide-check-square"
-              class="size-4 text-primary"
+              class="text-primary size-4"
             />
           </div>
           <div>
-            <h2 class="font-semibold text-gray-900 dark:text-white text-base">
+            <h2 class="text-base font-semibold text-gray-900 dark:text-white">
               {{ t('task.details') }}
             </h2>
             <p class="text-xs text-gray-500 dark:text-gray-400">

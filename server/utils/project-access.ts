@@ -28,10 +28,7 @@ function buildMemberExistsCondition(userId: string) {
  * @returns 可用於 where() 的授權條件
  */
 export function buildProjectAccessCondition(userId: string) {
-  return or(
-    eq(projects.ownerId, userId),
-    buildMemberExistsCondition(userId)
-  )!
+  return or(eq(projects.ownerId, userId), buildMemberExistsCondition(userId))!
 }
 
 /**
@@ -52,12 +49,7 @@ export async function getAccessibleProject(
   const [project] = await db
     .select()
     .from(projects)
-    .where(
-      and(
-        eq(projects.id, projectId),
-        buildProjectAccessCondition(userId)
-      )
-    )
+    .where(and(eq(projects.id, projectId), buildProjectAccessCondition(userId)))
     .limit(1)
 
   if (!project) {

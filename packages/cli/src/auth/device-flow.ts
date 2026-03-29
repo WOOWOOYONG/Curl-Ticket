@@ -29,7 +29,7 @@ export async function startDeviceCodeFlow(baseUrl: string): Promise<AuthConfig> 
     throw new Error(`Failed to start login flow (${codeRes.status})`)
   }
 
-  const codeData = await codeRes.json() as DeviceCodeResponse
+  const codeData = (await codeRes.json()) as DeviceCodeResponse
   const { deviceCode, verificationUrl, expiresIn, interval } = codeData
 
   stderr('  Opening browser...\n')
@@ -45,7 +45,7 @@ export async function startDeviceCodeFlow(baseUrl: string): Promise<AuthConfig> 
     const remaining = Math.ceil((deadline - Date.now()) / 1000)
     stderr(`\r  Waiting for verification... (${remaining}s remaining)  `)
 
-    await new Promise(resolve => setTimeout(resolve, pollInterval))
+    await new Promise((resolve) => setTimeout(resolve, pollInterval))
 
     const tokenRes = await fetch(`${baseUrl}/api/auth/device/token`, {
       method: 'POST',
@@ -57,7 +57,7 @@ export async function startDeviceCodeFlow(baseUrl: string): Promise<AuthConfig> 
       continue
     }
 
-    const tokenData = await tokenRes.json() as DeviceTokenResponse
+    const tokenData = (await tokenRes.json()) as DeviceTokenResponse
 
     if (tokenData.status === 'complete' && tokenData.token) {
       const config: AuthConfig = {

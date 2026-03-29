@@ -44,16 +44,14 @@ export const ExitCode = {
   NetworkError: 5
 } as const
 
-export type ExitCode = typeof ExitCode[keyof typeof ExitCode]
+export type ExitCode = (typeof ExitCode)[keyof typeof ExitCode]
 
-type AssertExhaustive<
-  T extends readonly string[],
-  U
-> = Exclude<keyof U, T[number]> extends never
-  ? Exclude<T[number], keyof U> extends never
-    ? T
+type AssertExhaustive<T extends readonly string[], U> =
+  Exclude<keyof U, T[number]> extends never
+    ? Exclude<T[number], keyof U> extends never
+      ? T
+      : never
     : never
-  : never
 
 const _issueFields = [
   'id',

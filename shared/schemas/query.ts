@@ -26,11 +26,13 @@ export const issueQuerySchema = paginationQuerySchema.extend({
 // Project Query
 // ============================================
 
-export const projectQuerySchema = paginationQuerySchema.extend({
-  search: z.string().optional()
-}).extend({
-  pageSize: z.coerce.number().int().min(1).max(100).default(12)
-})
+export const projectQuerySchema = paginationQuerySchema
+  .extend({
+    search: z.string().optional()
+  })
+  .extend({
+    pageSize: z.coerce.number().int().min(1).max(100).default(12)
+  })
 
 // ============================================
 // Types

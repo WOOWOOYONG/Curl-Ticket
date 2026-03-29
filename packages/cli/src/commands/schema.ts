@@ -14,41 +14,57 @@ import { VALID_STATUS_INPUTS } from '../utils.js'
 export function schemaCommand(): void {
   const schema = {
     commands: {
-      'projects': {
+      projects: {
         description: 'List accessible projects',
         args: [],
         options: {
           '--json': { type: 'boolean', description: 'Output raw JSON' }
         }
       },
-      'issues': {
+      issues: {
         description: 'List issues for a project',
-        args: [
-          { name: 'projectId', type: 'uuid', required: true }
-        ],
+        args: [{ name: 'projectId', type: 'uuid', required: true }],
         options: {
           '--json': { type: 'boolean', description: 'Output raw JSON' },
-          '-s, --status': { type: 'enum', values: [...VALID_STATUS_INPUTS], description: 'Filter by status' },
+          '-s, --status': {
+            type: 'enum',
+            values: [...VALID_STATUS_INPUTS],
+            description: 'Filter by status'
+          },
           '-t, --type': { type: 'enum', values: issueTypes, description: 'Filter by type' },
           '-n, --limit': { type: 'number', default: 10, max: 20, description: 'Max results' }
         }
       },
-      'issue': {
+      issue: {
         description: 'Get issue details',
         args: [
           { name: 'projectId', type: 'uuid', required: true },
-          { name: 'issueId', type: 'string', required: true, description: 'Numeric ID or friendly ID (e.g. CT-42)' }
+          {
+            name: 'issueId',
+            type: 'string',
+            required: true,
+            description: 'Numeric ID or friendly ID (e.g. CT-42)'
+          }
         ],
         options: {
           '--json': { type: 'boolean', description: 'Output raw JSON' },
-          '--fields': { type: 'string', description: 'Comma-separated fields to include (JSON mode only)', values: [...ISSUE_FIELDS] }
+          '--fields': {
+            type: 'string',
+            description: 'Comma-separated fields to include (JSON mode only)',
+            values: [...ISSUE_FIELDS]
+          }
         }
       },
       'update-status': {
         description: 'Update issue status',
         args: [
           { name: 'projectId', type: 'uuid', required: true },
-          { name: 'issueId', type: 'string', required: true, description: 'Numeric ID or friendly ID (e.g. CT-42)' },
+          {
+            name: 'issueId',
+            type: 'string',
+            required: true,
+            description: 'Numeric ID or friendly ID (e.g. CT-42)'
+          },
           { name: 'status', type: 'enum', values: [...VALID_STATUS_INPUTS], required: true }
         ],
         options: {
@@ -56,7 +72,7 @@ export function schemaCommand(): void {
           '--dry-run': { type: 'boolean', description: 'Preview update without applying' }
         }
       },
-      'comments': {
+      comments: {
         description: 'List comments for an issue',
         args: [
           { name: 'projectId', type: 'uuid', required: true },
@@ -66,7 +82,7 @@ export function schemaCommand(): void {
           '--json': { type: 'boolean', description: 'Output raw JSON' }
         }
       },
-      'comment': {
+      comment: {
         description: 'Get a single comment',
         args: [
           { name: 'projectId', type: 'uuid', required: true },
@@ -82,7 +98,12 @@ export function schemaCommand(): void {
         args: [
           { name: 'projectId', type: 'uuid', required: true },
           { name: 'issueId', type: 'string', required: true, description: 'Numeric issue ID' },
-          { name: 'content', type: 'string', required: true, description: 'Comment content (1-5000 chars)' }
+          {
+            name: 'content',
+            type: 'string',
+            required: true,
+            description: 'Comment content (1-5000 chars)'
+          }
         ],
         options: {
           '--json': { type: 'boolean', description: 'Output raw JSON' }
@@ -94,7 +115,12 @@ export function schemaCommand(): void {
           { name: 'projectId', type: 'uuid', required: true },
           { name: 'issueId', type: 'string', required: true, description: 'Numeric issue ID' },
           { name: 'commentId', type: 'number', required: true, description: 'Numeric comment ID' },
-          { name: 'content', type: 'string', required: true, description: 'New comment content (1-5000 chars)' }
+          {
+            name: 'content',
+            type: 'string',
+            required: true,
+            description: 'New comment content (1-5000 chars)'
+          }
         ],
         options: {
           '--json': { type: 'boolean', description: 'Output raw JSON' }
@@ -112,7 +138,7 @@ export function schemaCommand(): void {
           '--force': { type: 'boolean', description: 'Skip confirmation prompt' }
         }
       },
-      'schema': {
+      schema: {
         description: 'Print CLI schema for agent introspection',
         args: [],
         options: {}

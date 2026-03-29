@@ -1,5 +1,12 @@
 import { eq } from 'drizzle-orm'
-import { apiTokens, deviceCodes, notifications, profiles, projectMembers, projects } from '~~/server/database/schema'
+import {
+  apiTokens,
+  deviceCodes,
+  notifications,
+  profiles,
+  projectMembers,
+  projects
+} from '~~/server/database/schema'
 import { badRequest } from '~~/server/utils/errors'
 
 /**
@@ -21,7 +28,7 @@ export default defineEventHandler(async (event) => {
 
   if (ownedProjects.length > 0) {
     badRequest('Please transfer or delete owned projects first', {
-      ownedProjects: ownedProjects.map(p => ({ id: p.id, name: p.name }))
+      ownedProjects: ownedProjects.map((p) => ({ id: p.id, name: p.name }))
     })
   }
 
@@ -34,10 +41,7 @@ export default defineEventHandler(async (event) => {
   ])
 
   // 軟刪除 profile
-  await db
-    .update(profiles)
-    .set({ deletedAt: new Date() })
-    .where(eq(profiles.id, userId))
+  await db.update(profiles).set({ deletedAt: new Date() }).where(eq(profiles.id, userId))
 
   return { success: true }
 })

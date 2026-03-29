@@ -1,18 +1,15 @@
 <script setup>
 useHead({
-  meta: [
-    { name: 'viewport', content: 'width=device-width, initial-scale=1' }
-  ],
-  link: [
-    { rel: 'icon', href: '/favicon.ico' }
-  ],
+  meta: [{ name: 'viewport', content: 'width=device-width, initial-scale=1' }],
+  link: [{ rel: 'icon', href: '/favicon.ico' }],
   htmlAttrs: {
     lang: 'en'
   }
 })
 
 const title = 'Curl Ticket'
-const description = 'Curl Ticket is a ticketing system that allows users to create, manage, and track support tickets efficiently.'
+const description =
+  'Curl Ticket is a ticketing system that allows users to create, manage, and track support tickets efficiently.'
 
 useSeoMeta({
   title,

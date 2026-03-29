@@ -10,14 +10,20 @@ import type {
 import { DEFAULT_PAGE_SIZE, PROJECTS_PAGE_SIZE } from './constants.js'
 
 export class ApiError extends Error {
-  constructor(public statusCode: number, message: string) {
+  constructor(
+    public statusCode: number,
+    message: string
+  ) {
     super(message)
     this.name = 'ApiError'
   }
 }
 
 export class NetworkError extends Error {
-  constructor(public url: string, cause?: Error) {
+  constructor(
+    public url: string,
+    cause?: Error
+  ) {
     super(`Unable to connect to ${url}. Please check the URL and network status.`)
     this.name = 'NetworkError'
     this.cause = cause
@@ -40,7 +46,7 @@ export class CurlTicketClient {
       res = await fetch(url, {
         ...options,
         headers: {
-          'Authorization': `Bearer ${this.config.token}`,
+          Authorization: `Bearer ${this.config.token}`,
           'Content-Type': 'application/json',
           ...options?.headers
         }
@@ -84,7 +90,11 @@ export class CurlTicketClient {
     return this.getIssue(projectId, String(list.data[0].id))
   }
 
-  async updateIssueStatus(projectId: string, issueId: string, status: string): Promise<IssueResponse> {
+  async updateIssueStatus(
+    projectId: string,
+    issueId: string,
+    status: string
+  ): Promise<IssueResponse> {
     return this.request<IssueResponse>(`/api/projects/${projectId}/issues/${issueId}`, {
       method: 'PATCH',
       body: JSON.stringify({ status })
@@ -95,32 +105,55 @@ export class CurlTicketClient {
     return this.request<CommentsResponse>(`/api/projects/${projectId}/issues/${issueId}/comments`)
   }
 
-  async getComment(projectId: string, issueId: string, commentId: string): Promise<CommentResponse> {
+  async getComment(
+    projectId: string,
+    issueId: string,
+    commentId: string
+  ): Promise<CommentResponse> {
     const res = await this.getComments(projectId, issueId)
-    const comment = res.data.find(c => c.id === Number(commentId))
+    const comment = res.data.find((c) => c.id === Number(commentId))
     if (!comment) {
       throw new ApiError(404, 'Comment not found.')
     }
     return { data: comment }
   }
 
-  async createComment(projectId: string, issueId: string, content: string): Promise<CommentResponse> {
+  async createComment(
+    projectId: string,
+    issueId: string,
+    content: string
+  ): Promise<CommentResponse> {
     return this.request<CommentResponse>(`/api/projects/${projectId}/issues/${issueId}/comments`, {
       method: 'POST',
       body: JSON.stringify({ content })
     })
   }
 
-  async updateComment(projectId: string, issueId: string, commentId: string, content: string): Promise<CommentResponse> {
-    return this.request<CommentResponse>(`/api/projects/${projectId}/issues/${issueId}/comments/${commentId}`, {
-      method: 'PATCH',
-      body: JSON.stringify({ content })
-    })
+  async updateComment(
+    projectId: string,
+    issueId: string,
+    commentId: string,
+    content: string
+  ): Promise<CommentResponse> {
+    return this.request<CommentResponse>(
+      `/api/projects/${projectId}/issues/${issueId}/comments/${commentId}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ content })
+      }
+    )
   }
 
-  async deleteComment(projectId: string, issueId: string, commentId: string): Promise<DeleteResponse> {
-    return this.request<DeleteResponse>(`/api/projects/${projectId}/issues/${issueId}/comments/${commentId}`, {
-      method: 'DELETE'
-    })
+  async deleteComment(
+    projectId: string,
+    issueId: string,
+    commentId: string
+  ): Promise<DeleteResponse> {
+    return this.request<DeleteResponse>(
+      `/api/projects/${projectId}/issues/${issueId}/comments/${commentId}`,
+      {
+        method: 'DELETE'
+      }
+    )
   }
 }

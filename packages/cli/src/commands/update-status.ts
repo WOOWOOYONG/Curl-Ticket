@@ -40,7 +40,9 @@ export async function updateStatusCommand(
     if (json) {
       process.stdout.write(JSON.stringify(preview, null, 2) + '\n')
     } else {
-      console.log(`[dry-run] Would update issue ${friendlyId ?? actualId} status to "${normalized}"`)
+      console.log(
+        `[dry-run] Would update issue ${friendlyId ?? actualId} status to "${normalized}"`
+      )
     }
     return
   }

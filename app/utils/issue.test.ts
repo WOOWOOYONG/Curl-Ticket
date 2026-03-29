@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest'
-import { maskValue, formatJson, formatPayloadSize, getJsonLines, buildCurlCommand, detectEnvironment } from './issue'
+import {
+  maskValue,
+  formatJson,
+  formatPayloadSize,
+  getJsonLines,
+  buildCurlCommand,
+  detectEnvironment
+} from './issue'
 
 describe('maskValue', () => {
   it('masks authorization header values', () => {
@@ -131,7 +138,7 @@ describe('getJsonLines', () => {
 describe('buildCurlCommand', () => {
   it('builds a basic curl command with method and url', () => {
     const cmd = buildCurlCommand({ method: 'GET', url: 'https://api.example.com' })
-    expect(cmd).toBe('curl -X GET \'https://api.example.com\'')
+    expect(cmd).toBe("curl -X GET 'https://api.example.com'")
   })
 
   it('includes request headers', () => {
@@ -140,11 +147,11 @@ describe('buildCurlCommand', () => {
       url: 'https://api.example.com',
       requestHeaders: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer token123'
+        Authorization: 'Bearer token123'
       }
     })
-    expect(cmd).toContain('-H \'Content-Type: application/json\'')
-    expect(cmd).toContain('-H \'Authorization: Bearer token123\'')
+    expect(cmd).toContain("-H 'Content-Type: application/json'")
+    expect(cmd).toContain("-H 'Authorization: Bearer token123'")
   })
 
   it('includes request body as JSON', () => {
@@ -183,7 +190,7 @@ describe('buildCurlCommand', () => {
       requestBody: { name: 'updated' }
     })
     expect(cmd).toBe(
-      'curl -X PUT \'https://api.example.com/users/1\' -H \'Content-Type: application/json\' -d \'{"name":"updated"}\''
+      "curl -X PUT 'https://api.example.com/users/1' -H 'Content-Type: application/json' -d '{\"name\":\"updated\"}'"
     )
   })
 })

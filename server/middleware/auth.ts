@@ -29,8 +29,8 @@ export default defineEventHandler(async (event) => {
     publicRoutes.push('/api/dev/login')
   }
 
-  const isPublicRoute = publicRoutes.some(route =>
-    pathname === route || pathname.startsWith(`${route}/`)
+  const isPublicRoute = publicRoutes.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`)
   )
 
   if (isPublicRoute) return
@@ -76,15 +76,14 @@ export default defineEventHandler(async (event) => {
   }
 
   // 僅需 OAuth 驗證、不需要 profile 的路由
-  const authOnlyRoutes = [
-    '/api/invitation-codes/redeem',
-    '/api/auth/me',
-    '/api/auth/profile'
-  ]
+  const authOnlyRoutes = ['/api/invitation-codes/redeem', '/api/auth/me', '/api/auth/profile']
 
   // 使用 Supabase Client 進行 Server-side 驗證（getUser 會向 Auth server 確認 token 真實性）
   const supabase = await serverSupabaseClient(event)
-  const { data: { user }, error } = await supabase.auth.getUser()
+  const {
+    data: { user },
+    error
+  } = await supabase.auth.getUser()
 
   if (error || !user) {
     throw createError({
@@ -98,8 +97,8 @@ export default defineEventHandler(async (event) => {
   event.context.userEmail = user.email ?? undefined
   event.context.userMetadata = user.user_metadata
 
-  const isAuthOnlyRoute = authOnlyRoutes.some(route =>
-    pathname === route || pathname.startsWith(`${route}/`)
+  const isAuthOnlyRoute = authOnlyRoutes.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`)
   )
 
   // authOnly 路由不需要 profile，直接放行

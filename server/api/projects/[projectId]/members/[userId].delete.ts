@@ -25,9 +25,9 @@ export default defineEventHandler(async (event) => {
     badRequest('不能移除自己')
   }
 
-  await db.delete(projectMembers).where(
-    and(eq(projectMembers.projectId, projectId), eq(projectMembers.userId, targetUserId))
-  )
+  await db
+    .delete(projectMembers)
+    .where(and(eq(projectMembers.projectId, projectId), eq(projectMembers.userId, targetUserId)))
 
   return { success: true }
 })

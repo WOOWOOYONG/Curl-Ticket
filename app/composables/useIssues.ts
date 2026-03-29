@@ -19,7 +19,8 @@ export interface UseIssuesOptions {
 }
 
 export const getIssuesCacheKey = (projectId: string) => `project-${projectId}-issues`
-export const getIssueCacheKey = (projectId: string, issueId: string) => `project-${projectId}-issue-${issueId}`
+export const getIssueCacheKey = (projectId: string, issueId: string) =>
+  `project-${projectId}-issue-${issueId}`
 
 /**
  * 取得專案的 Issues 列表
@@ -30,22 +31,33 @@ export function useIssues(
   projectId: Ref<string> | ComputedRef<string>,
   options: Ref<UseIssuesOptions>
 ) {
-  return useFetch<IssuesResponse>(() => {
-    const { page = 1, pageSize = 20, status, environment, issueType, method, search } = options.value
-    const params = new URLSearchParams()
-    params.set('page', String(page))
-    params.set('pageSize', String(pageSize))
+  return useFetch<IssuesResponse>(
+    () => {
+      const {
+        page = 1,
+        pageSize = 20,
+        status,
+        environment,
+        issueType,
+        method,
+        search
+      } = options.value
+      const params = new URLSearchParams()
+      params.set('page', String(page))
+      params.set('pageSize', String(pageSize))
 
-    if (status) params.set('status', status)
-    if (environment) params.set('environment', environment)
-    if (issueType) params.set('issueType', issueType)
-    if (method) params.set('method', method)
-    if (search) params.set('search', search)
+      if (status) params.set('status', status)
+      if (environment) params.set('environment', environment)
+      if (issueType) params.set('issueType', issueType)
+      if (method) params.set('method', method)
+      if (search) params.set('search', search)
 
-    return `/api/projects/${projectId.value}/issues?${params.toString()}`
-  }, {
-    key: getIssuesCacheKey(projectId.value),
-    watch: [projectId, options],
-    deep: true
-  })
+      return `/api/projects/${projectId.value}/issues?${params.toString()}`
+    },
+    {
+      key: getIssuesCacheKey(projectId.value),
+      watch: [projectId, options],
+      deep: true
+    }
+  )
 }

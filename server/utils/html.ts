@@ -1,8 +1,24 @@
 import sanitize from 'sanitize-html'
 
 const ALLOWED_TAGS = [
-  'p', 'strong', 'em', 's', 'code', 'pre', 'ul', 'ol', 'li',
-  'blockquote', 'a', 'br', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'
+  'p',
+  'strong',
+  'em',
+  's',
+  'code',
+  'pre',
+  'ul',
+  'ol',
+  'li',
+  'blockquote',
+  'a',
+  'br',
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6'
 ]
 
 const ALLOWED_ATTR: Record<string, string[]> = {

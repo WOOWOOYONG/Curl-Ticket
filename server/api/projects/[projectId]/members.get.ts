@@ -23,10 +23,7 @@ export default defineEventHandler(async (event) => {
     })
     .from(projectMembers)
     .leftJoin(profiles, eq(projectMembers.userId, profiles.id))
-    .where(and(
-      eq(projectMembers.projectId, projectId),
-      isNull(profiles.deletedAt)
-    ))
+    .where(and(eq(projectMembers.projectId, projectId), isNull(profiles.deletedAt)))
 
   return { data: members }
 })

@@ -9,11 +9,11 @@ export class ValidationError extends Error {
 }
 
 const STATUS_ALIASES: Record<string, IssueStatus> = {
-  'open': IssueStatus.Open,
+  open: IssueStatus.Open,
   'in-progress': IssueStatus.InProgress,
   'in progress': IssueStatus.InProgress,
-  'done': IssueStatus.Done,
-  'close': IssueStatus.Close
+  done: IssueStatus.Done,
+  close: IssueStatus.Close
 }
 
 export const VALID_STATUS_INPUTS = ['Open', 'in-progress', 'Done', 'Close'] as const
@@ -26,7 +26,9 @@ export function normalizeStatus(status: string): IssueStatus {
   return normalized
 }
 
-export function parseIssueId(issueId: string): { type: 'id', value: string } | { type: 'number', value: number } {
+export function parseIssueId(
+  issueId: string
+): { type: 'id'; value: string } | { type: 'number'; value: number } {
   if (/^\d+$/.test(issueId)) {
     return { type: 'id', value: issueId }
   }
@@ -34,7 +36,9 @@ export function parseIssueId(issueId: string): { type: 'id', value: string } | {
   if (match) {
     return { type: 'number', value: parseInt(match[1], 10) }
   }
-  throw new ValidationError(`Invalid issue ID format: ${issueId}. Use a numeric ID or friendly ID (e.g. CT-42).`)
+  throw new ValidationError(
+    `Invalid issue ID format: ${issueId}. Use a numeric ID or friendly ID (e.g. CT-42).`
+  )
 }
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
