@@ -34,9 +34,9 @@ const issuesOptions = ref<UseIssuesOptions>({
 })
 
 // Filter options
-const statusFilterOptions = issueStatuses.map((s) => ({ label: IssueStatusLabel[s], value: s }))
-const environmentFilterOptions = environments.map((e) => ({ label: e, value: e }))
-const methodFilterOptions = httpMethods.map((m) => ({ label: m, value: m }))
+const statusFilterOptions: { label: string; value: IssueStatus }[] = issueStatuses.map((s) => ({ label: IssueStatusLabel[s], value: s }))
+const environmentFilterOptions: { label: string; value: Environment }[] = environments.map((e) => ({ label: e, value: e }))
+const methodFilterOptions: { label: string; value: HttpMethod }[] = httpMethods.map((m) => ({ label: m, value: m }))
 
 // Filter refs
 const activeStatusFilter = ref<IssueStatus | undefined>()
@@ -56,6 +56,21 @@ function clearAllFilters() {
   activeStatusFilter.value = undefined
   activeEnvironmentFilter.value = undefined
   activeMethodFilter.value = undefined
+}
+
+function selectStatusFilter(value: IssueStatus) {
+  activeStatusFilter.value = value
+  statusOpen.value = false
+}
+
+function selectEnvironmentFilter(value: Environment) {
+  activeEnvironmentFilter.value = value
+  environmentOpen.value = false
+}
+
+function selectMethodFilter(value: HttpMethod) {
+  activeMethodFilter.value = value
+  methodOpen.value = false
 }
 
 watch(debouncedSearch, (val) => {
@@ -334,10 +349,7 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
                       v-for="opt in statusFilterOptions"
                       :key="opt.value"
                       class="flex w-full cursor-pointer items-center gap-2 rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-slate-100 dark:hover:bg-white/5"
-                      @click="
-                        activeStatusFilter = opt.value as IssueStatus
-                        statusOpen = false
-                      "
+                      @click="selectStatusFilter(opt.value)"
                     >
                       <UIcon
                         v-if="activeStatusFilter === opt.value"
@@ -398,10 +410,7 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
                       v-for="opt in environmentFilterOptions"
                       :key="opt.value"
                       class="flex w-full cursor-pointer items-center gap-2 rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-slate-100 dark:hover:bg-white/5"
-                      @click="
-                        activeEnvironmentFilter = opt.value as Environment
-                        environmentOpen = false
-                      "
+                      @click="selectEnvironmentFilter(opt.value)"
                     >
                       <UIcon
                         v-if="activeEnvironmentFilter === opt.value"
@@ -462,10 +471,7 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
                       v-for="opt in methodFilterOptions"
                       :key="opt.value"
                       class="flex w-full cursor-pointer items-center gap-2 rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-slate-100 dark:hover:bg-white/5"
-                      @click="
-                        activeMethodFilter = opt.value as HttpMethod
-                        methodOpen = false
-                      "
+                      @click="selectMethodFilter(opt.value)"
                     >
                       <UIcon
                         v-if="activeMethodFilter === opt.value"

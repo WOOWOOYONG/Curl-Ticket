@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { CreateProjectInput } from '~~/shared/schemas/project'
+import type { Environment } from '~~/shared/constants'
 import { environments } from '~~/shared/constants'
 import { createProjectSchema } from '~~/shared/schemas/project'
 
@@ -42,6 +43,17 @@ const environmentOptions = environments.map((env) => ({
   label: env,
   value: env
 }))
+
+function toggleEnvironment(value: Environment, checked: boolean) {
+  if (checked) {
+    state.value.environments.push(value)
+  } else {
+    const index = state.value.environments.indexOf(value)
+    if (index > -1) {
+      state.value.environments.splice(index, 1)
+    }
+  }
+}
 
 function onSubmit(_event: FormSubmitEvent<CreateProjectInput>) {
   emit('submit')
@@ -143,18 +155,7 @@ function onSubmit(_event: FormSubmitEvent<CreateProjectInput>) {
             >
               <UCheckbox
                 :model-value="state.environments.includes(option.value)"
-                @update:model-value="
-                  (checked) => {
-                    if (checked) {
-                      state.environments.push(option.value)
-                    } else {
-                      const index = state.environments.indexOf(option.value)
-                      if (index > -1) {
-                        state.environments.splice(index, 1)
-                      }
-                    }
-                  }
-                "
+                @update:model-value="(checked) => toggleEnvironment(option.value as Environment, !!checked)"
               />
               <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
                 {{ option.label }}

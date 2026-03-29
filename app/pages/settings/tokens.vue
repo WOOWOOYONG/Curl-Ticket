@@ -81,6 +81,16 @@ function formatDate(date: string | Date | null) {
 function isExpired(expiresAt: string | Date | null) {
   return expiresAt ? new Date(expiresAt) < new Date() : false
 }
+
+function copyToken() {
+  copyToClipboard(newToken.value?.token ?? '', { title: t('tokens.tokenCopied') })
+  hasCopied.value = true
+}
+
+function closeTokenModal() {
+  showTokenModal.value = false
+  newToken.value = null
+}
 </script>
 
 <template>
@@ -234,10 +244,7 @@ function isExpired(expiresAt: string | Date | null) {
                 icon="i-lucide-copy"
                 color="neutral"
                 variant="outline"
-                @click="
-                  copyToClipboard(newToken?.token ?? '', { title: t('tokens.tokenCopied') })
-                  hasCopied = true
-                "
+                @click="copyToken"
               />
             </div>
           </UFormField>
@@ -248,10 +255,7 @@ function isExpired(expiresAt: string | Date | null) {
           <UButton
             :label="$t('common.close')"
             :disabled="!hasCopied"
-            @click="
-              showTokenModal = false
-              newToken = null
-            "
+            @click="closeTokenModal"
           />
         </div>
       </template>
