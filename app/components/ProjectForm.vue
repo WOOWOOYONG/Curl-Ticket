@@ -155,7 +155,9 @@ function onSubmit(_event: FormSubmitEvent<CreateProjectInput>) {
             >
               <UCheckbox
                 :model-value="state.environments.includes(option.value)"
-                @update:model-value="(checked) => toggleEnvironment(option.value as Environment, !!checked)"
+                @update:model-value="
+                  (checked) => toggleEnvironment(option.value as Environment, !!checked)
+                "
               />
               <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
                 {{ option.label }}

@@ -34,9 +34,18 @@ const issuesOptions = ref<UseIssuesOptions>({
 })
 
 // Filter options
-const statusFilterOptions: { label: string; value: IssueStatus }[] = issueStatuses.map((s) => ({ label: IssueStatusLabel[s], value: s }))
-const environmentFilterOptions: { label: string; value: Environment }[] = environments.map((e) => ({ label: e, value: e }))
-const methodFilterOptions: { label: string; value: HttpMethod }[] = httpMethods.map((m) => ({ label: m, value: m }))
+const statusFilterOptions: { label: string; value: IssueStatus }[] = issueStatuses.map((s) => ({
+  label: IssueStatusLabel[s],
+  value: s
+}))
+const environmentFilterOptions: { label: string; value: Environment }[] = environments.map((e) => ({
+  label: e,
+  value: e
+}))
+const methodFilterOptions: { label: string; value: HttpMethod }[] = httpMethods.map((m) => ({
+  label: m,
+  value: m
+}))
 
 // Filter refs
 const activeStatusFilter = ref<IssueStatus | undefined>()
