@@ -27,12 +27,16 @@ const DEFAULT_PAGE_SIZE = 10
 // Issue type filter — initialize from query param
 const initialType = route.query.type === IssueType.Task ? IssueType.Task : IssueType.ApiBug
 const activeTypeFilter = ref<IssueType>(initialType)
-const issuesOptions = ref<UseIssuesOptions>({ page: 1, pageSize: DEFAULT_PAGE_SIZE, issueType: initialType })
+const issuesOptions = ref<UseIssuesOptions>({
+  page: 1,
+  pageSize: DEFAULT_PAGE_SIZE,
+  issueType: initialType
+})
 
 // Filter options
-const statusFilterOptions = issueStatuses.map(s => ({ label: IssueStatusLabel[s], value: s }))
-const environmentFilterOptions = environments.map(e => ({ label: e, value: e }))
-const methodFilterOptions = httpMethods.map(m => ({ label: m, value: m }))
+const statusFilterOptions = issueStatuses.map((s) => ({ label: IssueStatusLabel[s], value: s }))
+const environmentFilterOptions = environments.map((e) => ({ label: e, value: e }))
+const methodFilterOptions = httpMethods.map((m) => ({ label: m, value: m }))
 
 // Filter refs
 const activeStatusFilter = ref<IssueStatus | undefined>()
@@ -44,7 +48,9 @@ const statusOpen = ref(false)
 const environmentOpen = ref(false)
 const methodOpen = ref(false)
 
-const hasActiveFilters = computed(() => !!activeStatusFilter.value || !!activeEnvironmentFilter.value || !!activeMethodFilter.value)
+const hasActiveFilters = computed(
+  () => !!activeStatusFilter.value || !!activeEnvironmentFilter.value || !!activeMethodFilter.value
+)
 
 function clearAllFilters() {
   activeStatusFilter.value = undefined
@@ -73,7 +79,14 @@ watch(activeTypeFilter, (val) => {
   activeStatusFilter.value = undefined
   activeEnvironmentFilter.value = undefined
   activeMethodFilter.value = undefined
-  issuesOptions.value = { ...issuesOptions.value, issueType: val, status: undefined, environment: undefined, method: undefined, page: 1 }
+  issuesOptions.value = {
+    ...issuesOptions.value,
+    issueType: val,
+    status: undefined,
+    environment: undefined,
+    method: undefined,
+    page: 1
+  }
   // Sync query param without full navigation
   const query = { ...route.query, type: val }
   navigateTo({ path: route.path, query }, { replace: true })
@@ -136,7 +149,9 @@ const columns: TableColumn<IssueListItem>[] = [
 
 // Row click handler
 function onRowSelect(_event: Event, row: { original: IssueListItem }) {
-  navigateTo(`/projects/${projectId.value}/issues/${row.original.id}?type=${activeTypeFilter.value}`)
+  navigateTo(
+    `/projects/${projectId.value}/issues/${row.original.id}?type=${activeTypeFilter.value}`
+  )
 }
 </script>
 
@@ -159,8 +174,12 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
 
         <!-- Error State -->
         <template v-else-if="!project">
-          <div class="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-200/80 bg-white/70 py-16 text-center shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60">
-            <div class="mb-4 flex size-14 items-center justify-center rounded-2xl bg-rose-50 text-rose-500 dark:bg-rose-500/10 dark:text-rose-300">
+          <div
+            class="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-200/80 bg-white/70 py-16 text-center shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60"
+          >
+            <div
+              class="mb-4 flex size-14 items-center justify-center rounded-2xl bg-rose-50 text-rose-500 dark:bg-rose-500/10 dark:text-rose-300"
+            >
               <UIcon
                 name="i-lucide-alert-circle"
                 class="size-6"
@@ -196,15 +215,21 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
                 />
               </NuxtLink>
               <div class="space-y-2">
-                <div class="inline-flex items-center gap-2 rounded-full border border-emerald-100/80 bg-emerald-50/80 px-3 py-1 text-[11px] font-semibold uppercase  text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-200">
+                <div
+                  class="inline-flex items-center gap-2 rounded-full border border-emerald-100/80 bg-emerald-50/80 px-3 py-1 text-[11px] font-semibold text-emerald-700 uppercase dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-200"
+                >
                   <span class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                   {{ $t('nav.projects') }}
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
-                  <h1 class="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl dark:text-white">
+                  <h1
+                    class="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl dark:text-white"
+                  >
                     {{ project.name }}
                   </h1>
-                  <span class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold tracking-wide text-slate-600 dark:border-white/10 dark:bg-white/10 dark:text-slate-200">
+                  <span
+                    class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold tracking-wide text-slate-600 dark:border-white/10 dark:bg-white/10 dark:text-slate-200"
+                  >
                     {{ project.key }}
                   </span>
                 </div>
@@ -257,7 +282,9 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
                 size="lg"
                 :placeholder="$t('issues.searchPlaceholder')"
                 class="w-full sm:w-80"
-                :ui="{ base: 'bg-white/80 dark:bg-gray-900/60 border-slate-200/70 dark:border-white/10' }"
+                :ui="{
+                  base: 'bg-white/80 dark:bg-gray-900/60 border-slate-200/70 dark:border-white/10'
+                }"
               />
             </div>
 
@@ -274,9 +301,11 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
               <!-- Status -->
               <div
                 class="inline-flex items-center rounded-full border text-sm transition-colors"
-                :class="activeStatusFilter
-                  ? 'border-primary-200 bg-primary-50 hover:bg-primary-100 dark:border-primary-800 dark:bg-primary-950 dark:hover:bg-primary-900'
-                  : 'border-slate-300 hover:bg-slate-100 dark:border-white/15 dark:hover:bg-white/5'"
+                :class="
+                  activeStatusFilter
+                    ? 'border-primary-200 bg-primary-50 hover:bg-primary-100 dark:border-primary-800 dark:bg-primary-950 dark:hover:bg-primary-900'
+                    : 'border-slate-300 hover:bg-slate-100 dark:border-white/15 dark:hover:bg-white/5'
+                "
               >
                 <UPopover
                   v-model:open="statusOpen"
@@ -286,11 +315,15 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
                     class="flex cursor-pointer items-center gap-1.5 py-1.5 pl-3 font-medium"
                     :class="[
                       activeStatusFilter
-                        ? 'pr-1 text-primary-700 dark:text-primary-200'
+                        ? 'text-primary-700 dark:text-primary-200 pr-1'
                         : 'pr-3 text-slate-600 dark:text-slate-300'
                     ]"
                   >
-                    {{ activeStatusFilter ? IssueStatusLabel[activeStatusFilter] : $t('issues.table.status') }}
+                    {{
+                      activeStatusFilter
+                        ? IssueStatusLabel[activeStatusFilter]
+                        : $t('issues.table.status')
+                    }}
                     <UIcon
                       name="i-lucide-chevron-down"
                       class="size-3.5 opacity-50"
@@ -301,12 +334,15 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
                       v-for="opt in statusFilterOptions"
                       :key="opt.value"
                       class="flex w-full cursor-pointer items-center gap-2 rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-slate-100 dark:hover:bg-white/5"
-                      @click="activeStatusFilter = opt.value as IssueStatus; statusOpen = false"
+                      @click="
+                        activeStatusFilter = opt.value as IssueStatus
+                        statusOpen = false
+                      "
                     >
                       <UIcon
                         v-if="activeStatusFilter === opt.value"
                         name="i-lucide-check"
-                        class="size-4 shrink-0 text-primary"
+                        class="text-primary size-4 shrink-0"
                       />
                       <span
                         v-else
@@ -318,7 +354,7 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
                 </UPopover>
                 <button
                   v-if="activeStatusFilter"
-                  class="mr-1.5 flex shrink-0 cursor-pointer items-center rounded-full p-0.5 text-primary-500 transition-colors hover:bg-primary-100 dark:text-primary-300 dark:hover:bg-primary-900"
+                  class="text-primary-500 hover:bg-primary-100 dark:text-primary-300 dark:hover:bg-primary-900 mr-1.5 flex shrink-0 cursor-pointer items-center rounded-full p-0.5 transition-colors"
                   aria-label="Clear status filter"
                   @click="activeStatusFilter = undefined"
                 >
@@ -333,9 +369,11 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
               <div
                 v-if="activeTypeFilter === IssueType.ApiBug"
                 class="inline-flex items-center rounded-full border text-sm transition-colors"
-                :class="activeEnvironmentFilter
-                  ? 'border-primary-200 bg-primary-50 hover:bg-primary-100 dark:border-primary-800 dark:bg-primary-950 dark:hover:bg-primary-900'
-                  : 'border-slate-300 hover:bg-slate-100 dark:border-white/15 dark:hover:bg-white/5'"
+                :class="
+                  activeEnvironmentFilter
+                    ? 'border-primary-200 bg-primary-50 hover:bg-primary-100 dark:border-primary-800 dark:bg-primary-950 dark:hover:bg-primary-900'
+                    : 'border-slate-300 hover:bg-slate-100 dark:border-white/15 dark:hover:bg-white/5'
+                "
               >
                 <UPopover
                   v-model:open="environmentOpen"
@@ -345,7 +383,7 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
                     class="flex cursor-pointer items-center gap-1.5 py-1.5 pl-3 font-medium"
                     :class="[
                       activeEnvironmentFilter
-                        ? 'pr-1 text-primary-700 dark:text-primary-200'
+                        ? 'text-primary-700 dark:text-primary-200 pr-1'
                         : 'pr-3 text-slate-600 dark:text-slate-300'
                     ]"
                   >
@@ -360,12 +398,15 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
                       v-for="opt in environmentFilterOptions"
                       :key="opt.value"
                       class="flex w-full cursor-pointer items-center gap-2 rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-slate-100 dark:hover:bg-white/5"
-                      @click="activeEnvironmentFilter = opt.value as Environment; environmentOpen = false"
+                      @click="
+                        activeEnvironmentFilter = opt.value as Environment
+                        environmentOpen = false
+                      "
                     >
                       <UIcon
                         v-if="activeEnvironmentFilter === opt.value"
                         name="i-lucide-check"
-                        class="size-4 shrink-0 text-primary"
+                        class="text-primary size-4 shrink-0"
                       />
                       <span
                         v-else
@@ -377,7 +418,7 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
                 </UPopover>
                 <button
                   v-if="activeEnvironmentFilter"
-                  class="mr-1.5 flex shrink-0 cursor-pointer items-center rounded-full p-0.5 text-primary-500 transition-colors hover:bg-primary-100 dark:text-primary-300 dark:hover:bg-primary-900"
+                  class="text-primary-500 hover:bg-primary-100 dark:text-primary-300 dark:hover:bg-primary-900 mr-1.5 flex shrink-0 cursor-pointer items-center rounded-full p-0.5 transition-colors"
                   aria-label="Clear environment filter"
                   @click="activeEnvironmentFilter = undefined"
                 >
@@ -392,9 +433,11 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
               <div
                 v-if="activeTypeFilter === IssueType.ApiBug"
                 class="inline-flex items-center rounded-full border text-sm transition-colors"
-                :class="activeMethodFilter
-                  ? 'border-primary-200 bg-primary-50 hover:bg-primary-100 dark:border-primary-800 dark:bg-primary-950 dark:hover:bg-primary-900'
-                  : 'border-slate-300 hover:bg-slate-100 dark:border-white/15 dark:hover:bg-white/5'"
+                :class="
+                  activeMethodFilter
+                    ? 'border-primary-200 bg-primary-50 hover:bg-primary-100 dark:border-primary-800 dark:bg-primary-950 dark:hover:bg-primary-900'
+                    : 'border-slate-300 hover:bg-slate-100 dark:border-white/15 dark:hover:bg-white/5'
+                "
               >
                 <UPopover
                   v-model:open="methodOpen"
@@ -404,7 +447,7 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
                     class="flex cursor-pointer items-center gap-1.5 py-1.5 pl-3 font-medium"
                     :class="[
                       activeMethodFilter
-                        ? 'pr-1 text-primary-700 dark:text-primary-200'
+                        ? 'text-primary-700 dark:text-primary-200 pr-1'
                         : 'pr-3 text-slate-600 dark:text-slate-300'
                     ]"
                   >
@@ -419,12 +462,15 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
                       v-for="opt in methodFilterOptions"
                       :key="opt.value"
                       class="flex w-full cursor-pointer items-center gap-2 rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-slate-100 dark:hover:bg-white/5"
-                      @click="activeMethodFilter = opt.value as HttpMethod; methodOpen = false"
+                      @click="
+                        activeMethodFilter = opt.value as HttpMethod
+                        methodOpen = false
+                      "
                     >
                       <UIcon
                         v-if="activeMethodFilter === opt.value"
                         name="i-lucide-check"
-                        class="size-4 shrink-0 text-primary"
+                        class="text-primary size-4 shrink-0"
                       />
                       <span
                         v-else
@@ -436,7 +482,7 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
                 </UPopover>
                 <button
                   v-if="activeMethodFilter"
-                  class="mr-1.5 flex shrink-0 cursor-pointer items-center rounded-full p-0.5 text-primary-500 transition-colors hover:bg-primary-100 dark:text-primary-300 dark:hover:bg-primary-900"
+                  class="text-primary-500 hover:bg-primary-100 dark:text-primary-300 dark:hover:bg-primary-900 mr-1.5 flex shrink-0 cursor-pointer items-center rounded-full p-0.5 transition-colors"
                   aria-label="Clear method filter"
                   @click="activeMethodFilter = undefined"
                 >
@@ -462,7 +508,9 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
               v-if="project.totalIssues === 0"
               class="rounded-3xl border border-dashed border-slate-200/80 bg-white/70 p-10 text-center shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/60"
             >
-              <div class="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300">
+              <div
+                class="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300"
+              >
                 <UIcon
                   name="i-lucide-inbox"
                   class="size-6"
@@ -512,7 +560,9 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
                           'text-blue-500': row.original.issueType === IssueType.Task
                         }"
                       />
-                      <span class="font-mono text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                      <span
+                        class="font-mono text-sm font-semibold text-emerald-600 dark:text-emerald-400"
+                      >
                         {{ row.original.projectKey }}-{{ row.original.issueNumber }}
                       </span>
                     </div>
@@ -521,12 +571,12 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
                   <!-- Title -->
                   <template #title-cell="{ row }">
                     <div class="flex flex-col gap-1">
-                      <span class="font-medium text-slate-900 dark:text-white truncate">
+                      <span class="truncate font-medium text-slate-900 dark:text-white">
                         {{ row.original.title }}
                       </span>
                       <span
                         v-if="row.original.url"
-                        class="text-xs text-slate-400 dark:text-slate-500 truncate font-mono"
+                        class="truncate font-mono text-xs text-slate-400 dark:text-slate-500"
                       >
                         {{ row.original.url }}
                       </span>
@@ -593,12 +643,20 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
 
               <div
                 v-if="pagination"
-                class="flex flex-col gap-3 border-t border-slate-200/70 bg-white/70 px-4 py-3 text-sm text-slate-500 dark:border-white/10 dark:bg-gray-900/60 dark:text-slate-400 sm:flex-row sm:items-center sm:justify-between"
+                class="flex flex-col gap-3 border-t border-slate-200/70 bg-white/70 px-4 py-3 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between dark:border-white/10 dark:bg-gray-900/60 dark:text-slate-400"
               >
                 <span>
-                  {{ $t('common.showing') }} <span class="font-medium text-slate-700 dark:text-slate-300">{{ pageStart }}</span>
-                  {{ $t('common.to') }} <span class="font-medium text-slate-700 dark:text-slate-300">{{ pageEnd }}</span>
-                  {{ $t('common.of') }} <span class="font-medium text-slate-700 dark:text-slate-300">{{ pagination.total }}</span> {{ $t('common.results') }}
+                  {{ $t('common.showing') }}
+                  <span class="font-medium text-slate-700 dark:text-slate-300">{{
+                    pageStart
+                  }}</span>
+                  {{ $t('common.to') }}
+                  <span class="font-medium text-slate-700 dark:text-slate-300">{{ pageEnd }}</span>
+                  {{ $t('common.of') }}
+                  <span class="font-medium text-slate-700 dark:text-slate-300">{{
+                    pagination.total
+                  }}</span>
+                  {{ $t('common.results') }}
                 </span>
                 <UPagination
                   :page="issuesOptions.page"

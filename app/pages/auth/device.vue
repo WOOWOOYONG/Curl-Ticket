@@ -16,7 +16,9 @@ const userCode = computed(() => {
   return typeof code === 'string' ? code : null
 })
 
-const status = ref<'loading' | 'no-code' | 'login-required' | 'verifying' | 'success' | 'error'>('loading')
+const status = ref<'loading' | 'no-code' | 'login-required' | 'verifying' | 'success' | 'error'>(
+  'loading'
+)
 const errorMessage = ref('')
 
 // 無 code 參數
@@ -35,7 +37,7 @@ async function verifyCode() {
     })
     status.value = 'success'
   } catch (e: unknown) {
-    const err = e as { statusCode?: number, data?: { statusMessage?: string } }
+    const err = e as { statusCode?: number; data?: { statusMessage?: string } }
     if (err.statusCode === HttpStatus.Forbidden) {
       errorMessage.value = t('device.registerFirst')
     } else {
@@ -46,35 +48,39 @@ async function verifyCode() {
 }
 
 // 監聽 user 狀態，處理 OAuth 回調後的流程
-watch(user, async (val) => {
-  if (status.value === 'no-code') return
+watch(
+  user,
+  async (val) => {
+    if (status.value === 'no-code') return
 
-  if (!val) {
-    // 未登入，需要觸發 OAuth
-    status.value = 'login-required'
-    return
-  }
-
-  // 已登入，確認有 profile
-  try {
-    const profile = await fetchProfile()
-    if (!profile) {
-      errorMessage.value = t('device.registerFirst')
-      status.value = 'error'
+    if (!val) {
+      // 未登入，需要觸發 OAuth
+      status.value = 'login-required'
       return
     }
-  } catch (e: unknown) {
-    const errStatus = (e as { statusCode?: number }).statusCode
-    if (errStatus === HttpStatus.Forbidden) {
-      errorMessage.value = t('device.registerFirst')
-      status.value = 'error'
-      return
-    }
-  }
 
-  // 有 profile，直接驗證
-  await verifyCode()
-}, { immediate: true })
+    // 已登入，確認有 profile
+    try {
+      const profile = await fetchProfile()
+      if (!profile) {
+        errorMessage.value = t('device.registerFirst')
+        status.value = 'error'
+        return
+      }
+    } catch (e: unknown) {
+      const errStatus = (e as { statusCode?: number }).statusCode
+      if (errStatus === HttpStatus.Forbidden) {
+        errorMessage.value = t('device.registerFirst')
+        status.value = 'error'
+        return
+      }
+    }
+
+    // 有 profile，直接驗證
+    await verifyCode()
+  },
+  { immediate: true }
+)
 
 async function signInWithGoogle() {
   status.value = 'loading'
@@ -94,7 +100,7 @@ async function signInWithGoogle() {
 
 <template>
   <UContainer class="py-16">
-    <UCard class="max-w-md mx-auto text-center">
+    <UCard class="mx-auto max-w-md text-center">
       <!-- Loading -->
       <div
         v-if="status === 'loading' || status === 'verifying'"
@@ -102,7 +108,7 @@ async function signInWithGoogle() {
       >
         <UIcon
           name="i-lucide-loader-2"
-          class="w-8 h-8 mx-auto animate-spin text-primary"
+          class="text-primary mx-auto h-8 w-8 animate-spin"
         />
         <p class="text-sm text-slate-500 dark:text-slate-400">
           {{ status === 'verifying' ? $t('device.verifying') : $t('common.loading') }}
@@ -116,13 +122,13 @@ async function signInWithGoogle() {
       >
         <UIcon
           name="i-lucide-terminal"
-          class="w-10 h-10 mx-auto opacity-40"
+          class="mx-auto h-10 w-10 opacity-40"
         />
         <h2 class="text-lg font-semibold">
           {{ $t('device.title') }}
         </h2>
         <p class="text-sm text-slate-500 dark:text-slate-400">
-          {{ $t('device.noCode') }}<br>
+          {{ $t('device.noCode') }}<br />
           {{ $t('device.noCodeHint') }}
         </p>
       </div>
@@ -134,7 +140,7 @@ async function signInWithGoogle() {
       >
         <UIcon
           name="i-lucide-terminal"
-          class="w-10 h-10 mx-auto opacity-40"
+          class="mx-auto h-10 w-10 opacity-40"
         />
         <h2 class="text-lg font-semibold">
           {{ $t('device.title') }}
@@ -160,7 +166,7 @@ async function signInWithGoogle() {
       >
         <UIcon
           name="i-lucide-check-circle"
-          class="w-10 h-10 mx-auto text-green-500"
+          class="mx-auto h-10 w-10 text-green-500"
         />
         <h2 class="text-lg font-semibold">
           {{ $t('device.loginSuccess') }}
@@ -177,7 +183,7 @@ async function signInWithGoogle() {
       >
         <UIcon
           name="i-lucide-x-circle"
-          class="w-10 h-10 mx-auto text-red-500"
+          class="mx-auto h-10 w-10 text-red-500"
         />
         <h2 class="text-lg font-semibold">
           {{ $t('device.verifyFailed') }}

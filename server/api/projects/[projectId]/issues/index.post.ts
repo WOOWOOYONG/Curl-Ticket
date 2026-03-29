@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
   const db = useDB()
 
   function isUniqueViolation(error: unknown) {
-    const err = error as { code?: string, cause?: { code?: string } }
+    const err = error as { code?: string; cause?: { code?: string } }
     return err?.code === UNIQUE_VIOLATION_CODE || err?.cause?.code === UNIQUE_VIOLATION_CODE
   }
 

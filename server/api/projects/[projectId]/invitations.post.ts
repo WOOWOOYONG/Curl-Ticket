@@ -30,15 +30,18 @@ export default defineEventHandler(async (event) => {
   const { email } = result.data
 
   // 將已過期但仍為 pending 的邀請落地為 expired，避免卡住重邀
-  await db.update(projectInvitations)
+  await db
+    .update(projectInvitations)
     .set({ status: InvitationStatus.Expired })
-    .where(and(
-      eq(projectInvitations.projectId, projectId),
-      eq(projectInvitations.email, email),
-      eq(projectInvitations.status, InvitationStatus.Pending),
-      isNotNull(projectInvitations.expiresAt),
-      lt(projectInvitations.expiresAt, new Date())
-    ))
+    .where(
+      and(
+        eq(projectInvitations.projectId, projectId),
+        eq(projectInvitations.email, email),
+        eq(projectInvitations.status, InvitationStatus.Pending),
+        isNotNull(projectInvitations.expiresAt),
+        lt(projectInvitations.expiresAt, new Date())
+      )
+    )
 
   // 驗證 email 已註冊
   const targetProfile = await getProfileByEmail(db, email)
@@ -52,20 +55,28 @@ export default defineEventHandler(async (event) => {
   }
 
   // 檢查是否已是成員
-  const [existingMember] = await db.select().from(projectMembers)
-    .where(and(eq(projectMembers.projectId, projectId), eq(projectMembers.userId, targetProfile.id)))
+  const [existingMember] = await db
+    .select()
+    .from(projectMembers)
+    .where(
+      and(eq(projectMembers.projectId, projectId), eq(projectMembers.userId, targetProfile.id))
+    )
     .limit(1)
   if (existingMember) {
     badRequest('該用戶已是專案成員')
   }
 
   // 檢查是否已有 pending 邀請
-  const [existingInvitation] = await db.select().from(projectInvitations)
-    .where(and(
-      eq(projectInvitations.projectId, projectId),
-      eq(projectInvitations.email, email),
-      eq(projectInvitations.status, InvitationStatus.Pending)
-    ))
+  const [existingInvitation] = await db
+    .select()
+    .from(projectInvitations)
+    .where(
+      and(
+        eq(projectInvitations.projectId, projectId),
+        eq(projectInvitations.email, email),
+        eq(projectInvitations.status, InvitationStatus.Pending)
+      )
+    )
     .limit(1)
   if (existingInvitation) {
     badRequest('已有待處理的邀請')
@@ -76,13 +87,16 @@ export default defineEventHandler(async (event) => {
     const expiresAt = new Date()
     expiresAt.setDate(expiresAt.getDate() + 7)
 
-    const [newInvitation] = await tx.insert(projectInvitations).values({
-      projectId,
-      email,
-      invitedBy: userId,
-      status: InvitationStatus.Pending,
-      expiresAt
-    }).returning()
+    const [newInvitation] = await tx
+      .insert(projectInvitations)
+      .values({
+        projectId,
+        email,
+        invitedBy: userId,
+        status: InvitationStatus.Pending,
+        expiresAt
+      })
+      .returning()
 
     await tx.insert(notifications).values({
       userId: targetProfile.id,

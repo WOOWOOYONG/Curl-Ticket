@@ -14,9 +14,12 @@ const selectedInvitation = ref<{
   content: string | null
 } | null>(null)
 
-function handleNotificationClick(notification: typeof notifications.value[number]) {
+function handleNotificationClick(notification: (typeof notifications.value)[number]) {
   if (notification.type === NotificationType.ProjectInvite) {
-    if (notification.projectInvitationId && notification.invitationStatus === InvitationStatus.Pending) {
+    if (
+      notification.projectInvitationId &&
+      notification.invitationStatus === InvitationStatus.Pending
+    ) {
       selectedInvitation.value = {
         projectInvitationId: notification.projectInvitationId,
         projectName: notification.projectName,
@@ -53,14 +56,16 @@ function onInvitationResponded() {
     v-model:open="popoverOpen"
     :ui="{ content: 'w-80' }"
   >
-    <button class="relative flex items-center justify-center rounded-md p-1.5 text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">
+    <button
+      class="relative flex items-center justify-center rounded-md p-1.5 text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+    >
       <UIcon
         name="i-lucide-bell"
         class="size-5"
       />
       <span
         v-if="unreadCount > 0"
-        class="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white"
+        class="absolute -top-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white"
       >
         {{ unreadCount > 9 ? '9+' : unreadCount }}
       </span>
@@ -90,7 +95,11 @@ function onInvitationResponded() {
         >
           <div class="flex items-start gap-2">
             <UIcon
-              :name="notification.type === NotificationType.ProjectInvite ? 'i-lucide-user-plus' : 'i-lucide-info'"
+              :name="
+                notification.type === NotificationType.ProjectInvite
+                  ? 'i-lucide-user-plus'
+                  : 'i-lucide-info'
+              "
               class="mt-0.5 size-4 shrink-0"
               :class="notification.isRead ? 'text-slate-400' : 'text-blue-500'"
             />
@@ -105,7 +114,10 @@ function onInvitationResponded() {
                 {{ notification.content }}
               </p>
               <p
-                v-if="notification.type === NotificationType.ProjectInvite && notification.invitationStatus === InvitationStatus.Pending"
+                v-if="
+                  notification.type === NotificationType.ProjectInvite &&
+                  notification.invitationStatus === InvitationStatus.Pending
+                "
                 class="mt-1 text-xs font-medium text-blue-600 dark:text-blue-400"
               >
                 {{ $t('notifications.viewInvitation') }}

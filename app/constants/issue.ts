@@ -46,7 +46,7 @@ export const IssueTypeColor: Record<IssueType, BadgeColor> = {
 } as const
 
 // Issue 類型 Tab 選項（用於列表篩選與建立頁面）
-export const issueTypeTabs = issueTypes.map(type => ({
+export const issueTypeTabs = issueTypes.map((type) => ({
   label: IssueTypeLabel[type],
   value: type,
   icon: IssueTypeIcon[type] as string

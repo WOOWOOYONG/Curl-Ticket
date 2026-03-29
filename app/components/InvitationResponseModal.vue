@@ -10,7 +10,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'update:open': [value: boolean]
-  'responded': []
+  responded: []
 }>()
 
 const loading = ref(false)

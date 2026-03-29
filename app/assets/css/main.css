@@ -1,20 +1,20 @@
-@import "tailwindcss";
-@import "@nuxt/ui";
+@import 'tailwindcss';
+@import '@nuxt/ui';
 
 @theme static {
   --font-sans: 'Public Sans', sans-serif;
 
-  --color-green-50: #EFFDF5;
-  --color-green-100: #D9FBE8;
-  --color-green-200: #B3F5D1;
-  --color-green-300: #75EDAE;
-  --color-green-400: #00DC82;
-  --color-green-500: #00C16A;
-  --color-green-600: #00A155;
-  --color-green-700: #007F45;
+  --color-green-50: #effdf5;
+  --color-green-100: #d9fbe8;
+  --color-green-200: #b3f5d1;
+  --color-green-300: #75edae;
+  --color-green-400: #00dc82;
+  --color-green-500: #00c16a;
+  --color-green-600: #00a155;
+  --color-green-700: #007f45;
   --color-green-800: #016538;
-  --color-green-900: #0A5331;
-  --color-green-950: #052E16;
+  --color-green-900: #0a5331;
+  --color-green-950: #052e16;
 }
 
 @layer utilities {
@@ -42,7 +42,7 @@
   }
 
   .page-bg-grid {
-    @apply absolute inset-0 opacity-60 [background-image:linear-gradient(120deg,rgba(15,23,42,0.05)_1px,transparent_1px),linear-gradient(60deg,rgba(15,23,42,0.04)_1px,transparent_1px)] [background-size:36px_36px] dark:[background-image:linear-gradient(120deg,rgba(148,163,184,0.08)_1px,transparent_1px),linear-gradient(60deg,rgba(148,163,184,0.06)_1px,transparent_1px)];
+    @apply absolute inset-0 [background-image:linear-gradient(120deg,rgba(15,23,42,0.05)_1px,transparent_1px),linear-gradient(60deg,rgba(15,23,42,0.04)_1px,transparent_1px)] [background-size:36px_36px] opacity-60 dark:[background-image:linear-gradient(120deg,rgba(148,163,184,0.08)_1px,transparent_1px),linear-gradient(60deg,rgba(148,163,184,0.06)_1px,transparent_1px)];
   }
 }
 

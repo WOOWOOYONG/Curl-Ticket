@@ -6,7 +6,7 @@ export const IssueType = {
   Task: 'task'
 } as const
 
-export type IssueType = typeof IssueType[keyof typeof IssueType]
+export type IssueType = (typeof IssueType)[keyof typeof IssueType]
 export const issueTypes = Object.values(IssueType)
 
 // ============================================
@@ -19,7 +19,7 @@ export const Environment = {
   Prod: 'Prod'
 } as const
 
-export type Environment = typeof Environment[keyof typeof Environment]
+export type Environment = (typeof Environment)[keyof typeof Environment]
 export const environments = Object.values(Environment)
 
 // ============================================
@@ -32,7 +32,7 @@ export const IssueStatus = {
   Close: 'Close'
 } as const
 
-export type IssueStatus = typeof IssueStatus[keyof typeof IssueStatus]
+export type IssueStatus = (typeof IssueStatus)[keyof typeof IssueStatus]
 export const issueStatuses = Object.values(IssueStatus)
 
 // ============================================
@@ -46,7 +46,7 @@ export const HttpStatus = {
   InternalServerError: 500
 } as const
 
-export type HttpStatus = typeof HttpStatus[keyof typeof HttpStatus]
+export type HttpStatus = (typeof HttpStatus)[keyof typeof HttpStatus]
 
 // ============================================
 // HTTP 方法定義
@@ -61,7 +61,7 @@ export const HttpMethod = {
   OPTIONS: 'OPTIONS'
 } as const
 
-export type HttpMethod = typeof HttpMethod[keyof typeof HttpMethod]
+export type HttpMethod = (typeof HttpMethod)[keyof typeof HttpMethod]
 export const httpMethods = Object.values(HttpMethod)
 
 // ============================================
@@ -72,7 +72,7 @@ export const UserRole = {
   User: 'user'
 } as const
 
-export type UserRole = typeof UserRole[keyof typeof UserRole]
+export type UserRole = (typeof UserRole)[keyof typeof UserRole]
 export const userRoles = Object.values(UserRole)
 
 // ============================================
@@ -85,7 +85,7 @@ export const InvitationStatus = {
   Expired: 'expired'
 } as const
 
-export type InvitationStatus = typeof InvitationStatus[keyof typeof InvitationStatus]
+export type InvitationStatus = (typeof InvitationStatus)[keyof typeof InvitationStatus]
 export const invitationStatuses = Object.values(InvitationStatus)
 
 // ============================================
@@ -97,7 +97,7 @@ export const NotificationType = {
   IssueComment: 'issue_comment'
 } as const
 
-export type NotificationType = typeof NotificationType[keyof typeof NotificationType]
+export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType]
 export const notificationTypes = Object.values(NotificationType)
 
 // ============================================
@@ -121,13 +121,13 @@ export const SensitiveHeaderKeywords = [
   'secret'
 ] as const
 
-export type SensitiveHeaderKeyword = typeof SensitiveHeaderKeywords[number]
+export type SensitiveHeaderKeyword = (typeof SensitiveHeaderKeywords)[number]
 
 // ============================================
 // 語系（i18n Locales）
 // ============================================
 export const AppLocales = ['en', 'zh-TW'] as const
-export type AppLocale = typeof AppLocales[number]
+export type AppLocale = (typeof AppLocales)[number]
 
 // ============================================
 // cURL 簡化時移除的 Header（瀏覽器/噪音 Header）

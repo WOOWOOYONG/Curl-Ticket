@@ -50,9 +50,7 @@ export default defineEventHandler(async (event) => {
   if (issue.createdBy !== userId) {
     const friendlyId = `${issue.projectKey}-${issue.issueNumber}`
     const plainText = stripHtmlTags(result.data.content)
-    const preview = plainText.length > 200
-      ? `${plainText.slice(0, 200)}...`
-      : plainText
+    const preview = plainText.length > 200 ? `${plainText.slice(0, 200)}...` : plainText
     await db.insert(notifications).values({
       userId: issue.createdBy,
       issueId: issue.id,

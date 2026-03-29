@@ -103,18 +103,12 @@ export function simplifyCurl(rawCurl: string): string {
 
   for (const header of CurlNoiseHeaders) {
     // Match -H 'header: value' or -H "header: value"
-    const pattern = new RegExp(
-      `\\s+-H\\s+['"]${header}:\\s*[^'"]*['"]`,
-      'gi'
-    )
+    const pattern = new RegExp(`\\s+-H\\s+['"]${header}:\\s*[^'"]*['"]`, 'gi')
     result = result.replace(pattern, '')
   }
 
   // Remove sec-* headers
-  result = result.replace(
-    /\s+-H\s+['"]sec-[^'"]*['"]/gi,
-    ''
-  )
+  result = result.replace(/\s+-H\s+['"]sec-[^'"]*['"]/gi, '')
 
   // Collapse multiple spaces
   result = result.replace(/\s{2,}/g, ' ').trim()

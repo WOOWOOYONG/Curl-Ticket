@@ -43,7 +43,7 @@ export function getConfig(): AuthConfig | null {
 }
 
 export async function getConfigAsync(): Promise<AuthConfig | null> {
-  return getConfigFromEnv() ?? await getConfigFromFile()
+  return getConfigFromEnv() ?? (await getConfigFromFile())
 }
 
 export function getUrl(): string | null {

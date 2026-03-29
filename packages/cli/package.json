@@ -2,26 +2,22 @@
   "name": "@curl-ticket/cli",
   "version": "0.4.0",
   "description": "CLI tool for Curl Ticket — query issues and update status from your terminal",
-  "type": "module",
+  "keywords": [
+    "api-debugging",
+    "cli",
+    "curl",
+    "issue-tracker",
+    "ticket"
+  ],
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/WOOWOOYONG/Curl-Ticket",
     "directory": "packages/cli"
   },
-  "keywords": [
-    "curl",
-    "ticket",
-    "issue-tracker",
-    "cli",
-    "api-debugging"
-  ],
-  "engines": {
-    "node": ">=20"
-  },
   "bin": {
-    "curl-ticket": "./dist/index.js",
-    "ct": "./dist/index.js"
+    "ct": "./dist/index.js",
+    "curl-ticket": "./dist/index.js"
   },
   "files": [
     "dist",
@@ -29,6 +25,7 @@
     "README.md",
     "LICENSE"
   ],
+  "type": "module",
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
@@ -42,5 +39,8 @@
     "@types/node": "^25.4.0",
     "tsup": "^8.5.0",
     "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }

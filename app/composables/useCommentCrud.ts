@@ -14,7 +14,12 @@ export const commentToolbarItems: EditorToolbarItem[][] = [
   [
     { kind: 'mark', mark: 'bold', icon: 'i-lucide-bold', tooltip: { text: 'Bold' } },
     { kind: 'mark', mark: 'italic', icon: 'i-lucide-italic', tooltip: { text: 'Italic' } },
-    { kind: 'mark', mark: 'strike', icon: 'i-lucide-strikethrough', tooltip: { text: 'Strikethrough' } }
+    {
+      kind: 'mark',
+      mark: 'strike',
+      icon: 'i-lucide-strikethrough',
+      tooltip: { text: 'Strikethrough' }
+    }
   ],
   [
     { kind: 'mark', mark: 'code', icon: 'i-lucide-code', tooltip: { text: 'Inline Code' } },
@@ -49,7 +54,9 @@ export function useCommentCrud(
   })
 
   const canSubmit = computed((): boolean => {
-    return !isEditorEmpty.value && newComment.value.length <= COMMENT_MAX_LENGTH && !submitting.value
+    return (
+      !isEditorEmpty.value && newComment.value.length <= COMMENT_MAX_LENGTH && !submitting.value
+    )
   })
 
   const charCountColor = computed(() => {
@@ -89,7 +96,9 @@ export function useCommentCrud(
   const saving = ref(false)
 
   const canSaveEdit = computed((): boolean => {
-    return editingId.value !== null && editContent.value.length <= COMMENT_MAX_LENGTH && !saving.value
+    return (
+      editingId.value !== null && editContent.value.length <= COMMENT_MAX_LENGTH && !saving.value
+    )
   })
 
   function startEdit(comment: Comment) {
@@ -116,10 +125,13 @@ export function useCommentCrud(
 
     saving.value = true
     try {
-      await $fetch(`/api/projects/${projectId.value}/issues/${issueId.value}/comments/${editingId.value}`, {
-        method: 'PATCH',
-        body: { content: editContent.value }
-      })
+      await $fetch(
+        `/api/projects/${projectId.value}/issues/${issueId.value}/comments/${editingId.value}`,
+        {
+          method: 'PATCH',
+          body: { content: editContent.value }
+        }
+      )
       editingId.value = null
       editContent.value = ''
       await refresh()
@@ -148,9 +160,12 @@ export function useCommentCrud(
 
     deletingId.value = deleteTargetId.value
     try {
-      await $fetch(`/api/projects/${projectId.value}/issues/${issueId.value}/comments/${deleteTargetId.value}`, {
-        method: 'DELETE'
-      })
+      await $fetch(
+        `/api/projects/${projectId.value}/issues/${issueId.value}/comments/${deleteTargetId.value}`,
+        {
+          method: 'DELETE'
+        }
+      )
       deleteTargetId.value = null
       await refresh()
       toast.add({

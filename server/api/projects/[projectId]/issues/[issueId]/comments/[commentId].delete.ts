@@ -2,7 +2,11 @@ import { eq } from 'drizzle-orm'
 import { issueComments } from '~~/server/database/schema'
 import { badRequest } from '~~/server/utils/errors'
 import { getAccessibleProject } from '~~/server/utils/project-access'
-import { getProjectIssue, getIssueComment, assertCommentAuthor } from '~~/server/utils/comment-access'
+import {
+  getProjectIssue,
+  getIssueComment,
+  assertCommentAuthor
+} from '~~/server/utils/comment-access'
 
 export default defineEventHandler(async (event) => {
   const projectId = getRouterParam(event, 'projectId')
@@ -21,9 +25,7 @@ export default defineEventHandler(async (event) => {
   const comment = await getIssueComment(db, issueId, commentId)
   assertCommentAuthor(comment, userId, 'delete')
 
-  await db
-    .delete(issueComments)
-    .where(eq(issueComments.id, comment.id))
+  await db.delete(issueComments).where(eq(issueComments.id, comment.id))
 
   return { success: true }
 })

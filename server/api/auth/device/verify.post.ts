@@ -17,10 +17,7 @@ export default defineEventHandler(async (event) => {
   const [record] = await db
     .select()
     .from(deviceCodes)
-    .where(and(
-      eq(deviceCodes.userCode, userCode),
-      eq(deviceCodes.status, 'pending')
-    ))
+    .where(and(eq(deviceCodes.userCode, userCode), eq(deviceCodes.status, 'pending')))
     .limit(1)
 
   if (!record) {
@@ -29,9 +26,7 @@ export default defineEventHandler(async (event) => {
 
   if (record.expiresAt < new Date()) {
     // 標記為過期
-    await db.update(deviceCodes)
-      .set({ status: 'expired' })
-      .where(eq(deviceCodes.id, record.id))
+    await db.update(deviceCodes).set({ status: 'expired' }).where(eq(deviceCodes.id, record.id))
     badRequest('驗證碼已過期，請重新執行 CLI 登入指令')
   }
 
@@ -51,7 +46,8 @@ export default defineEventHandler(async (event) => {
   })
 
   // 更新 device_codes 為 complete，暫存明碼供 CLI 取用一次
-  await db.update(deviceCodes)
+  await db
+    .update(deviceCodes)
     .set({
       status: 'complete',
       userId,

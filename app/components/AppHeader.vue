@@ -5,11 +5,14 @@ export interface NavItem {
   label: string
 }
 
-const props = withDefaults(defineProps<{
-  navItems?: NavItem[]
-}>(), {
-  navItems: () => []
-})
+const props = withDefaults(
+  defineProps<{
+    navItems?: NavItem[]
+  }>(),
+  {
+    navItems: () => []
+  }
+)
 
 const route = useRoute()
 const supabase = useSupabaseClient()
@@ -125,8 +128,12 @@ const items = computed(() => [
     </UHeader>
 
     <template #fallback>
-      <header class="bg-slate-50/85 dark:bg-slate-950/70 backdrop-blur border-b border-slate-200/80 dark:border-white/10 h-(--ui-header-height) sticky top-0 z-50 ">
-        <div class="w-full mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3 h-full max-w-full">
+      <header
+        class="sticky top-0 z-50 h-(--ui-header-height) border-b border-slate-200/80 bg-slate-50/85 backdrop-blur dark:border-white/10 dark:bg-slate-950/70"
+      >
+        <div
+          class="mx-auto flex h-full w-full max-w-full items-center justify-between gap-3 px-4 sm:px-6 lg:px-8"
+        >
           <NuxtLink
             to="/"
             class="text-lg font-bold"

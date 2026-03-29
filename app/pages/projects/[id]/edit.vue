@@ -23,18 +23,22 @@ const state = ref<CreateProjectInput>({
   environments: []
 })
 
-watch(project, (currentProject) => {
-  if (!currentProject || isInitialized.value) return
+watch(
+  project,
+  (currentProject) => {
+    if (!currentProject || isInitialized.value) return
 
-  state.value = {
-    name: currentProject.name,
-    key: currentProject.key,
-    description: currentProject.description,
-    environments: [...currentProject.environments]
-  }
+    state.value = {
+      name: currentProject.name,
+      key: currentProject.key,
+      description: currentProject.description,
+      environments: [...currentProject.environments]
+    }
 
-  isInitialized.value = true
-}, { immediate: true })
+    isInitialized.value = true
+  },
+  { immediate: true }
+)
 
 function normalizeDescription(value: string | null | undefined) {
   const trimmed = value?.trim()

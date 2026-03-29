@@ -4,7 +4,7 @@ import type { AppLocale } from '~~/shared/constants'
 const { locale, locales, setLocale } = useI18n()
 
 const availableLocales = computed(() =>
-  locales.value.map(l => ({
+  locales.value.map((l) => ({
     label: typeof l === 'string' ? l : l.name || l.code,
     value: typeof l === 'string' ? l : l.code
   }))

@@ -11,11 +11,14 @@ const { t } = useI18n()
 const nameInput = ref(profile.value?.name ?? '')
 const isSaving = ref(false)
 
-watch(() => profile.value?.name, (newName) => {
-  if (newName && !isSaving.value) {
-    nameInput.value = newName
+watch(
+  () => profile.value?.name,
+  (newName) => {
+    if (newName && !isSaving.value) {
+      nameInput.value = newName
+    }
   }
-})
+)
 
 async function updateName() {
   const trimmed = nameInput.value.trim()
@@ -64,8 +67,8 @@ async function deleteAccount() {
     }
     const owned = e.data?.data?.ownedProjects as { name: string }[] | undefined
     deleteError.value = owned?.length
-      ? `Please transfer or delete the following projects first: ${owned.map(p => p.name).join(', ')}`
-      : e.statusMessage ?? 'Failed to delete account'
+      ? `Please transfer or delete the following projects first: ${owned.map((p) => p.name).join(', ')}`
+      : (e.statusMessage ?? 'Failed to delete account')
   } finally {
     isDeleting.value = false
   }
@@ -80,7 +83,7 @@ function openDeleteModal() {
 
 <template>
   <div class="mx-auto max-w-2xl px-6 py-8">
-    <h1 class="text-2xl font-bold mb-6">
+    <h1 class="mb-6 text-2xl font-bold">
       {{ $t('settings.profile') }}
     </h1>
 
@@ -88,7 +91,9 @@ function openDeleteModal() {
     <UCard class="mb-6">
       <div class="space-y-4">
         <div>
-          <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">{{ $t('settings.email') }}</label>
+          <label class="mb-1 block text-sm font-medium text-gray-500 dark:text-gray-400">{{
+            $t('settings.email')
+          }}</label>
           <p class="text-sm">
             {{ profile?.email }}
           </p>
@@ -97,8 +102,9 @@ function openDeleteModal() {
         <div>
           <label
             for="display-name"
-            class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1"
-          >{{ $t('settings.displayName') }}</label>
+            class="mb-1 block text-sm font-medium text-gray-500 dark:text-gray-400"
+            >{{ $t('settings.displayName') }}</label
+          >
           <div class="flex gap-2">
             <UInput
               id="display-name"
@@ -149,10 +155,10 @@ function openDeleteModal() {
     <UModal v-model:open="showDeleteModal">
       <template #content>
         <div class="p-6">
-          <h3 class="text-lg font-semibold mb-2">
+          <h3 class="mb-2 text-lg font-semibold">
             {{ $t('settings.deleteAccount') }}
           </h3>
-          <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+          <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
             {{ $t('settings.deleteAccountConfirm') }}
             <i18n-t
               keypath="settings.deleteAccountConfirmType"

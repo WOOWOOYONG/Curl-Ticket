@@ -19,9 +19,23 @@ const issueId = computed(() => props.issueId)
 const editorRef = useTemplateRef<{ editor: EditorInstance }>('editorRef')
 
 const {
-  comments, newComment, submitting, canSubmit, charCountColor, submitComment,
-  editingId, editContent, saving, canSaveEdit, startEdit, cancelEdit, saveEdit,
-  deletingId, deleteTargetId, confirmDelete, deleteComment
+  comments,
+  newComment,
+  submitting,
+  canSubmit,
+  charCountColor,
+  submitComment,
+  editingId,
+  editContent,
+  saving,
+  canSaveEdit,
+  startEdit,
+  cancelEdit,
+  saveEdit,
+  deletingId,
+  deleteTargetId,
+  confirmDelete,
+  deleteComment
 } = useCommentCrud(projectId, issueId, editorRef)
 
 function isOwnComment(authorId: string) {
@@ -42,7 +56,7 @@ const currentUserAvatarColor = computed(() => {
 <template>
   <div>
     <!-- Section Header -->
-    <div class="flex items-center gap-2 mb-4 pb-3 border-b border-slate-200 dark:border-slate-800">
+    <div class="mb-4 flex items-center gap-2 border-b border-slate-200 pb-3 dark:border-slate-800">
       <UIcon
         name="i-lucide-message-square-text"
         class="size-4 text-slate-500 dark:text-slate-400"
@@ -50,21 +64,21 @@ const currentUserAvatarColor = computed(() => {
       <h3 class="text-sm font-semibold text-slate-900 dark:text-white">
         {{ $t('comments.title') }}
       </h3>
-      <span class="text-xs text-slate-400 dark:text-slate-500">
-        ({{ comments.length }})
-      </span>
+      <span class="text-xs text-slate-400 dark:text-slate-500"> ({{ comments.length }}) </span>
     </div>
 
     <!-- Empty State -->
     <div
       v-if="comments.length === 0"
-      class="flex items-start gap-4 mb-6"
+      class="mb-6 flex items-start gap-4"
     >
-      <div class="shrink-0 size-10" />
-      <div class="flex-1 rounded-lg border border-dashed border-slate-200 dark:border-slate-700 py-8 text-center">
+      <div class="size-10 shrink-0" />
+      <div
+        class="flex-1 rounded-lg border border-dashed border-slate-200 py-8 text-center dark:border-slate-700"
+      >
         <UIcon
           name="i-lucide-message-circle"
-          class="size-5 text-slate-300 dark:text-slate-600 mx-auto mb-1.5"
+          class="mx-auto mb-1.5 size-5 text-slate-300 dark:text-slate-600"
         />
         <p class="text-sm text-slate-400 dark:text-slate-500">
           {{ $t('comments.noComments') }}
@@ -75,7 +89,7 @@ const currentUserAvatarColor = computed(() => {
     <!-- Comment Thread -->
     <div
       v-else
-      class="space-y-4 mb-6"
+      class="mb-6 space-y-4"
     >
       <CommentCard
         v-for="comment in comments"
@@ -100,14 +114,16 @@ const currentUserAvatarColor = computed(() => {
     <div class="flex items-start gap-4">
       <!-- Current user avatar -->
       <div
-        class="shrink-0 flex items-center justify-center size-10 rounded-full text-xs font-semibold"
+        class="flex size-10 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
         :class="currentUserAvatarColor"
       >
         {{ currentUserInitials }}
       </div>
 
       <!-- Editor Card -->
-      <div class="flex-1 min-w-0 rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden focus-within:border-primary-500 dark:focus-within:border-primary-400 transition-colors">
+      <div
+        class="focus-within:border-primary-500 dark:focus-within:border-primary-400 min-w-0 flex-1 overflow-hidden rounded-lg border border-slate-200 transition-colors dark:border-slate-700"
+      >
         <div class="bg-white dark:bg-slate-900/40">
           <ClientOnly>
             <UEditor
@@ -124,18 +140,22 @@ const currentUserAvatarColor = computed(() => {
                 <UEditorToolbar
                   :editor="editor"
                   :items="commentToolbarItems"
-                  class="px-2.5 py-1 border-b border-slate-200 dark:border-slate-700"
+                  class="border-b border-slate-200 px-2.5 py-1 dark:border-slate-700"
                 />
               </template>
             </UEditor>
           </ClientOnly>
         </div>
-        <div class="flex items-center justify-between px-3 py-2.5 bg-slate-50 dark:bg-slate-800/60 border-t border-slate-200 dark:border-slate-700">
+        <div
+          class="flex items-center justify-between border-t border-slate-200 bg-slate-50 px-3 py-2.5 dark:border-slate-700 dark:bg-slate-800/60"
+        >
           <span
             class="text-[11px] tabular-nums transition-colors"
             :class="charCountColor"
           >
-            {{ newComment.length > 0 ? `${newComment.length} / ${COMMENT_MAX_LENGTH_DISPLAY}` : '' }}
+            {{
+              newComment.length > 0 ? `${newComment.length} / ${COMMENT_MAX_LENGTH_DISPLAY}` : ''
+            }}
           </span>
           <UButton
             :disabled="!canSubmit"
@@ -158,8 +178,16 @@ const currentUserAvatarColor = computed(() => {
       :confirm-label="$t('common.delete')"
       :loading="deletingId !== null"
       :on-confirm="deleteComment"
-      :on-cancel="() => { deleteTargetId = null }"
-      @update:open="(val: boolean) => { if (!val) deleteTargetId = null }"
+      :on-cancel="
+        () => {
+          deleteTargetId = null
+        }
+      "
+      @update:open="
+        (val: boolean) => {
+          if (!val) deleteTargetId = null
+        }
+      "
     />
   </div>
 </template>

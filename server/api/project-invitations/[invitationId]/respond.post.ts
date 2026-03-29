@@ -1,5 +1,10 @@
 import { eq } from 'drizzle-orm'
-import { projectInvitations, projectMembers, notifications, profiles } from '~~/server/database/schema'
+import {
+  projectInvitations,
+  projectMembers,
+  notifications,
+  profiles
+} from '~~/server/database/schema'
 import { respondProjectInvitationSchema } from '~~/shared/schemas'
 import { InvitationStatus } from '~~/shared/constants'
 import { badRequest, notFound, forbidden } from '~~/server/utils/errors'
@@ -20,7 +25,9 @@ export default defineEventHandler(async (event) => {
   }
 
   // 取得邀請
-  const [invitation] = await db.select().from(projectInvitations)
+  const [invitation] = await db
+    .select()
+    .from(projectInvitations)
     .where(eq(projectInvitations.id, invitationId))
     .limit(1)
 
@@ -37,7 +44,8 @@ export default defineEventHandler(async (event) => {
   }
 
   if (invitation.expiresAt && new Date() > invitation.expiresAt) {
-    await db.update(projectInvitations)
+    await db
+      .update(projectInvitations)
       .set({ status: InvitationStatus.Expired })
       .where(eq(projectInvitations.id, invitationId))
 
@@ -45,25 +53,28 @@ export default defineEventHandler(async (event) => {
   }
 
   // 驗證當前用戶 email === invitation.email
-  const [profile] = await db.select().from(profiles)
-    .where(eq(profiles.id, userId))
-    .limit(1)
+  const [profile] = await db.select().from(profiles).where(eq(profiles.id, userId)).limit(1)
 
   if (!profile || profile.email !== invitation.email) {
     forbidden('你無權回應此邀請')
   }
 
   await db.transaction(async (tx) => {
-    await tx.update(projectInvitations)
+    await tx
+      .update(projectInvitations)
       .set({ status: InvitationStatus.Accepted, acceptedAt: new Date() })
       .where(eq(projectInvitations.id, invitationId))
 
-    await tx.insert(projectMembers).values({
-      projectId: invitation.projectId,
-      userId
-    }).onConflictDoNothing()
+    await tx
+      .insert(projectMembers)
+      .values({
+        projectId: invitation.projectId,
+        userId
+      })
+      .onConflictDoNothing()
 
-    await tx.update(notifications)
+    await tx
+      .update(notifications)
       .set({ isRead: true })
       .where(eq(notifications.projectInvitationId, invitationId))
   })

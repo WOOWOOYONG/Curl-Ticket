@@ -76,15 +76,24 @@ interface ErrorInfo {
 }
 
 const API_STATUS_MAP: Record<number, ErrorInfo> = {
-  401: { code: 401, exitCode: ExitCode.AuthError, message: 'Invalid token. Please regenerate it from the Curl Ticket site.' },
+  401: {
+    code: 401,
+    exitCode: ExitCode.AuthError,
+    message: 'Invalid token. Please regenerate it from the Curl Ticket site.'
+  },
   403: { code: 403, exitCode: ExitCode.AuthError, message: 'Access denied for this project.' },
   404: { code: 404, exitCode: ExitCode.NotFound, message: 'Resource not found.' }
 }
 
 function resolveError(err: unknown): ErrorInfo {
   if (err instanceof ApiError) {
-    return API_STATUS_MAP[err.statusCode]
-      ?? { code: err.statusCode, exitCode: ExitCode.GeneralError, message: `API error (${err.statusCode}): ${err.message}` }
+    return (
+      API_STATUS_MAP[err.statusCode] ?? {
+        code: err.statusCode,
+        exitCode: ExitCode.GeneralError,
+        message: `API error (${err.statusCode}): ${err.message}`
+      }
+    )
   }
   if (err instanceof NetworkError) {
     return { code: null, exitCode: ExitCode.NetworkError, message: err.message }
@@ -126,7 +135,7 @@ program
   .description('List accessible projects')
   .action(async () => {
     try {
-      await withAuth(client => projectsCommand(client, isJsonMode()))
+      await withAuth((client) => projectsCommand(client, isJsonMode()))
     } catch (err) {
       handleError(err, isJsonMode())
     }
@@ -137,14 +146,25 @@ program
   .description('List issues for a project')
   .option('-s, --status <status>', 'Filter by status (Open / in-progress / Done / Close)')
   .option('-t, --type <type>', 'Filter by type (api_bug / task)')
-  .option('-n, --limit <limit>', `Max results (default ${DEFAULT_PAGE_SIZE}, max ${MAX_PAGE_SIZE})`, String(DEFAULT_PAGE_SIZE))
-  .action(async (projectId: string, options: { status?: string, type?: string, limit: string }) => {
+  .option(
+    '-n, --limit <limit>',
+    `Max results (default ${DEFAULT_PAGE_SIZE}, max ${MAX_PAGE_SIZE})`,
+    String(DEFAULT_PAGE_SIZE)
+  )
+  .action(async (projectId: string, options: { status?: string; type?: string; limit: string }) => {
     try {
-      await withAuth(client => issuesCommand(client, projectId, {
-        status: options.status,
-        type: options.type,
-        limit: parseInt(options.limit, 10)
-      }, isJsonMode()))
+      await withAuth((client) =>
+        issuesCommand(
+          client,
+          projectId,
+          {
+            status: options.status,
+            type: options.type,
+            limit: parseInt(options.limit, 10)
+          },
+          isJsonMode()
+        )
+      )
     } catch (err) {
       handleError(err, isJsonMode())
     }
@@ -156,7 +176,9 @@ program
   .option('--fields <fields>', 'Comma-separated list of fields to include (JSON mode only)')
   .action(async (projectId: string, issueId: string, options: { fields?: string }) => {
     try {
-      await withAuth(client => issueCommand(client, projectId, issueId, isJsonMode(), options.fields))
+      await withAuth((client) =>
+        issueCommand(client, projectId, issueId, isJsonMode(), options.fields)
+      )
     } catch (err) {
       handleError(err, isJsonMode())
     }
@@ -166,13 +188,17 @@ program
   .command('update-status <projectId> <issueId> <status>')
   .description('Update issue status')
   .option('--dry-run', 'Preview the update without applying it')
-  .action(async (projectId: string, issueId: string, status: string, options: { dryRun?: boolean }) => {
-    try {
-      await withAuth(client => updateStatusCommand(client, projectId, issueId, status, isJsonMode(), options.dryRun))
-    } catch (err) {
-      handleError(err, isJsonMode())
+  .action(
+    async (projectId: string, issueId: string, status: string, options: { dryRun?: boolean }) => {
+      try {
+        await withAuth((client) =>
+          updateStatusCommand(client, projectId, issueId, status, isJsonMode(), options.dryRun)
+        )
+      } catch (err) {
+        handleError(err, isJsonMode())
+      }
     }
-  })
+  )
 
 // --- Comment commands ---
 
@@ -181,7 +207,7 @@ program
   .description('List comments for an issue')
   .action(async (projectId: string, issueId: string) => {
     try {
-      await withAuth(client => commentsCommand(client, projectId, issueId, isJsonMode()))
+      await withAuth((client) => commentsCommand(client, projectId, issueId, isJsonMode()))
     } catch (err) {
       handleError(err, isJsonMode())
     }
@@ -192,7 +218,9 @@ program
   .description('Get a single comment')
   .action(async (projectId: string, issueId: string, commentId: string) => {
     try {
-      await withAuth(client => getCommentCommand(client, projectId, issueId, commentId, isJsonMode()))
+      await withAuth((client) =>
+        getCommentCommand(client, projectId, issueId, commentId, isJsonMode())
+      )
     } catch (err) {
       handleError(err, isJsonMode())
     }
@@ -203,7 +231,9 @@ program
   .description('Add a comment to an issue')
   .action(async (projectId: string, issueId: string, content: string) => {
     try {
-      await withAuth(client => addCommentCommand(client, projectId, issueId, content, isJsonMode()))
+      await withAuth((client) =>
+        addCommentCommand(client, projectId, issueId, content, isJsonMode())
+      )
     } catch (err) {
       handleError(err, isJsonMode())
     }
@@ -214,7 +244,9 @@ program
   .description('Edit a comment')
   .action(async (projectId: string, issueId: string, commentId: string, content: string) => {
     try {
-      await withAuth(client => editCommentCommand(client, projectId, issueId, commentId, content, isJsonMode()))
+      await withAuth((client) =>
+        editCommentCommand(client, projectId, issueId, commentId, content, isJsonMode())
+      )
     } catch (err) {
       handleError(err, isJsonMode())
     }
@@ -224,13 +256,17 @@ program
   .command('delete-comment <projectId> <issueId> <commentId>')
   .description('Delete a comment')
   .option('--force', 'Skip confirmation prompt')
-  .action(async (projectId: string, issueId: string, commentId: string, options: { force?: boolean }) => {
-    try {
-      await withAuth(client => deleteCommentCommand(client, projectId, issueId, commentId, isJsonMode(), options.force))
-    } catch (err) {
-      handleError(err, isJsonMode())
+  .action(
+    async (projectId: string, issueId: string, commentId: string, options: { force?: boolean }) => {
+      try {
+        await withAuth((client) =>
+          deleteCommentCommand(client, projectId, issueId, commentId, isJsonMode(), options.force)
+        )
+      } catch (err) {
+        handleError(err, isJsonMode())
+      }
     }
-  })
+  )
 
 // --- Schema introspection ---
 
@@ -247,9 +283,7 @@ program
 
 // --- Auth commands ---
 
-const auth = program
-  .command('auth')
-  .description('Manage authentication')
+const auth = program.command('auth').description('Manage authentication')
 
 auth
   .command('login')

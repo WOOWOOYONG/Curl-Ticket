@@ -9,15 +9,19 @@ Curl Ticket is an API issue tracking app built with Nuxt 4. It helps engineering
 ## Commands
 
 ### Development
+
 ```bash
 pnpm dev              # Start dev server (http://localhost:3000)
 pnpm build            # Production build
 pnpm preview          # Preview production build
+pnpm format           # Format code with Oxfmt
+pnpm format:check     # Check formatting (CI)
 pnpm lint             # Run Oxlint
 pnpm typecheck        # Run Nuxt/Vue type checks
 ```
 
 ### Database (Drizzle ORM)
+
 ```bash
 pnpm db:generate      # Generate migration from schema changes (after editing server/database/schema/*.ts)
 pnpm db:migrate       # Apply pending migrations to database
@@ -27,6 +31,7 @@ pnpm db:types         # Generate Supabase TypeScript types (uses hardcoded proje
 ```
 
 ### Local Scripts
+
 ```bash
 node scripts/verify-schema.mjs    # Print current database schema from information_schema
 node scripts/reset-db.mjs         # Drop all app tables and migration history (destructive!)
@@ -44,10 +49,12 @@ main (always deployable)
 ```
 
 **Rules:**
+
 - Feature branches merge back to `main` via PR
 - CLI releases: tag `cli@x.x.x` on `main` triggers CI auto `npm publish`
 
 ### CLI Version Release Flow
+
 ```bash
 # 1. Merge feature branch to main
 # 2. Bump version and tag on main
@@ -60,6 +67,7 @@ git push && git push --tags
 ## Architecture
 
 ### Tech Stack
+
 - **Frontend:** Nuxt 4, Vue 3 (Composition API with `<script setup>`), TypeScript, Nuxt UI, Tailwind CSS, VueUse
 - **Backend:** Nuxt server routes, Supabase Auth (Google OAuth), PostgreSQL, Drizzle ORM
 - **Validation:** Zod schemas (shared between client/server in `shared/schemas/`)
@@ -67,6 +75,7 @@ git push && git push --tags
 - **Highlighting:** Shiki for JSON syntax highlighting
 
 ### Directory Structure
+
 ```
 app/                        # Nuxt app directory
   pages/                    # File-based routing
@@ -97,6 +106,7 @@ scripts/                    # Local utility scripts
 2. **Registration Phase:** User must redeem a 6-character invitation code to create a profile record in the `profiles` table. Without a profile, users can only access `authOnlyRoutes`.
 
 **Server Middleware (`server/middleware/auth.ts`):**
+
 - Runs on all `/api/*` routes except public routes (`/api/health`, `/api/invitation-codes/validate`)
 - Checks Supabase session via `serverSupabaseClient(event).auth.getUser()`
 - Sets `event.context.userId`, `event.context.userEmail`, `event.context.userMetadata`
@@ -105,6 +115,7 @@ scripts/                    # Local utility scripts
 - Sets `event.context.profile` for authenticated routes
 
 **Profile System:**
+
 - `profiles` table: `id` (matches Supabase auth.users.id), `email`, `name`, `role` ('admin' | 'user')
 - Profile is NOT auto-created on OAuth login
 - Profile is created only when user redeems a valid invitation code via `/api/invitation-codes/redeem`
@@ -117,10 +128,12 @@ scripts/                    # Local utility scripts
 Projects have an `ownerId` and a many-to-many `project_members` relationship.
 
 **Access Rule:** User can access a project if:
+
 - User is the project owner (`projects.ownerId === userId`), OR
 - User exists in `project_members` for that project
 
 **Key Utilities (`server/utils/project-access.ts`):**
+
 - `buildProjectAccessCondition(userId)`: Returns Drizzle SQL condition for project visibility
 - `getAccessibleProject(db, projectId, userId)`: Fetches project if user has access, throws 404 if not
 
@@ -129,6 +142,7 @@ Projects have an `ownerId` and a many-to-many `project_members` relationship.
 ### Database Schema (Drizzle ORM)
 
 **Key Tables:**
+
 - `profiles`: User profiles (id matches Supabase auth.users.id)
 - `projects`: Projects with `owner_id`, `name`, `key` (short project code)
 - `issues`: Issue records with `project_id`, `issue_number`, `raw_curl`, `method`, `url`, `request_headers`, `request_body`, `response_status`, `response_body`, `status`, `environment`
@@ -138,6 +152,7 @@ Projects have an `ownerId` and a many-to-many `project_members` relationship.
 - `notifications`: Notification records (user_id, type, data, read_at)
 
 **Drizzle Setup:**
+
 - Schema definitions: `server/database/schema/`
 - Export all tables via `server/database/schema/index.ts`
 - DB connection: `server/utils/db.ts` exports `useDB()` (lazy singleton pattern)
@@ -147,6 +162,7 @@ Projects have an `ownerId` and a many-to-many `project_members` relationship.
 ### Shared Validation (Zod)
 
 All API request/response validation uses Zod schemas defined in `shared/schemas/`:
+
 - `issue.ts`: `createIssueSchema`, `updateIssueSchema`, `issueSchema`
 - `project.ts`: `createProjectSchema`, `updateProjectSchema`, `projectSchema`
 - `invitation-code.ts`: `createInvitationCodeSchema`, `redeemInvitationCodeSchema`
@@ -157,6 +173,7 @@ All API request/response validation uses Zod schemas defined in `shared/schemas/
 ### Constants & Enums
 
 **Shared constants** (`shared/constants.ts`):
+
 - `IssueStatus`: 'Open' | 'In Progress' | 'Done' | 'Close'
 - `Environment`: 'Local' | 'Dev' | 'Staging' | 'Prod'
 - `HttpMethod`: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS'
@@ -171,6 +188,7 @@ Use the constant objects (e.g., `IssueStatus.Open`) instead of raw strings.
 **Data Fetching:** Use Nuxt's `useFetch` with reactive keys for server-side rendering (SSR) support.
 
 Example:
+
 ```typescript
 // app/composables/useProject.ts
 export function useProject(projectId: Ref<string> | ComputedRef<string>) {
@@ -181,6 +199,7 @@ export function useProject(projectId: Ref<string> | ComputedRef<string>) {
 ```
 
 **Other composables:**
+
 - `useIssues(projectId)`: Fetch issues for a project
 - `useShikiHighlighter()`: JSON syntax highlighting
 - `useCopy()`: Copy to clipboard utility
@@ -192,6 +211,7 @@ export function useProject(projectId: Ref<string> | ComputedRef<string>) {
 All routes are protected by `server/middleware/auth.ts` unless explicitly in `publicRoutes`.
 
 **Key endpoints:**
+
 - `POST /api/curl/parse` - Parse cURL command
 - `GET /api/projects` - List user's accessible projects
 - `POST /api/projects` - Create new project
@@ -210,6 +230,7 @@ All routes are protected by `server/middleware/auth.ts` unless explicitly in `pu
 ### Error Handling
 
 **Server utilities** (`server/utils/errors.ts`):
+
 - `notFound(message)`: Throws 404 error
 - `forbidden(message)`: Throws 403 error
 - `badRequest(message)`: Throws 400 error
@@ -220,6 +241,7 @@ Use these helpers instead of manually calling `createError()`.
 ### Sensitive Data Masking
 
 **Security pattern:** Request headers containing sensitive keywords are masked in the UI:
+
 - Keywords: `authorization`, `token`, `api-key`, `secret`, `password`, `bearer`
 - Display value: `***REDACTED***`
 - Storage: Full values are stored in DB but masked on display in client components
@@ -239,6 +261,7 @@ Use these helpers instead of manually calling `createError()`.
 ### Environment Variables
 
 Required in `.env`:
+
 - `SUPABASE_URL` - Supabase project URL
 - `SUPABASE_KEY` - Supabase anon/public key
 - `DATABASE_URL` - PostgreSQL connection string (Supabase or external)
@@ -248,6 +271,7 @@ Required in `.env`:
 **Current CI:** GitHub Actions workflow runs `pnpm install`, `pnpm lint`, `pnpm typecheck` on all pushes.
 
 **No test suite yet.** When writing tests:
+
 - Use Vitest for unit tests
 - Use Vue Test Utils + Vitest for component tests
 - Consider Playwright for E2E tests
@@ -263,7 +287,9 @@ Required in `.env`:
 
 ### Code Style
 
-- Oxlint config: `.oxlintrc.json` with stylistic rules (commaDangle: 'never', braceStyle: '1tbs')
+- **Formatter:** Oxfmt (`.oxfmtrc.json`) — handles indentation, quotes, semicolons, line wrapping
+- **Linter:** Oxlint (`.oxlintrc.json`) — stylistic rules that don't conflict with the formatter
+- Run `pnpm format` to format code, `pnpm format:check` to verify
 - Run `pnpm lint` before committing
 - Use 2-space indentation
 - Use single quotes for strings

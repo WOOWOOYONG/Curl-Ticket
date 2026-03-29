@@ -3,7 +3,11 @@ import { issueComments } from '~~/server/database/schema'
 import { updateCommentSchema } from '~~/shared/schemas/issue-comment'
 import { badRequest } from '~~/server/utils/errors'
 import { getAccessibleProject } from '~~/server/utils/project-access'
-import { getProjectIssue, getIssueComment, assertCommentAuthor } from '~~/server/utils/comment-access'
+import {
+  getProjectIssue,
+  getIssueComment,
+  assertCommentAuthor
+} from '~~/server/utils/comment-access'
 import { sanitizeHtml } from '~~/server/utils/html'
 
 export default defineEventHandler(async (event) => {
@@ -41,7 +45,7 @@ export default defineEventHandler(async (event) => {
     .where(eq(issueComments.id, comment.id))
     .returning()
 
-  const profile = event.context.profile as { name: string | null, email: string }
+  const profile = event.context.profile as { name: string | null; email: string }
 
   return {
     data: {

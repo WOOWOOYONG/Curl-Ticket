@@ -2,9 +2,11 @@ import { getConfigAsync, getConfigSource, deleteConfig, getUrlAsync } from '../a
 import { startDeviceCodeFlow } from '../auth/device-flow.js'
 
 export async function authLoginCommand(url?: string): Promise<void> {
-  const baseUrl = url ?? await getUrlAsync()
+  const baseUrl = url ?? (await getUrlAsync())
   if (!baseUrl) {
-    throw new Error('Please specify a site URL with --url or set the CURL_TICKET_URL environment variable.')
+    throw new Error(
+      'Please specify a site URL with --url or set the CURL_TICKET_URL environment variable.'
+    )
   }
   await startDeviceCodeFlow(baseUrl)
 }

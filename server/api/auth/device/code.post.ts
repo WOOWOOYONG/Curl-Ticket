@@ -7,7 +7,9 @@ const CHAR_SET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
 
 function generateUserCode(): string {
   const bytes = randomBytes(8)
-  const chars = Array.from(bytes).map(b => CHAR_SET[b % CHAR_SET.length]).join('')
+  const chars = Array.from(bytes)
+    .map((b) => CHAR_SET[b % CHAR_SET.length])
+    .join('')
   return `${chars.slice(0, 4)}-${chars.slice(4, 8)}`
 }
 

@@ -30,7 +30,8 @@ export default defineEventHandler(async (event) => {
 
   if (record.status === 'complete' && record.tokenPlaintext) {
     // Token 僅回傳一次（TOKEN-031）：回傳後標記為 consumed 並清除明碼
-    await db.update(deviceCodes)
+    await db
+      .update(deviceCodes)
       .set({ status: 'consumed', tokenPlaintext: null })
       .where(eq(deviceCodes.id, record.id))
 

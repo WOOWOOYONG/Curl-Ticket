@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import { getHttpMethodColor } from '~/constants/http'
-import { IssueStatusColor, IssueStatusLabel, EnvironmentColor, IssueTypeLabel, IssueTypeIcon, IssueTypeColor } from '~/constants/issue'
+import {
+  IssueStatusColor,
+  IssueStatusLabel,
+  EnvironmentColor,
+  IssueTypeLabel,
+  IssueTypeIcon,
+  IssueTypeColor
+} from '~/constants/issue'
 import { maskValue, formatJson, buildCurlCommand, toHeadersArray } from '~/utils/issue'
 import type { IssueResponse } from '~/types/issue'
 import type { Issue } from '~~/shared/schemas/issue'
@@ -35,10 +42,12 @@ const { data: issueResponse, status } = await useFetch<IssueResponse>(
 const issue = computed<Issue | undefined>(() => issueResponse.value?.data)
 const friendlyId = computed(() => issueResponse.value?.friendlyId)
 
-const isApiBug = computed(() => !issue.value?.issueType || issue.value.issueType === IssueType.ApiBug)
+const isApiBug = computed(
+  () => !issue.value?.issueType || issue.value.issueType === IssueType.ApiBug
+)
 const isTask = computed(() => issue.value?.issueType === IssueType.Task)
 
-const statusOptions = issueStatuses.map(status => ({
+const statusOptions = issueStatuses.map((status) => ({
   label: IssueStatusLabel[status],
   value: status,
   chip: {
@@ -48,14 +57,18 @@ const statusOptions = issueStatuses.map(status => ({
 const selectedStatus = ref<IssueStatus | undefined>()
 
 function getStatusChip(value: string) {
-  return statusOptions.find(item => item.value === value)?.chip
+  return statusOptions.find((item) => item.value === value)?.chip
 }
 const updatingStatus = ref(false)
 
-watch(issue, (currentIssue) => {
-  if (!currentIssue) return
-  selectedStatus.value = currentIssue.status
-}, { immediate: true })
+watch(
+  issue,
+  (currentIssue) => {
+    if (!currentIssue) return
+    selectedStatus.value = currentIssue.status
+  },
+  { immediate: true }
+)
 
 // Headers as array
 const headersArray = computed(() => toHeadersArray(issue.value?.requestHeaders))
@@ -81,7 +94,18 @@ function copyUrl() {
 
 function copyCurl() {
   if (!issue.value) return
-  const curlCmd = issue.value.rawCurl || (issue.value.method && issue.value.url ? buildCurlCommand(issue.value as { method: string, url: string, requestHeaders?: Record<string, string> | null, requestBody?: unknown }) : '')
+  const curlCmd =
+    issue.value.rawCurl ||
+    (issue.value.method && issue.value.url
+      ? buildCurlCommand(
+          issue.value as {
+            method: string
+            url: string
+            requestHeaders?: Record<string, string> | null
+            requestBody?: unknown
+          }
+        )
+      : '')
   if (curlCmd) {
     copyToClipboard(curlCmd, { description: 'cURL command copied to clipboard' })
   }
@@ -89,12 +113,16 @@ function copyCurl() {
 
 function copyRequestBody() {
   if (!issue.value?.requestBody) return
-  copyToClipboard(formatJson(issue.value.requestBody), { description: 'Request body copied to clipboard' })
+  copyToClipboard(formatJson(issue.value.requestBody), {
+    description: 'Request body copied to clipboard'
+  })
 }
 
 function copyResponseBody() {
   if (!issue.value?.responseBody) return
-  copyToClipboard(formatJson(issue.value.responseBody), { description: 'Response body copied to clipboard' })
+  copyToClipboard(formatJson(issue.value.responseBody), {
+    description: 'Response body copied to clipboard'
+  })
 }
 
 watch(selectedStatus, async (nextStatus) => {
@@ -140,18 +168,24 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
   updatingStatus.value = true
 
   try {
-    const response = await $fetch<IssueResponse>(`/api/projects/${projectId.value}/issues/${issueId.value}`, {
-      method: 'PATCH',
-      body: {
-        status: nextStatus
+    const response = await $fetch<IssueResponse>(
+      `/api/projects/${projectId.value}/issues/${issueId.value}`,
+      {
+        method: 'PATCH',
+        body: {
+          status: nextStatus
+        }
       }
-    })
+    )
 
     issueResponse.value = response
 
     toast.add({
       title: t('issues.statusUpdated'),
-      description: t('issues.statusUpdateHint', { id: response.friendlyId, status: IssueStatusLabel[response.data.status] || response.data.status }),
+      description: t('issues.statusUpdateHint', {
+        id: response.friendlyId,
+        status: IssueStatusLabel[response.data.status] || response.data.status
+      }),
       color: 'success'
     })
   } catch (err: unknown) {
@@ -175,8 +209,8 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
       <template v-if="status === 'pending'">
         <div class="space-y-6">
           <USkeleton class="h-12 w-full" />
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div class="lg:col-span-2 space-y-6">
+          <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <div class="space-y-6 lg:col-span-2">
               <USkeleton class="h-64 w-full rounded-lg" />
               <USkeleton class="h-64 w-full rounded-lg" />
             </div>
@@ -192,12 +226,12 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
         <div class="flex flex-col items-center justify-center py-16">
           <UIcon
             name="i-lucide-alert-circle"
-            class="size-16 text-gray-400 mb-4"
+            class="mb-4 size-16 text-gray-400"
           />
-          <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+          <h2 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
             {{ $t('issues.notFound') }}
           </h2>
-          <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">
+          <p class="mb-6 text-sm text-gray-500 dark:text-gray-400">
             {{ $t('issues.notFoundHint') }}
           </p>
           <UButton
@@ -213,25 +247,27 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
       <!-- Content -->
       <template v-else>
         <!-- Header Section -->
-        <div class="mb-8 space-y-4 border-b border-slate-200/70 dark:border-slate-800/70 pb-6">
+        <div class="mb-8 space-y-4 border-b border-slate-200/70 pb-6 dark:border-slate-800/70">
           <!-- Back Link + Friendly ID -->
           <div class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
             <NuxtLink
               :to="backToListUrl"
-              class="inline-flex items-center gap-1.5 hover:text-slate-900 dark:hover:text-white transition-colors group"
+              class="group inline-flex items-center gap-1.5 transition-colors hover:text-slate-900 dark:hover:text-white"
             >
               <UIcon
                 name="i-lucide-arrow-left"
-                class="size-4 group-hover:-translate-x-0.5 transition-transform"
+                class="size-4 transition-transform group-hover:-translate-x-0.5"
               />
               <span>{{ $t('issues.backToIssues') }}</span>
             </NuxtLink>
             <span class="text-slate-300 dark:text-slate-700">|</span>
-            <span class="font-mono font-medium text-slate-700 dark:text-slate-300">{{ $t('issues.issueId') }} {{ friendlyId }}</span>
+            <span class="font-mono font-medium text-slate-700 dark:text-slate-300"
+              >{{ $t('issues.issueId') }} {{ friendlyId }}</span
+            >
             <UBadge
               :color="IssueTypeColor[issue.issueType]"
               variant="subtle"
-              class="gap-1 ml-1"
+              class="ml-1 gap-1"
             >
               <UIcon
                 :name="IssueTypeIcon[issue.issueType]"
@@ -243,18 +279,20 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
 
           <!-- Title + Actions Row -->
           <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-            <div class="space-y-2 flex-1 min-w-0">
-              <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+            <div class="min-w-0 flex-1 space-y-2">
+              <h1
+                class="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl dark:text-white"
+              >
                 {{ issue.title }}
               </h1>
               <p
                 v-if="issue.description"
-                class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl whitespace-pre-wrap"
+                class="max-w-2xl text-sm leading-relaxed whitespace-pre-wrap text-slate-600 dark:text-slate-300"
               >
                 {{ issue.description }}
               </p>
             </div>
-            <div class="flex items-center gap-3 shrink-0">
+            <div class="flex shrink-0 items-center gap-3">
               <USelect
                 v-model="selectedStatus"
                 :items="statusOptions"
@@ -275,7 +313,7 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
               <UIcon
                 v-if="updatingStatus"
                 name="i-lucide-loader-circle"
-                class="size-4 text-slate-500 animate-spin"
+                class="size-4 animate-spin text-slate-500"
               />
               <UButton
                 v-if="isApiBug"
@@ -290,20 +328,24 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
         </div>
 
         <!-- Main Content Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <!-- Left Column -->
-          <div class="lg:col-span-2 space-y-6">
+          <div class="space-y-6 lg:col-span-2">
             <!-- API Bug: Method + URL Row -->
             <template v-if="isApiBug && issue.method && issue.url">
-              <div class="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200/70 dark:border-slate-800/70 bg-white dark:bg-slate-900/50 p-4">
+              <div
+                class="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200/70 bg-white p-4 dark:border-slate-800/70 dark:bg-slate-900/50"
+              >
                 <UBadge
                   :color="getHttpMethodColor(issue.method)"
                   variant="subtle"
-                  class="font-mono font-bold text-sm px-3 py-1.5"
+                  class="px-3 py-1.5 font-mono text-sm font-bold"
                 >
                   {{ issue.method }}
                 </UBadge>
-                <code class="flex-1 min-w-0 text-sm text-slate-900 dark:text-white font-mono truncate">
+                <code
+                  class="min-w-0 flex-1 truncate font-mono text-sm text-slate-900 dark:text-white"
+                >
                   {{ issue.url }}
                 </code>
                 <UButton
@@ -316,12 +358,17 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
               </div>
 
               <!-- Info Row: Status Code | Environment -->
-              <div class="flex items-center rounded-xl border border-slate-200/70 dark:border-slate-800/70 bg-white dark:bg-slate-900/50 divide-x divide-slate-200/70 dark:divide-slate-800/70">
+              <div
+                class="flex items-center divide-x divide-slate-200/70 rounded-xl border border-slate-200/70 bg-white dark:divide-slate-800/70 dark:border-slate-800/70 dark:bg-slate-900/50"
+              >
                 <div
                   v-if="issue.responseStatus"
                   class="flex-1 px-5 py-3"
                 >
-                  <span class="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 font-semibold block mb-1">{{ $t('issues.statusCode') }}</span>
+                  <span
+                    class="mb-1 block text-xs font-semibold tracking-wider text-slate-400 uppercase dark:text-slate-500"
+                    >{{ $t('issues.statusCode') }}</span
+                  >
                   <div class="flex items-center gap-2">
                     <span
                       class="size-2 rounded-full"
@@ -332,18 +379,23 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
                         'bg-red-500': issue.responseStatus >= 500
                       }"
                     />
-                    <span class="font-mono font-bold text-slate-900 dark:text-white">{{ issue.responseStatus }}</span>
+                    <span class="font-mono font-bold text-slate-900 dark:text-white">{{
+                      issue.responseStatus
+                    }}</span>
                   </div>
                 </div>
                 <div
                   v-if="issue.environment"
                   class="flex-1 px-5 py-3"
                 >
-                  <span class="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 font-semibold block mb-1">{{ $t('issues.environment') }}</span>
+                  <span
+                    class="mb-1 block text-xs font-semibold tracking-wider text-slate-400 uppercase dark:text-slate-500"
+                    >{{ $t('issues.environment') }}</span
+                  >
                   <UBadge
                     :color="EnvironmentColor[issue.environment] || 'neutral'"
                     variant="subtle"
-                    class="font-semibold px-2.5 py-0.5"
+                    class="px-2.5 py-0.5 font-semibold"
                   >
                     {{ issue.environment }}
                   </UBadge>
@@ -358,7 +410,9 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
                 <!-- Request Body Tab -->
                 <template #request-body>
                   <template v-if="issue.requestBody">
-                    <div class="mt-4 rounded-xl border border-slate-200/70 dark:border-slate-800/70 overflow-hidden bg-white dark:bg-slate-900/40 relative">
+                    <div
+                      class="relative mt-4 overflow-hidden rounded-xl border border-slate-200/70 bg-white dark:border-slate-800/70 dark:bg-slate-900/40"
+                    >
                       <UButton
                         size="xs"
                         variant="ghost"
@@ -390,15 +444,21 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
                 <!-- Headers Tab -->
                 <template #headers>
                   <template v-if="headersArray.length > 0">
-                    <div class="mt-4 rounded-xl border border-slate-200/70 dark:border-slate-800/70 overflow-hidden bg-white dark:bg-slate-900/40 p-4">
+                    <div
+                      class="mt-4 overflow-hidden rounded-xl border border-slate-200/70 bg-white p-4 dark:border-slate-800/70 dark:bg-slate-900/40"
+                    >
                       <div class="space-y-2">
                         <div
                           v-for="header in headersArray"
                           :key="header.key"
                           class="flex items-start gap-2 font-mono text-sm"
                         >
-                          <span class="text-emerald-600 dark:text-emerald-400 font-medium min-w-50">{{ header.key }}:</span>
-                          <span class="text-slate-600 dark:text-slate-400 flex-1 break-all">{{ maskValue(header.key, header.value) }}</span>
+                          <span class="min-w-50 font-medium text-emerald-600 dark:text-emerald-400"
+                            >{{ header.key }}:</span
+                          >
+                          <span class="flex-1 break-all text-slate-600 dark:text-slate-400">{{
+                            maskValue(header.key, header.value)
+                          }}</span>
                         </div>
                       </div>
                     </div>
@@ -414,7 +474,9 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
                 <!-- Response Tab -->
                 <template #response>
                   <template v-if="issue.responseBody">
-                    <div class="mt-4 rounded-xl border border-slate-200/70 dark:border-slate-800/70 overflow-hidden bg-white dark:bg-slate-900/40 relative">
+                    <div
+                      class="relative mt-4 overflow-hidden rounded-xl border border-slate-200/70 bg-white dark:border-slate-800/70 dark:bg-slate-900/40"
+                    >
                       <UButton
                         size="xs"
                         variant="ghost"
@@ -447,19 +509,23 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
 
             <!-- Task: Description prominently displayed -->
             <template v-if="isTask">
-              <div class="rounded-xl border border-slate-200/70 dark:border-slate-800/70 bg-white dark:bg-slate-900/50 p-6">
-                <h3 class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
+              <div
+                class="rounded-xl border border-slate-200/70 bg-white p-6 dark:border-slate-800/70 dark:bg-slate-900/50"
+              >
+                <h3
+                  class="mb-3 text-xs font-semibold tracking-wider text-slate-500 uppercase dark:text-slate-400"
+                >
                   {{ $t('issues.description') }}
                 </h3>
                 <p
                   v-if="issue.description"
-                  class="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap"
+                  class="text-sm leading-relaxed whitespace-pre-wrap text-slate-700 dark:text-slate-300"
                 >
                   {{ issue.description }}
                 </p>
                 <p
                   v-else
-                  class="text-sm text-slate-400 dark:text-slate-500 italic"
+                  class="text-sm text-slate-400 italic dark:text-slate-500"
                 >
                   {{ $t('common.noDescription') }}
                 </p>
@@ -475,14 +541,20 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
 
           <!-- Right Column: Metadata Sidebar -->
           <div class="space-y-6">
-            <div class="rounded-xl border border-slate-200/70 dark:border-slate-800/70 bg-white dark:bg-slate-950 p-5 space-y-5">
-              <h3 class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+            <div
+              class="space-y-5 rounded-xl border border-slate-200/70 bg-white p-5 dark:border-slate-800/70 dark:bg-slate-950"
+            >
+              <h3
+                class="text-xs font-semibold tracking-wider text-slate-500 uppercase dark:text-slate-400"
+              >
                 {{ $t('issues.metadata') }}
               </h3>
 
               <!-- Type -->
               <div class="space-y-1">
-                <span class="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ $t('issues.type') }}</span>
+                <span class="text-xs tracking-wider text-slate-500 uppercase dark:text-slate-400">{{
+                  $t('issues.type')
+                }}</span>
                 <div class="flex items-center gap-1.5">
                   <UIcon
                     :name="IssueTypeIcon[issue.issueType]"
@@ -496,7 +568,9 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
 
               <!-- Created -->
               <div class="space-y-1">
-                <span class="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ $t('issues.created') }}</span>
+                <span class="text-xs tracking-wider text-slate-500 uppercase dark:text-slate-400">{{
+                  $t('issues.created')
+                }}</span>
                 <p class="text-sm font-medium text-slate-900 dark:text-white">
                   {{ formatDate(issue.createdAt) }}
                 </p>
@@ -504,7 +578,9 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
 
               <!-- Last Updated -->
               <div class="space-y-1">
-                <span class="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ $t('issues.lastUpdated') }}</span>
+                <span class="text-xs tracking-wider text-slate-500 uppercase dark:text-slate-400">{{
+                  $t('issues.lastUpdated')
+                }}</span>
                 <p class="text-sm font-medium text-slate-900 dark:text-white">
                   {{ lastUpdated }}
                 </p>
@@ -545,7 +621,11 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
       :confirm-label="$t('common.delete')"
       :loading="deleteLoading"
       :on-confirm="deleteIssue"
-      :on-cancel="() => { showDeleteModal = false }"
+      :on-cancel="
+        () => {
+          showDeleteModal = false
+        }
+      "
     />
   </div>
 </template>

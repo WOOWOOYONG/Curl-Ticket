@@ -81,10 +81,7 @@ export default defineEventHandler(async (event) => {
       .orderBy(desc(issues.createdAt))
       .limit(pageSize)
       .offset(offset),
-    db
-      .select({ total: count() })
-      .from(issues)
-      .where(whereClause)
+    db.select({ total: count() }).from(issues).where(whereClause)
   ])
 
   const total = totalResult[0]?.total ?? 0

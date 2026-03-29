@@ -24,12 +24,7 @@ export default defineEventHandler(async (event) => {
   const [issue] = await db
     .select()
     .from(issues)
-    .where(
-      and(
-        eq(issues.id, Number(issueId)),
-        eq(issues.projectId, projectId)
-      )
-    )
+    .where(and(eq(issues.id, Number(issueId)), eq(issues.projectId, projectId)))
     .limit(1)
 
   if (!issue) {
