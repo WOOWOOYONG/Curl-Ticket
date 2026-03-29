@@ -149,14 +149,14 @@ function focusEditor() {
       </div>
 
       <template v-if="readOnly">
-        <!-- eslint-disable vue/no-v-html -->
+        <!-- oxlint-disable vue/no-v-html -->
         <div
           v-if="highlightedHtml"
           class="shiki-container overflow-x-auto pointer-events-none"
           :class="lineOffsetClass"
           v-html="highlightedHtml"
         />
-        <!-- eslint-enable vue/no-v-html -->
+        <!-- oxlint-enable vue/no-v-html -->
         <pre
           v-else
           class="w-full bg-transparent font-mono text-sm overflow-x-auto leading-relaxed"
@@ -164,14 +164,14 @@ function focusEditor() {
         ><code>{{ displayValue }}</code></pre>
       </template>
       <template v-else>
-        <!-- eslint-disable vue/no-v-html -->
+        <!-- oxlint-disable vue/no-v-html -->
         <div
           v-if="highlightedHtml && !focused"
           class="shiki-container overflow-x-auto pointer-events-none"
           :class="lineOffsetClass"
           v-html="highlightedHtml"
         />
-        <!-- eslint-enable vue/no-v-html -->
+        <!-- oxlint-enable vue/no-v-html -->
         <textarea
           v-show="focused || !highlightedHtml"
           ref="textareaRef"

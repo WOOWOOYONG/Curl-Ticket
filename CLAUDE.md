@@ -13,7 +13,7 @@ Curl Ticket is an API issue tracking app built with Nuxt 4. It helps engineering
 pnpm dev              # Start dev server (http://localhost:3000)
 pnpm build            # Production build
 pnpm preview          # Preview production build
-pnpm lint             # Run ESLint
+pnpm lint             # Run Oxlint
 pnpm typecheck        # Run Nuxt/Vue type checks
 ```
 
@@ -263,7 +263,7 @@ Required in `.env`:
 
 ### Code Style
 
-- ESLint config: `@nuxt/eslint` with stylistic rules (commaDangle: 'never', braceStyle: '1tbs')
+- Oxlint config: `.oxlintrc.json` with stylistic rules (commaDangle: 'never', braceStyle: '1tbs')
 - Run `pnpm lint` before committing
 - Use 2-space indentation
 - Use single quotes for strings
