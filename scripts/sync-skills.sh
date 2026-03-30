@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Sync .agents/skills/* symlinks to .claude/skills and .codex/skills
+# Sync .agents/skills/* symlinks to .claude/skills
 # Usage: bash scripts/sync-skills.sh
 
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SOURCE="$REPO_ROOT/.agents/skills"
-TARGETS=("$REPO_ROOT/.claude/skills" "$REPO_ROOT/.codex/skills")
+TARGETS=("$REPO_ROOT/.claude/skills")
 
 if [ ! -d "$SOURCE" ]; then
   echo "Error: $SOURCE not found"
