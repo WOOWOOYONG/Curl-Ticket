@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { PENDING_INVITATION_TOKEN_KEY } from '~~/app/constants/auth'
-import type {
-  ValidateInvitationCodeInput
-} from '~~/shared/schemas/invitation-code'
+import type { ValidateInvitationCodeInput } from '~~/shared/schemas/invitation-code'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import { createInvitationCodeFormSchema } from '~/utils/validation'
 

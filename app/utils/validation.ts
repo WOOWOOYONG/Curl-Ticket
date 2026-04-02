@@ -62,9 +62,7 @@ export function createApiBugValidationSchema(t: Translate) {
       message: t('validation.issue.method.invalid')
     }),
     url: z.string().min(1, t('validation.issue.url.required')),
-    environment: z
-      .enum(environments)
-      .default(Environment.Dev),
+    environment: z.enum(environments).default(Environment.Dev),
     requestHeaders: z.record(z.string(), z.string()).nullish(),
     requestBody: z.unknown().nullish(),
     responseStatus: z

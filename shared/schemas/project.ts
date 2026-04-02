@@ -17,9 +17,7 @@ export const createProjectSchema = z.object({
     .max(10, 'Project key must be 10 characters or less')
     .regex(/^[A-Z0-9]+$/, 'Project key can only contain uppercase letters and numbers'),
   description: z.string().nullish(),
-  environments: z
-    .array(z.enum(environments))
-    .min(1, 'Please select at least one environment')
+  environments: z.array(z.enum(environments)).min(1, 'Please select at least one environment')
 })
 
 export const editableProjectSchema = createProjectSchema.pick({
