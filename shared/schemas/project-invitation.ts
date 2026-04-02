@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { invitationStatuses } from '../constants'
 
 export const createProjectInvitationSchema = z.object({
-  email: z.email('請輸入有效的 Email')
+  email: z.email('Please enter a valid email address')
 })
 
 export const respondProjectInvitationSchema = z.object({

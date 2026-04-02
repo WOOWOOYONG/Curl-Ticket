@@ -1,39 +1,36 @@
 // ============================================
 // Issue 類型定義
 // ============================================
+export const issueTypes = ['api_bug', 'task'] as const
+export type IssueType = (typeof issueTypes)[number]
 export const IssueType = {
   ApiBug: 'api_bug',
   Task: 'task'
-} as const
-
-export type IssueType = (typeof IssueType)[keyof typeof IssueType]
-export const issueTypes = Object.values(IssueType)
+} as const satisfies Record<string, IssueType>
 
 // ============================================
 // Environment 環境定義
 // ============================================
+export const environments = ['Local', 'Dev', 'Staging', 'Prod'] as const
+export type Environment = (typeof environments)[number]
 export const Environment = {
   Local: 'Local',
   Dev: 'Dev',
   Staging: 'Staging',
   Prod: 'Prod'
-} as const
-
-export type Environment = (typeof Environment)[keyof typeof Environment]
-export const environments = Object.values(Environment)
+} as const satisfies Record<string, Environment>
 
 // ============================================
 // Issue 狀態定義
 // ============================================
+export const issueStatuses = ['Open', 'In Progress', 'Done', 'Close'] as const
+export type IssueStatus = (typeof issueStatuses)[number]
 export const IssueStatus = {
   Open: 'Open',
   InProgress: 'In Progress',
   Done: 'Done',
   Close: 'Close'
-} as const
-
-export type IssueStatus = (typeof IssueStatus)[keyof typeof IssueStatus]
-export const issueStatuses = Object.values(IssueStatus)
+} as const satisfies Record<string, IssueStatus>
 
 // ============================================
 // HTTP 狀態碼定義
@@ -51,6 +48,8 @@ export type HttpStatus = (typeof HttpStatus)[keyof typeof HttpStatus]
 // ============================================
 // HTTP 方法定義
 // ============================================
+export const httpMethods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'] as const
+export type HttpMethod = (typeof httpMethods)[number]
 export const HttpMethod = {
   GET: 'GET',
   POST: 'POST',
@@ -59,34 +58,29 @@ export const HttpMethod = {
   DELETE: 'DELETE',
   HEAD: 'HEAD',
   OPTIONS: 'OPTIONS'
-} as const
-
-export type HttpMethod = (typeof HttpMethod)[keyof typeof HttpMethod]
-export const httpMethods = Object.values(HttpMethod)
+} as const satisfies Record<string, HttpMethod>
 
 // ============================================
 // 用戶角色定義
 // ============================================
+export const userRoles = ['admin', 'user'] as const
+export type UserRole = (typeof userRoles)[number]
 export const UserRole = {
   Admin: 'admin',
   User: 'user'
-} as const
-
-export type UserRole = (typeof UserRole)[keyof typeof UserRole]
-export const userRoles = Object.values(UserRole)
+} as const satisfies Record<string, UserRole>
 
 // ============================================
 // 邀請狀態定義
 // ============================================
+export const invitationStatuses = ['pending', 'accepted', 'rejected', 'expired'] as const
+export type InvitationStatus = (typeof invitationStatuses)[number]
 export const InvitationStatus = {
   Pending: 'pending',
   Accepted: 'accepted',
   Rejected: 'rejected',
   Expired: 'expired'
-} as const
-
-export type InvitationStatus = (typeof InvitationStatus)[keyof typeof InvitationStatus]
-export const invitationStatuses = Object.values(InvitationStatus)
+} as const satisfies Record<string, InvitationStatus>
 
 // ============================================
 // 通知類型定義
