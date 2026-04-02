@@ -16,7 +16,7 @@ import {
 /** Base fields shared by both issue types */
 const issueBaseFields = {
   projectId: z.uuid(),
-  title: z.string().min(1, '標題不可為空').max(200, '標題不可超過 200 字'),
+  title: z.string().min(1, 'Title is required').max(200, 'Title must be 200 characters or less'),
   description: z.string().nullish(),
   status: z.enum(issueStatuses).default(IssueStatus.Open)
 }
@@ -25,16 +25,16 @@ const issueBaseFields = {
 const apiBugFields = {
   issueType: z.literal(IssueType.ApiBug),
   rawCurl: z.string().nullish(),
-  method: z.enum(httpMethods, { message: '無效的 HTTP 方法' }),
-  url: z.string().min(1, 'URL 不可為空'),
+  method: z.enum(httpMethods, { message: 'Invalid HTTP method' }),
+  url: z.string().min(1, 'URL is required'),
   environment: z.enum(environments).default(Environment.Dev),
   requestHeaders: z.record(z.string(), z.string()).nullish(),
   requestBody: z.unknown().nullish(),
   responseStatus: z
-    .number('無效的狀態碼')
+    .number('Invalid status code')
     .int()
-    .min(100, '無效的狀態碼')
-    .max(599, '無效的狀態碼')
+    .min(100, 'Invalid status code')
+    .max(599, 'Invalid status code')
     .nullish(),
   responseBody: z.unknown().nullish()
 }
@@ -100,7 +100,7 @@ export const createTaskFormSchema = z
 
 /** Base fields for update (no defaults, so .partial() works correctly) */
 const issueBaseUpdateFields = {
-  title: z.string().min(1, '標題不可為空').max(200, '標題不可超過 200 字'),
+  title: z.string().min(1, 'Title is required').max(200, 'Title must be 200 characters or less'),
   description: z.string().nullish(),
   status: z.enum(issueStatuses)
 }

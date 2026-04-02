@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import { PENDING_INVITATION_TOKEN_KEY } from '~~/app/constants/auth'
-import {
-  validateInvitationCodeSchema,
-  type ValidateInvitationCodeInput
-} from '~~/shared/schemas/invitation-code'
+import type { ValidateInvitationCodeInput } from '~~/shared/schemas/invitation-code'
 import type { FormSubmitEvent } from '@nuxt/ui'
+import { createInvitationCodeFormSchema } from '~/utils/validation'
 
 definePageMeta({
   layout: 'header-only'
@@ -20,6 +18,7 @@ const valid = ref(false)
 const errorMessage = ref('')
 
 const { t } = useI18n()
+const formSchema = computed(() => createInvitationCodeFormSchema(t))
 const { fetchProfile, clearProfile } = useProfile()
 
 // 已登入且有 profile 才導回首頁；已登入但無 profile 留在此頁繼續輸入邀請碼
@@ -172,7 +171,7 @@ async function signInWithGoogle() {
         </div>
 
         <UForm
-          :schema="validateInvitationCodeSchema"
+          :schema="formSchema"
           :state="codeState"
           class="flex w-full flex-col items-center gap-4"
           @submit="validateCode"

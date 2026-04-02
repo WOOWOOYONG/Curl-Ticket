@@ -25,6 +25,45 @@
     "noDescription": "No description provided",
     "lines": "{count} lines"
   },
+  "validation": {
+    "issue": {
+      "title": {
+        "required": "Issue title is required",
+        "max": "Issue title must be 200 characters or less"
+      },
+      "method": {
+        "invalid": "Invalid HTTP method"
+      },
+      "url": {
+        "required": "URL is required"
+      },
+      "responseStatus": {
+        "invalid": "Invalid status code"
+      }
+    },
+    "project": {
+      "name": {
+        "required": "Project name is required",
+        "max": "Project name must be 100 characters or less"
+      },
+      "key": {
+        "min": "Project key must be at least 2 characters",
+        "max": "Project key must be 10 characters or less",
+        "format": "Project key can only contain uppercase letters and numbers"
+      },
+      "environments": {
+        "required": "Please select at least one environment"
+      }
+    },
+    "invitationCode": {
+      "invalidLength": "Invitation code must be 6 alphanumeric characters"
+    },
+    "projectInvitation": {
+      "email": {
+        "invalid": "Please enter a valid email address"
+      }
+    }
+  },
   "locale": {
     "en": "English",
     "zhTW": "繁體中文"

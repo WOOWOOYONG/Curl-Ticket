@@ -25,6 +25,45 @@
     "noDescription": "尚無描述",
     "lines": "{count} 行"
   },
+  "validation": {
+    "issue": {
+      "title": {
+        "required": "Issue 標題不可為空",
+        "max": "Issue 標題不可超過 200 字"
+      },
+      "method": {
+        "invalid": "無效的 HTTP 方法"
+      },
+      "url": {
+        "required": "URL 不可為空"
+      },
+      "responseStatus": {
+        "invalid": "無效的狀態碼"
+      }
+    },
+    "project": {
+      "name": {
+        "required": "Project 名稱不可為空",
+        "max": "Project 名稱不可超過 100 字"
+      },
+      "key": {
+        "min": "Project Key 至少 2 個字元",
+        "max": "Project Key 不可超過 10 個字元",
+        "format": "Project Key 只能包含大寫字母和數字"
+      },
+      "environments": {
+        "required": "請至少選擇一個 Environment"
+      }
+    },
+    "invitationCode": {
+      "invalidLength": "邀請碼為 6 位英數字"
+    },
+    "projectInvitation": {
+      "email": {
+        "invalid": "請輸入有效的 Email"
+      }
+    }
+  },
   "locale": {
     "en": "English",
     "zhTW": "繁體中文"

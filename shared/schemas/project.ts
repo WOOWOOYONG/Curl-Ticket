@@ -7,14 +7,17 @@ import { environments } from '../constants'
 
 /** 新增專案 */
 export const createProjectSchema = z.object({
-  name: z.string().min(1, '專案名稱不可為空').max(100, '專案名稱不可超過 100 字'),
+  name: z
+    .string()
+    .min(1, 'Project name is required')
+    .max(100, 'Project name must be 100 characters or less'),
   key: z
     .string()
-    .min(2, '專案代號至少 2 個字元')
-    .max(10, '專案代號不可超過 10 個字元')
-    .regex(/^[A-Z0-9]+$/, '專案代號只能包含大寫字母和數字'),
+    .min(2, 'Project key must be at least 2 characters')
+    .max(10, 'Project key must be 10 characters or less')
+    .regex(/^[A-Z0-9]+$/, 'Project key can only contain uppercase letters and numbers'),
   description: z.string().nullish(),
-  environments: z.array(z.enum(environments as [string, ...string[]])).min(1, '請至少選擇一個環境')
+  environments: z.array(z.enum(environments)).min(1, 'Please select at least one environment')
 })
 
 export const editableProjectSchema = createProjectSchema.pick({
@@ -33,7 +36,7 @@ export const projectSchema = z.object({
   name: z.string(),
   key: z.string(),
   description: z.string().nullable(),
-  environments: z.array(z.string()),
+  environments: z.array(z.enum(environments)),
   createdAt: z.coerce.date()
 })
 

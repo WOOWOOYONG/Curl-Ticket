@@ -5,7 +5,7 @@ export const createInvitationCodeSchema = z.object({
 })
 
 export const validateInvitationCodeSchema = z.object({
-  code: z.string().length(6, '邀請碼為 6 位英數字')
+  code: z.string().length(6, 'Invitation code must be 6 alphanumeric characters')
 })
 
 export type CreateInvitationCodeInput = z.infer<typeof createInvitationCodeSchema>

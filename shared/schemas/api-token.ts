@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 export const createTokenSchema = z.object({
-  name: z.string().min(1, '名稱不可為空').max(100, '名稱不可超過 100 字'),
+  name: z.string().min(1, 'Name is required').max(100, 'Name must be 100 characters or less'),
   expiresInDays: z.number().int().min(1).max(365).nullish()
 })
 
