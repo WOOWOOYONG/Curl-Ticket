@@ -2,9 +2,9 @@
 import { InvitationStatusColor, type BadgeColor } from '~/constants/invitation'
 import type { InvitationStatus } from '~~/shared/constants'
 import type { ProjectMember } from '~~/shared/schemas/project'
-import {
-  type CreateProjectInvitationInput,
-  type ProjectInvitation
+import type {
+  CreateProjectInvitationInput,
+  ProjectInvitation
 } from '~~/shared/schemas/project-invitation'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import { createProjectInvitationFormSchema } from '~/utils/validation'
