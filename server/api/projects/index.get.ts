@@ -1,4 +1,4 @@
-import { and, or, count, desc, ilike, inArray, max, sql } from 'drizzle-orm'
+import { and, or, count, desc, ilike, inArray, isNull, max, sql } from 'drizzle-orm'
 import { projects, issues } from '~~/server/database/schema'
 import { IssueStatus } from '~~/shared/constants'
 import { buildProjectAccessCondition } from '~~/server/utils/project-access'
@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
   const offset = (page - 1) * pageSize
 
   // 3. 組合 WHERE 條件（存取權限 + 搜尋）
-  const accessCondition = buildProjectAccessCondition(userId)
+  const accessCondition = and(buildProjectAccessCondition(userId), isNull(projects.deletedAt))
   const whereCondition = search
     ? (() => {
         const escaped = escapeLikePattern(search)
@@ -79,7 +79,10 @@ export default defineEventHandler(async (event) => {
           .where(
             inArray(
               issues.projectId,
-              db.select({ id: projects.id }).from(projects).where(whereCondition)
+              db
+                .select({ id: projects.id })
+                .from(projects)
+                .where(and(whereCondition, isNull(projects.deletedAt)))
             )
           )
       : [{ totalIssues: 0, openIssues: 0 }]

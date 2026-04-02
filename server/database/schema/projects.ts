@@ -12,7 +12,8 @@ export const projects = pgTable(
     key: varchar('key', { length: 10 }).notNull().unique(),
     description: varchar('description', { length: 1000 }),
     environments: text('environments').array().notNull().default([]),
-    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    deletedAt: timestamp('deleted_at', { withTimezone: true })
   },
   (table) => [
     // 索引：加速「按建立時間排序」的查詢（最新的專案排在前面）

@@ -1,4 +1,4 @@
-import { and, eq, or, sql } from 'drizzle-orm'
+import { and, eq, isNull, or, sql } from 'drizzle-orm'
 import type { useDB } from '~~/server/utils/db'
 import { projectMembers, projects } from '~~/server/database/schema'
 import { notFound } from '~~/server/utils/errors'
@@ -49,7 +49,13 @@ export async function getAccessibleProject(
   const [project] = await db
     .select()
     .from(projects)
-    .where(and(eq(projects.id, projectId), buildProjectAccessCondition(userId)))
+    .where(
+      and(
+        eq(projects.id, projectId),
+        isNull(projects.deletedAt),
+        buildProjectAccessCondition(userId)
+      )
+    )
     .limit(1)
 
   if (!project) {
