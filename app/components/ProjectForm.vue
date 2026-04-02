@@ -3,7 +3,7 @@ import type { FormSubmitEvent } from '@nuxt/ui'
 import type { CreateProjectInput } from '~~/shared/schemas/project'
 import type { Environment } from '~~/shared/constants'
 import { environments } from '~~/shared/constants'
-import { createProjectSchema } from '~~/shared/schemas/project'
+import { createProjectFormSchema } from '~/utils/validation'
 
 type ProjectFormMode = 'create' | 'edit'
 
@@ -30,6 +30,7 @@ const emit = defineEmits<{
 const state = defineModel<CreateProjectInput>('state', { required: true })
 
 const { t } = useI18n()
+const formSchema = computed(() => createProjectFormSchema(t))
 
 const isEditMode = computed(() => props.mode === 'edit')
 const keyDescription = computed(() =>
@@ -85,7 +86,7 @@ function onSubmit(_event: FormSubmitEvent<CreateProjectInput>) {
       </template>
 
       <UForm
-        :schema="createProjectSchema"
+        :schema="formSchema"
         :state="state"
         class="flex flex-col gap-6"
         @submit="onSubmit"

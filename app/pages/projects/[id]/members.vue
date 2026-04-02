@@ -3,11 +3,11 @@ import { InvitationStatusColor, type BadgeColor } from '~/constants/invitation'
 import type { InvitationStatus } from '~~/shared/constants'
 import type { ProjectMember } from '~~/shared/schemas/project'
 import {
-  createProjectInvitationSchema,
   type CreateProjectInvitationInput,
   type ProjectInvitation
 } from '~~/shared/schemas/project-invitation'
 import type { FormSubmitEvent } from '@nuxt/ui'
+import { createProjectInvitationFormSchema } from '~/utils/validation'
 
 definePageMeta({
   ssr: false
@@ -15,6 +15,7 @@ definePageMeta({
 
 const route = useRoute()
 const { t } = useI18n()
+const formSchema = computed(() => createProjectInvitationFormSchema(t))
 const toast = useToast()
 const projectId = computed(() => route.params.id as string)
 const user = useSupabaseUser()
@@ -178,7 +179,7 @@ function getStatusColor(status: InvitationStatus): BadgeColor {
                 {{ $t('members.inviteMembers') }}
               </h2>
               <UForm
-                :schema="createProjectInvitationSchema"
+                :schema="formSchema"
                 :state="inviteState"
                 class="flex items-start gap-2"
                 @submit="sendInvitation"

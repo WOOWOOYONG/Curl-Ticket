@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Environment, HttpMethod, IssueStatus, IssueType } from '~~/shared/constants'
-import { createApiBugFormSchema, createTaskFormSchema } from '~~/shared/schemas/issue'
 import { formatJson } from '~/utils/issue'
+import { createApiBugValidationSchema, createTaskValidationSchema } from '~/utils/validation'
 import { issueTypeTabs } from '~/constants/issue'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { IssueResponse } from '~/types/issue'
@@ -144,7 +144,9 @@ watch(curlInput, (value) => {
 // Dynamic schema based on issue type
 // 編輯模式也用 create schema 驗證必填欄位，.partial() 的 updateIssueSchema 只給 API PATCH 用
 const activeSchema = computed(() => {
-  return activeIssueType.value === IssueType.Task ? createTaskFormSchema : createApiBugFormSchema
+  return activeIssueType.value === IssueType.Task
+    ? createTaskValidationSchema(t)
+    : createApiBugValidationSchema(t)
 })
 
 // Active form state for UForm binding
