@@ -1,4 +1,4 @@
-import { and, eq, or, sql } from 'drizzle-orm'
+import { and, eq, isNull, or, sql } from 'drizzle-orm'
 import type { useDB } from '~~/server/utils/db'
 import { projectMembers, projects } from '~~/server/database/schema'
 import { notFound } from '~~/server/utils/errors'
@@ -32,6 +32,35 @@ export function buildProjectAccessCondition(userId: string) {
 }
 
 /**
+ * 建立「未被軟刪除」的專案條件。
+ *
+ * @returns 可用於 where() 的 active project 條件
+ */
+export function buildActiveProjectCondition() {
+  return isNull(projects.deletedAt)
+}
+
+/**
+ * 建立使用者可存取且未被軟刪除的專案條件。
+ *
+ * @param userId - 目前登入使用者 ID
+ * @returns 可用於 where() 的授權 + active 條件
+ */
+export function buildAccessibleActiveProjectCondition(userId: string) {
+  return and(buildProjectAccessCondition(userId), buildActiveProjectCondition())!
+}
+
+/**
+ * 建立使用者擁有且未被軟刪除的專案條件。
+ *
+ * @param userId - 目前登入使用者 ID
+ * @returns 可用於 where() 的 owner + active 條件
+ */
+export function buildOwnedActiveProjectCondition(userId: string) {
+  return and(eq(projects.ownerId, userId), buildActiveProjectCondition())!
+}
+
+/**
  * 取得使用者可存取的專案資料。
  * 若專案不存在或使用者無權限，會拋出 404 錯誤。
  *
@@ -49,7 +78,7 @@ export async function getAccessibleProject(
   const [project] = await db
     .select()
     .from(projects)
-    .where(and(eq(projects.id, projectId), buildProjectAccessCondition(userId)))
+    .where(and(eq(projects.id, projectId), buildAccessibleActiveProjectCondition(userId)))
     .limit(1)
 
   if (!project) {

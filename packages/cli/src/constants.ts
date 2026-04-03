@@ -1,5 +1,6 @@
 import { join } from 'node:path'
 import { homedir } from 'node:os'
+import packageJson from '../package.json' with { type: 'json' }
 
 // Valid issue fields for --fields filtering
 // Type-safe: every entry must be a key of IssueDetail,
@@ -8,7 +9,7 @@ import type { IssueDetail } from './types.js'
 
 // CLI app name and version
 export const CLI_NAME = 'curl-ticket'
-export const CLI_VERSION = '0.3.0'
+export const CLI_VERSION = packageJson.version
 
 // Config file paths
 export const CONFIG_DIR = join(homedir(), '.config', CLI_NAME)

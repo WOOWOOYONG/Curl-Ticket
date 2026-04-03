@@ -1,7 +1,7 @@
 import { and, or, count, desc, ilike, inArray, max, sql } from 'drizzle-orm'
 import { projects, issues } from '~~/server/database/schema'
 import { IssueStatus } from '~~/shared/constants'
-import { buildProjectAccessCondition } from '~~/server/utils/project-access'
+import { buildAccessibleActiveProjectCondition } from '~~/server/utils/project-access'
 import { sanitizeSearchQuery, escapeLikePattern } from '~~/server/utils/search'
 import { projectQuerySchema } from '~~/shared/schemas/query'
 
@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
   const offset = (page - 1) * pageSize
 
   // 3. 組合 WHERE 條件（存取權限 + 搜尋）
-  const accessCondition = buildProjectAccessCondition(userId)
+  const accessCondition = buildAccessibleActiveProjectCondition(userId)
   const whereCondition = search
     ? (() => {
         const escaped = escapeLikePattern(search)
