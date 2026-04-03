@@ -8,6 +8,7 @@ import {
   projects
 } from '~~/server/database/schema'
 import { badRequest } from '~~/server/utils/errors'
+import { buildOwnedActiveProjectCondition } from '~~/server/utils/project-access'
 
 /**
  * DELETE /api/auth/profile
@@ -24,7 +25,7 @@ export default defineEventHandler(async (event) => {
   const ownedProjects = await db
     .select({ id: projects.id, name: projects.name })
     .from(projects)
-    .where(eq(projects.ownerId, userId))
+    .where(buildOwnedActiveProjectCondition(userId))
 
   if (ownedProjects.length > 0) {
     badRequest('Please transfer or delete owned projects first', {
