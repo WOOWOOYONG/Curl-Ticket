@@ -82,10 +82,16 @@ export function useNotifications() {
     refresh()
   }
 
+  async function markAllAsRead() {
+    await $fetch('/api/notifications/read-all', { method: 'PATCH' })
+    refresh()
+  }
+
   return {
     notifications,
     unreadCount,
     refresh,
-    markAsRead
+    markAsRead,
+    markAllAsRead
   }
 }

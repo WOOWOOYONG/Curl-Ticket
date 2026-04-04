@@ -347,7 +347,9 @@
   "notifications": {
     "title": "通知",
     "noNotifications": "暫無通知",
-    "viewInvitation": "點擊查看邀請"
+    "viewInvitation": "點擊查看邀請",
+    "markAllAsRead": "已讀全部通知",
+    "issueUnavailable": "此 Issue 已無法存取"
   },
   "invitation": {
     "title": "Project 邀請",

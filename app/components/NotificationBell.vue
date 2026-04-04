@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { NotificationType, InvitationStatus } from '~~/shared/constants'
 import { PROJECTS_CACHE_KEY } from '~/composables/useProjects'
+import type { NotificationItem } from '~~/shared/types'
 
-const { notifications, unreadCount, refresh, markAsRead } = useNotifications()
+const { t } = useI18n()
+const { notifications, unreadCount, refresh, markAsRead, markAllAsRead } = useNotifications()
 
 const popoverOpen = ref(false)
+const markAllLoading = ref(false)
 
 // Invitation modal state
 const invitationModalOpen = ref(false)
@@ -14,40 +17,69 @@ const selectedInvitation = ref<{
   content: string | null
 } | null>(null)
 
-function handleNotificationClick(notification: (typeof notifications.value)[number]) {
-  if (notification.type === NotificationType.ProjectInvite) {
-    if (
-      notification.projectInvitationId &&
-      notification.invitationStatus === InvitationStatus.Pending
-    ) {
-      selectedInvitation.value = {
-        projectInvitationId: notification.projectInvitationId,
-        projectName: notification.projectName,
-        content: notification.content
-      }
-      invitationModalOpen.value = true
-      popoverOpen.value = false
-      if (!notification.isRead) {
-        markAsRead(notification.id)
-      }
-      return
-    }
-
-    if (!notification.isRead) {
-      markAsRead(notification.id)
-    }
-    popoverOpen.value = false
-  } else if (notification.issueId) {
-    if (!notification.isRead) {
-      markAsRead(notification.id)
-    }
-    popoverOpen.value = false
+function dismissAndRead(notification: NotificationItem) {
+  popoverOpen.value = false
+  if (!notification.isRead) {
+    void markAsRead(notification.id)
   }
+}
+
+function handleNotificationClick(notification: NotificationItem) {
+  const { type } = notification
+
+  if (type === NotificationType.ProjectInvite) {
+    return handleProjectInviteClick(notification)
+  }
+
+  if (type === NotificationType.IssueUpdate || type === NotificationType.IssueComment) {
+    return handleIssueClick(notification)
+  }
+}
+
+function handleProjectInviteClick(notification: NotificationItem) {
+  dismissAndRead(notification)
+
+  if (
+    notification.projectInvitationId &&
+    notification.invitationStatus === InvitationStatus.Pending
+  ) {
+    selectedInvitation.value = {
+      projectInvitationId: notification.projectInvitationId,
+      projectName: notification.projectName,
+      content: notification.content
+    }
+    invitationModalOpen.value = true
+  }
+}
+
+function handleIssueClick(notification: NotificationItem) {
+  if (!notification.issueId) return
+
+  dismissAndRead(notification)
+
+  if (!notification.issueProjectId) {
+    const toast = useToast()
+    toast.add({ title: t('notifications.issueUnavailable'), color: 'warning' })
+    return
+  }
+
+  void navigateTo(`/projects/${notification.issueProjectId}/issues/${notification.issueId}`)
 }
 
 function onInvitationResponded() {
   refresh()
   void refreshNuxtData(PROJECTS_CACHE_KEY)
+}
+
+async function handleMarkAllAsRead() {
+  if (unreadCount.value === 0 || markAllLoading.value) return
+
+  markAllLoading.value = true
+  try {
+    await markAllAsRead()
+  } finally {
+    markAllLoading.value = false
+  }
 }
 </script>
 
@@ -73,10 +105,22 @@ function onInvitationResponded() {
 
     <template #content>
       <div class="max-h-80 overflow-y-auto">
-        <div class="border-b border-slate-200 px-4 py-3 dark:border-white/10">
+        <div
+          class="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-white/10"
+        >
           <h4 class="text-sm font-semibold text-slate-900 dark:text-white">
             {{ $t('notifications.title') }}
           </h4>
+          <UButton
+            size="xs"
+            color="neutral"
+            variant="ghost"
+            :loading="markAllLoading"
+            :disabled="unreadCount === 0 || markAllLoading"
+            @click="handleMarkAllAsRead"
+          >
+            {{ $t('notifications.markAllAsRead') }}
+          </UButton>
         </div>
 
         <div

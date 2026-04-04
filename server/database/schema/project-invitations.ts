@@ -15,7 +15,10 @@ export const projectInvitations = pgTable(
       .references(() => projects.id, { onDelete: 'cascade' }),
     email: varchar('email', { length: 255 }).notNull(),
     invitedBy: uuid('invited_by').notNull(),
-    status: varchar('status', { length: 20 }).notNull().default(InvitationStatus.Pending),
+    status: varchar('status', { length: 20 })
+      .notNull()
+      .$type<InvitationStatus>()
+      .default(InvitationStatus.Pending),
     expiresAt: timestamp('expires_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     acceptedAt: timestamp('accepted_at', { withTimezone: true })
