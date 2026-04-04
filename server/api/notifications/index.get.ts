@@ -1,5 +1,11 @@
 import { eq, desc, and, lt, isNotNull } from 'drizzle-orm'
-import { notifications, projectInvitations, projects, profiles, issues } from '~~/server/database/schema'
+import {
+  notifications,
+  projectInvitations,
+  projects,
+  profiles,
+  issues
+} from '~~/server/database/schema'
 import { InvitationStatus } from '~~/shared/constants'
 
 export default defineEventHandler(async (event) => {
