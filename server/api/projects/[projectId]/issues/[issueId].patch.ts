@@ -1,7 +1,7 @@
 import { and, eq } from 'drizzle-orm'
-import { issues } from '~~/server/database/schema'
+import { issues, notifications } from '~~/server/database/schema'
 import { updateIssueSchema, API_BUG_ONLY_FIELDS } from '~~/shared/schemas'
-import { IssueType } from '~~/shared/constants'
+import { IssueType, NotificationType } from '~~/shared/constants'
 import { badRequest, notFound } from '~~/server/utils/errors'
 import { getAccessibleProject } from '~~/server/utils/project-access'
 
@@ -32,36 +32,62 @@ export default defineEventHandler(async (event) => {
     badRequest('No fields to update')
   }
 
-  // Fetch existing issue to check type
-  const [existing] = await db
-    .select({ issueType: issues.issueType })
-    .from(issues)
-    .where(and(eq(issues.id, Number(issueId)), eq(issues.projectId, projectId)))
+  const updatedIssue = await db.transaction(async (tx) => {
+    // Lock issue row to avoid race conditions between read/check and update.
+    const [existing] = await tx
+      .select({
+        issueType: issues.issueType,
+        status: issues.status,
+        createdBy: issues.createdBy,
+        projectKey: issues.projectKey,
+        issueNumber: issues.issueNumber
+      })
+      .from(issues)
+      .where(and(eq(issues.id, Number(issueId)), eq(issues.projectId, projectId)))
+      .for('update')
 
-  if (!existing) {
-    notFound('Issue not found')
-  }
-
-  // Reject API-only fields for task type
-  if (existing.issueType === IssueType.Task) {
-    const invalidFields = API_BUG_ONLY_FIELDS.filter((f) => result.data[f] !== undefined)
-    if (invalidFields.length > 0) {
-      badRequest(`Cannot set API fields on a Task issue: ${invalidFields.join(', ')}`)
+    if (!existing) {
+      notFound('Issue not found')
     }
-  }
 
-  const [updatedIssue] = await db
-    .update(issues)
-    .set({
-      ...result.data,
-      updatedAt: new Date()
-    })
-    .where(and(eq(issues.id, Number(issueId)), eq(issues.projectId, projectId)))
-    .returning()
+    // Reject API-only fields for task type
+    if (existing.issueType === IssueType.Task) {
+      const invalidFields = API_BUG_ONLY_FIELDS.filter((f) => result.data[f] !== undefined)
+      if (invalidFields.length > 0) {
+        badRequest(`Cannot set API fields on a Task issue: ${invalidFields.join(', ')}`)
+      }
+    }
 
-  if (!updatedIssue) {
-    notFound('Issue not found')
-  }
+    const [updated] = await tx
+      .update(issues)
+      .set({
+        ...result.data,
+        updatedAt: new Date()
+      })
+      .where(and(eq(issues.id, Number(issueId)), eq(issues.projectId, projectId)))
+      .returning()
+
+    if (!updated) {
+      notFound('Issue not found')
+    }
+
+    if (
+      result.data.status !== undefined &&
+      existing.status !== updated.status &&
+      existing.createdBy &&
+      existing.createdBy !== userId
+    ) {
+      await tx.insert(notifications).values({
+        userId: existing.createdBy,
+        issueId: updated.id,
+        type: NotificationType.IssueUpdate,
+        title: `Issue ${existing.projectKey}-${existing.issueNumber} status updated`,
+        content: `${existing.status} → ${updated.status}`
+      })
+    }
+
+    return updated
+  })
 
   return {
     data: updatedIssue,

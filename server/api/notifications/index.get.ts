@@ -1,5 +1,5 @@
 import { eq, desc, and, lt, isNotNull } from 'drizzle-orm'
-import { notifications, projectInvitations, projects, profiles } from '~~/server/database/schema'
+import { notifications, projectInvitations, projects, profiles, issues } from '~~/server/database/schema'
 import { InvitationStatus } from '~~/shared/constants'
 
 export default defineEventHandler(async (event) => {
@@ -35,6 +35,7 @@ export default defineEventHandler(async (event) => {
       content: notifications.content,
       isRead: notifications.isRead,
       issueId: notifications.issueId,
+      issueProjectId: issues.projectId,
       projectInvitationId: notifications.projectInvitationId,
       createdAt: notifications.createdAt,
       // project invitation join fields
@@ -43,6 +44,7 @@ export default defineEventHandler(async (event) => {
       projectName: projects.name
     })
     .from(notifications)
+    .leftJoin(issues, eq(notifications.issueId, issues.id))
     .leftJoin(projectInvitations, eq(notifications.projectInvitationId, projectInvitations.id))
     .leftJoin(projects, eq(projectInvitations.projectId, projects.id))
     .where(eq(notifications.userId, userId))

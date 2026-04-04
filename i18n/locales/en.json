@@ -347,7 +347,9 @@
   "notifications": {
     "title": "Notifications",
     "noNotifications": "No notifications",
-    "viewInvitation": "Click to view invitation"
+    "viewInvitation": "Click to view invitation",
+    "markAllAsRead": "Mark all as read",
+    "issueUnavailable": "This issue is no longer available"
   },
   "invitation": {
     "title": "Project Invitation",
