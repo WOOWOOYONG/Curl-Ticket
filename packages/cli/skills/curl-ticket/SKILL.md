@@ -16,17 +16,21 @@ Run `curl-ticket schema` to get the full CLI schema — all commands, args, opti
 
 ```
 curl-ticket projects --json                                            # List projects
+curl-ticket project <projectId> --json                                 # Project details
+curl-ticket create-project --name "X" --key "X" --json                 # Create project
+curl-ticket members <projectId> --json                                 # List project members
 curl-ticket issues <projectId> --json [-s Open] [-t api_bug] [-n 10]  # List issues
 curl-ticket issue <projectId> <issueId|CT-42> --json                   # Issue details
 curl-ticket issue <projectId> <issueId> --json --fields status,url,method  # Fetch only specific fields (saves tokens)
 curl-ticket update-status <projectId> <issueId> <status> --json        # Update status (Open|in-progress|Done|Close)
 curl-ticket update-status <projectId> <issueId> <status> --dry-run --json  # Preview without applying
-curl-ticket comments <projectId> <issueId> --json                        # List comments on an issue
-curl-ticket comment <projectId> <issueId> <commentId> --json             # Get a single comment
-curl-ticket add-comment <projectId> <issueId> "content" --json           # Add a comment
+curl-ticket delete-issue <projectId> <issueId> --force --json          # Delete an issue
+curl-ticket comments <projectId> <issueId> --json                      # List comments on an issue
+curl-ticket comment <projectId> <issueId> <commentId> --json           # Get a single comment
+curl-ticket add-comment <projectId> <issueId> "content" --json         # Add a comment
 curl-ticket edit-comment <projectId> <issueId> <commentId> "content" --json  # Edit a comment
-curl-ticket delete-comment <projectId> <issueId> <commentId> --json      # Delete a comment (no confirmation in --json mode)
-curl-ticket schema                                                       # Print CLI schema (no auth needed)
+curl-ticket delete-comment <projectId> <issueId> <commentId> --json    # Delete a comment
+curl-ticket schema                                                     # Print CLI schema (no auth needed)
 ```
 
 Authentication is handled automatically; first run opens the browser for login.
@@ -107,7 +111,7 @@ Single comment commands (`comment`, `add-comment`, `edit-comment`) return:
 { "data": { "id": 1, "issueId": 42, "authorName": "Name", "content": "...", ... } }
 ```
 
-Delete comment returns:
+Delete commands (`delete-issue`, `delete-comment`) return:
 
 ```json
 { "success": true }
@@ -123,7 +127,7 @@ Delete comment returns:
 # Analysis Workflow
 
 1. Run `curl-ticket schema` to learn available commands and valid enum values
-2. Run `curl-ticket projects --json` to get the projectId
+2. Run `curl-ticket projects --json` to get the projectId (or `curl-ticket project <id> --json` for details)
 3. Run `curl-ticket issues <projectId> -s Open --json` to list open issues
 4. Run `curl-ticket issue <projectId> <issueId> --json --fields status,method,url,responseStatus,rawCurl,responseBody` to get relevant details
 5. Locate code by issue type:
