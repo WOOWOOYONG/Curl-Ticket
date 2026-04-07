@@ -6,6 +6,7 @@ type Profile = {
   name: string | null
   role: string
   createdAt: string
+  avatarUrl: string | null
 }
 
 type ProfileState = {
