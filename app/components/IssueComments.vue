@@ -122,7 +122,7 @@ const currentUserAvatarColor = computed(() => {
           :alt="currentUserInitials"
           class="size-10 shrink-0 rounded-full object-cover"
           referrerpolicy="no-referrer"
-        >
+        />
         <div
           v-else
           class="flex size-10 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
@@ -131,9 +131,7 @@ const currentUserAvatarColor = computed(() => {
           {{ currentUserInitials }}
         </div>
         <template #fallback>
-          <div
-            class="size-10 shrink-0 rounded-full bg-slate-100 dark:bg-slate-800"
-          />
+          <div class="size-10 shrink-0 rounded-full bg-slate-100 dark:bg-slate-800" />
         </template>
       </ClientOnly>
 
