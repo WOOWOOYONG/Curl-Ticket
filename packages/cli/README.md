@@ -160,10 +160,10 @@ Authentication can be configured in two ways:
 1. **Interactive login** (recommended): Run any command and follow the prompts
 2. **Environment variables**: Set `CURL_TICKET_URL` and `CURL_TICKET_TOKEN`
 
-| Variable | Description |
-| --- | --- |
-| `CURL_TICKET_URL` | Instance URL |
-| `CURL_TICKET_TOKEN` | Auth token |
+| Variable              | Description                            |
+| --------------------- | -------------------------------------- |
+| `CURL_TICKET_URL`     | Instance URL                           |
+| `CURL_TICKET_TOKEN`   | Auth token                             |
 | `CURL_TICKET_TIMEOUT` | Request timeout in ms (default: 30000) |
 
 ### Requirements
@@ -329,10 +329,10 @@ ct init-skill
 1. **互動式登入**（推薦）：執行任何指令，依提示操作即可
 2. **環境變數**：設定 `CURL_TICKET_URL` 和 `CURL_TICKET_TOKEN`
 
-| 變數 | 說明 |
-| --- | --- |
-| `CURL_TICKET_URL` | 站台網址 |
-| `CURL_TICKET_TOKEN` | 認證 Token |
+| 變數                  | 說明                         |
+| --------------------- | ---------------------------- |
+| `CURL_TICKET_URL`     | 站台網址                     |
+| `CURL_TICKET_TOKEN`   | 認證 Token                   |
 | `CURL_TICKET_TIMEOUT` | 請求逾時（毫秒，預設 30000） |
 
 ### 系統需求
