@@ -42,6 +42,8 @@ function isOwnComment(authorId: string) {
   return profile.value?.id === authorId
 }
 
+const currentUserAvatarUrl = computed(() => profile.value?.avatarUrl ?? null)
+
 const currentUserInitials = computed(() => {
   const p = profile.value
   if (!p) return '?'
@@ -113,12 +115,25 @@ const currentUserAvatarColor = computed(() => {
     <!-- Composer -->
     <div class="flex items-start gap-4">
       <!-- Current user avatar -->
-      <div
-        class="flex size-10 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
-        :class="currentUserAvatarColor"
-      >
-        {{ currentUserInitials }}
-      </div>
+      <ClientOnly>
+        <img
+          v-if="currentUserAvatarUrl"
+          :src="currentUserAvatarUrl"
+          :alt="currentUserInitials"
+          class="size-10 shrink-0 rounded-full object-cover"
+          referrerpolicy="no-referrer"
+        />
+        <div
+          v-else
+          class="flex size-10 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
+          :class="currentUserAvatarColor"
+        >
+          {{ currentUserInitials }}
+        </div>
+        <template #fallback>
+          <div class="size-10 shrink-0 rounded-full bg-slate-100 dark:bg-slate-800" />
+        </template>
+      </ClientOnly>
 
       <!-- Editor Card -->
       <div
