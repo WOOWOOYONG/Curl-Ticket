@@ -1,5 +1,16 @@
+import { createInterface } from 'node:readline'
 import { IssueStatus, issueTypes, COMMENT_MAX_LENGTH } from '#shared/constants.js'
 import type { IssueType } from '#shared/constants.js'
+
+export function confirm(message: string): Promise<boolean> {
+  const rl = createInterface({ input: process.stdin, output: process.stderr })
+  return new Promise((resolve) => {
+    rl.question(`${message} (y/N): `, (answer: string) => {
+      rl.close()
+      resolve(answer.trim().toLowerCase() === 'y')
+    })
+  })
+}
 
 export class ValidationError extends Error {
   constructor(message: string) {

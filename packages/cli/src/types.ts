@@ -101,3 +101,24 @@ export interface CommentResponse {
 export interface DeleteResponse {
   success: boolean
 }
+
+export interface ProjectDetailResponse {
+  data: Project
+}
+
+export interface Member {
+  userId: string
+  name: string | null
+  email: string
+  createdAt: string
+}
+
+export interface MembersResponse {
+  data: Member[]
+}
+
+export interface CreateProjectInput {
+  name: string
+  key: string
+  description?: string
+}

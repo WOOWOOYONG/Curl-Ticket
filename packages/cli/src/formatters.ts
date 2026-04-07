@@ -1,5 +1,5 @@
 import { IssueType, CurlNoiseHeaders } from '#shared/constants.js'
-import type { IssueSummary, IssueDetail, CommentItem } from './types.js'
+import type { IssueSummary, IssueDetail, CommentItem, Pagination } from './types.js'
 
 export function truncate(str: string, maxLength: number): string {
   if (str.length <= maxLength) return str
@@ -96,6 +96,13 @@ export function formatCommentDetail(comment: CommentItem): string {
     .filter(([, value]) => value != null)
     .map(([label, value]) => `${label}: ${value}`)
     .join('\n')
+}
+
+export function formatPagination(pagination: Pagination): string {
+  if (pagination.totalPages <= 1) return ''
+  const start = (pagination.page - 1) * pagination.pageSize + 1
+  const end = Math.min(start + pagination.pageSize - 1, pagination.total)
+  return `Showing ${start}-${end} of ${pagination.total} (page ${pagination.page}/${pagination.totalPages})`
 }
 
 export function simplifyCurl(rawCurl: string): string {

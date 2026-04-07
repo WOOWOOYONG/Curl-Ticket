@@ -1,5 +1,5 @@
 import type { CurlTicketClient } from '../api-client.js'
-import { formatIssueSummary } from '../formatters.js'
+import { formatIssueSummary, formatPagination } from '../formatters.js'
 import { normalizeStatus, normalizeType, validateProjectId } from '../utils.js'
 import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from '../constants.js'
 
@@ -38,5 +38,10 @@ export async function issuesCommand(
 
   for (const issue of res.data) {
     console.log(formatIssueSummary(issue))
+  }
+
+  const hint = formatPagination(res.pagination)
+  if (hint) {
+    process.stderr.write(hint + '\n')
   }
 }

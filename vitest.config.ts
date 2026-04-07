@@ -16,7 +16,8 @@ export default defineConfig({
       '~': resolve(__dirname, '.'),
       '~~': resolve(__dirname, '.'),
       '~~/': resolve(__dirname, './'),
-      '#imports': resolve(__dirname, './.nuxt/imports.d.ts')
+      '#imports': resolve(__dirname, './.nuxt/imports.d.ts'),
+      '#shared': resolve(__dirname, './shared')
     }
   }
 })

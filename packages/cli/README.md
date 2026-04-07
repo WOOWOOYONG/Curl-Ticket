@@ -30,12 +30,25 @@ On first run, you'll be prompted to enter your Curl Ticket instance URL, then a 
 
 ### Commands
 
-#### Issues
+#### Projects
 
 ```bash
 # List all accessible projects
 ct projects
 
+# View project details
+ct project <projectId>
+
+# Create a new project
+ct create-project --name "My Project" --key "MP" --description "optional"
+
+# List project members
+ct members <projectId>
+```
+
+#### Issues
+
+```bash
 # List issues for a project
 ct issues <projectId>
 
@@ -51,6 +64,12 @@ ct update-status <projectId> <issueId> Open
 ct update-status <projectId> <issueId> in-progress
 ct update-status <projectId> <issueId> Done
 ct update-status <projectId> <issueId> Close
+
+# Delete an issue (with confirmation prompt)
+ct delete-issue <projectId> <issueId>
+
+# Delete without confirmation
+ct delete-issue <projectId> <issueId> --force
 ```
 
 #### Comments
@@ -141,6 +160,12 @@ Authentication can be configured in two ways:
 1. **Interactive login** (recommended): Run any command and follow the prompts
 2. **Environment variables**: Set `CURL_TICKET_URL` and `CURL_TICKET_TOKEN`
 
+| Variable              | Description                            |
+| --------------------- | -------------------------------------- |
+| `CURL_TICKET_URL`     | Instance URL                           |
+| `CURL_TICKET_TOKEN`   | Auth token                             |
+| `CURL_TICKET_TIMEOUT` | Request timeout in ms (default: 30000) |
+
 ### Requirements
 
 - Node.js >= 20
@@ -174,12 +199,25 @@ ct projects
 
 ### 指令
 
-#### Issue 相關
+#### 專案相關
 
 ```bash
 # 列出所有可存取的專案
 ct projects
 
+# 查看專案詳情
+ct project <projectId>
+
+# 建立新專案
+ct create-project --name "My Project" --key "MP" --description "選填"
+
+# 列出專案成員
+ct members <projectId>
+```
+
+#### Issue 相關
+
+```bash
 # 列出專案的 issue
 ct issues <projectId>
 
@@ -195,6 +233,12 @@ ct update-status <projectId> <issueId> Open
 ct update-status <projectId> <issueId> in-progress
 ct update-status <projectId> <issueId> Done
 ct update-status <projectId> <issueId> Close
+
+# 刪除 issue（會顯示確認提示）
+ct delete-issue <projectId> <issueId>
+
+# 刪除 issue（跳過確認）
+ct delete-issue <projectId> <issueId> --force
 ```
 
 #### Comment 相關
@@ -284,6 +328,12 @@ ct init-skill
 
 1. **互動式登入**（推薦）：執行任何指令，依提示操作即可
 2. **環境變數**：設定 `CURL_TICKET_URL` 和 `CURL_TICKET_TOKEN`
+
+| 變數                  | 說明                         |
+| --------------------- | ---------------------------- |
+| `CURL_TICKET_URL`     | 站台網址                     |
+| `CURL_TICKET_TOKEN`   | 認證 Token                   |
+| `CURL_TICKET_TIMEOUT` | 請求逾時（毫秒，預設 30000） |
 
 ### 系統需求
 
