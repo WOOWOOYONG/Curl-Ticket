@@ -1,16 +1,5 @@
-import { createInterface } from 'node:readline'
 import type { CurlTicketClient } from '../api-client.js'
-import { validateProjectId } from '../utils.js'
-
-function confirm(message: string): Promise<boolean> {
-  const rl = createInterface({ input: process.stdin, output: process.stderr })
-  return new Promise((resolve) => {
-    rl.question(`${message} (y/N): `, (answer: string) => {
-      rl.close()
-      resolve(answer.trim().toLowerCase() === 'y')
-    })
-  })
-}
+import { confirm, validateProjectId } from '../utils.js'
 
 export async function deleteCommentCommand(
   client: CurlTicketClient,
