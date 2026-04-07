@@ -1,6 +1,12 @@
 import { createInterface } from 'node:readline'
 import { Command } from 'commander'
-import { CurlTicketClient, ApiError, NetworkError } from './api-client.js'
+import {
+  CurlTicketClient,
+  ApiError,
+  NetworkError,
+  TimeoutError,
+  RateLimitError
+} from './api-client.js'
 import { getConfigAsync, getUrlAsync } from './auth/config.js'
 import { startDeviceCodeFlow } from './auth/device-flow.js'
 import { projectsCommand } from './commands/projects.js'
@@ -12,6 +18,10 @@ import { getCommentCommand } from './commands/get-comment.js'
 import { addCommentCommand } from './commands/add-comment.js'
 import { editCommentCommand } from './commands/edit-comment.js'
 import { deleteCommentCommand } from './commands/delete-comment.js'
+import { projectCommand } from './commands/project.js'
+import { createProjectCommand } from './commands/create-project.js'
+import { membersCommand } from './commands/members.js'
+import { deleteIssueCommand } from './commands/delete-issue.js'
 import { schemaCommand } from './commands/schema.js'
 import { authLoginCommand, authStatusCommand, authLogoutCommand } from './commands/auth.js'
 import { initSkillCommand } from './commands/init-skill/index.js'
@@ -95,6 +105,12 @@ function resolveError(err: unknown): ErrorInfo {
       }
     )
   }
+  if (err instanceof TimeoutError) {
+    return { code: null, exitCode: ExitCode.NetworkError, message: err.message }
+  }
+  if (err instanceof RateLimitError) {
+    return { code: null, exitCode: ExitCode.NetworkError, message: err.message }
+  }
   if (err instanceof NetworkError) {
     return { code: null, exitCode: ExitCode.NetworkError, message: err.message }
   }
@@ -171,6 +187,44 @@ program
   })
 
 program
+  .command('project <projectId>')
+  .description('View project details')
+  .action(async (projectId: string) => {
+    try {
+      await withAuth((client) => projectCommand(client, projectId, isJsonMode()))
+    } catch (err) {
+      handleError(err, isJsonMode())
+    }
+  })
+
+program
+  .command('create-project')
+  .description('Create a new project')
+  .requiredOption('--name <name>', 'Project name')
+  .requiredOption('--key <key>', 'Project key (short code)')
+  .option('--description <description>', 'Project description')
+  .action(async (options: { name: string; key: string; description?: string }) => {
+    try {
+      await withAuth((client) =>
+        createProjectCommand(client, options.name, options.key, options.description, isJsonMode())
+      )
+    } catch (err) {
+      handleError(err, isJsonMode())
+    }
+  })
+
+program
+  .command('members <projectId>')
+  .description('List project members')
+  .action(async (projectId: string) => {
+    try {
+      await withAuth((client) => membersCommand(client, projectId, isJsonMode()))
+    } catch (err) {
+      handleError(err, isJsonMode())
+    }
+  })
+
+program
   .command('issue <projectId> <issueId>')
   .description('Get issue details')
   .option('--fields <fields>', 'Comma-separated list of fields to include (JSON mode only)')
@@ -199,6 +253,20 @@ program
       }
     }
   )
+
+program
+  .command('delete-issue <projectId> <issueId>')
+  .description('Delete an issue')
+  .option('--force', 'Skip confirmation prompt')
+  .action(async (projectId: string, issueId: string, options: { force?: boolean }) => {
+    try {
+      await withAuth((client) =>
+        deleteIssueCommand(client, projectId, issueId, isJsonMode(), options.force)
+      )
+    } catch (err) {
+      handleError(err, isJsonMode())
+    }
+  })
 
 // --- Comment commands ---
 

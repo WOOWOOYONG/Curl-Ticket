@@ -1,13 +1,23 @@
 import type {
   AuthConfig,
   ProjectsResponse,
+  ProjectDetailResponse,
   IssuesResponse,
   IssueResponse,
   CommentsResponse,
   CommentResponse,
-  DeleteResponse
+  DeleteResponse,
+  MembersResponse,
+  CreateProjectInput
 } from './types.js'
-import { DEFAULT_PAGE_SIZE, PROJECTS_PAGE_SIZE } from './constants.js'
+import {
+  DEFAULT_PAGE_SIZE,
+  PROJECTS_PAGE_SIZE,
+  REQUEST_TIMEOUT,
+  RETRY_AFTER_DEFAULT_SEC,
+  RETRY_AFTER_MAX_SEC,
+  HTTP_TOO_MANY_REQUESTS
+} from './constants.js'
 
 export class ApiError extends Error {
   constructor(
@@ -30,6 +40,24 @@ export class NetworkError extends Error {
   }
 }
 
+export class TimeoutError extends Error {
+  constructor(timeoutMs: number) {
+    super(`Request timed out after ${timeoutMs}ms.`)
+    this.name = 'TimeoutError'
+  }
+}
+
+export class RateLimitError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'RateLimitError'
+  }
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
 interface IssuesOptions {
   status?: string
   issueType?: string
@@ -41,18 +69,63 @@ export class CurlTicketClient {
 
   private async request<T>(path: string, options?: RequestInit): Promise<T> {
     const url = `${this.config.url}${path}`
+    const method = options?.method ?? 'GET'
+    const isGet = method === 'GET'
+
+    const doFetch = async (): Promise<Response> => {
+      try {
+        return await fetch(url, {
+          ...options,
+          signal: AbortSignal.timeout(REQUEST_TIMEOUT),
+          headers: {
+            Authorization: `Bearer ${this.config.token}`,
+            'Content-Type': 'application/json',
+            ...options?.headers
+          }
+        })
+      } catch (err) {
+        if (
+          err instanceof DOMException &&
+          (err.name === 'TimeoutError' || err.name === 'AbortError')
+        ) {
+          throw new TimeoutError(REQUEST_TIMEOUT)
+        }
+        throw new NetworkError(this.config.url, err instanceof Error ? err : undefined)
+      }
+    }
+
     let res: Response
     try {
-      res = await fetch(url, {
-        ...options,
-        headers: {
-          Authorization: `Bearer ${this.config.token}`,
-          'Content-Type': 'application/json',
-          ...options?.headers
-        }
-      })
+      res = await doFetch()
     } catch (err) {
-      throw new NetworkError(this.config.url, err instanceof Error ? err : undefined)
+      // Retry once on NetworkError for GET requests only
+      if (err instanceof NetworkError && isGet) {
+        res = await doFetch()
+      } else {
+        throw err
+      }
+    }
+
+    // Handle rate limiting — retry once for all methods
+    if (res.status === HTTP_TOO_MANY_REQUESTS) {
+      const retryAfter = res.headers.get('Retry-After')
+      let waitSeconds = RETRY_AFTER_DEFAULT_SEC
+      if (retryAfter) {
+        const parsed = Number(retryAfter)
+        if (!Number.isNaN(parsed)) {
+          waitSeconds = parsed
+        }
+      }
+      if (waitSeconds > RETRY_AFTER_MAX_SEC) {
+        throw new RateLimitError(
+          `Rate limited. Retry-After exceeds maximum wait time (${RETRY_AFTER_MAX_SEC}s).`
+        )
+      }
+      await sleep(waitSeconds * 1000)
+      res = await doFetch()
+      if (res.status === HTTP_TOO_MANY_REQUESTS) {
+        throw new RateLimitError('Rate limited. Retry failed.')
+      }
     }
 
     if (!res.ok) {
@@ -142,6 +215,27 @@ export class CurlTicketClient {
         body: JSON.stringify({ content })
       }
     )
+  }
+
+  async getProject(projectId: string): Promise<ProjectDetailResponse> {
+    return this.request<ProjectDetailResponse>(`/api/projects/${projectId}`)
+  }
+
+  async createProject(data: CreateProjectInput): Promise<ProjectDetailResponse> {
+    return this.request<ProjectDetailResponse>('/api/projects', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    })
+  }
+
+  async getMembers(projectId: string): Promise<MembersResponse> {
+    return this.request<MembersResponse>(`/api/projects/${projectId}/members`)
+  }
+
+  async deleteIssue(projectId: string, issueId: string): Promise<DeleteResponse> {
+    return this.request<DeleteResponse>(`/api/projects/${projectId}/issues/${issueId}`, {
+      method: 'DELETE'
+    })
   }
 
   async deleteComment(
