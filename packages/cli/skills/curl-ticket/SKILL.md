@@ -20,6 +20,8 @@ curl-ticket project <projectId> --json                                 # Project
 curl-ticket create-project --name "X" --key "X" --json                 # Create project
 curl-ticket members <projectId> --json                                 # List project members
 curl-ticket issues <projectId> --json [-s Open] [-t api_bug] [-n 10]  # List issues
+curl-ticket create-issue <projectId> --type api_bug --curl "..." --json  # Create API Bug from cURL
+curl-ticket create-issue <projectId> --type task --title "..." --json    # Create Task issue
 curl-ticket issue <projectId> <issueId|CT-42> --json                   # Issue details
 curl-ticket issue <projectId> <issueId> --json --fields status,url,method  # Fetch only specific fields (saves tokens)
 curl-ticket update-status <projectId> <issueId> <status> --json        # Update status (Open|in-progress|Done|Close)

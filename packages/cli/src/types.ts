@@ -122,3 +122,25 @@ export interface CreateProjectInput {
   key: string
   description?: string
 }
+
+export interface ParseCurlResponse {
+  data: {
+    url: string
+    method: string
+    headers: Record<string, string> | null
+    body: unknown | null
+  }
+}
+
+export interface CreateIssuePayload {
+  issueType: string
+  title: string
+  description?: string
+  rawCurl?: string
+  method?: string
+  url?: string
+  environment?: string
+  requestHeaders?: Record<string, string> | null
+  requestBody?: unknown | null
+  status?: string
+}

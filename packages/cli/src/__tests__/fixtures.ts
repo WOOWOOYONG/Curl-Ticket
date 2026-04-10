@@ -1,13 +1,16 @@
 import type {
   Project,
   IssueSummary,
+  IssueDetail,
   Pagination,
   ProjectsResponse,
   IssuesResponse,
+  IssueResponse,
   ProjectDetailResponse,
   MembersResponse,
   Member,
-  DeleteResponse
+  DeleteResponse,
+  ParseCurlResponse
 } from '../types.js'
 
 // --- Pagination fixtures ---
@@ -161,4 +164,80 @@ export const membersResponseEmpty: MembersResponse = {
 
 export const deleteSuccessResponse: DeleteResponse = {
   success: true
+}
+
+// --- ParseCurl fixtures ---
+
+export const parseCurlResponse: ParseCurlResponse = {
+  data: {
+    url: 'https://api.example.com/users/123',
+    method: 'GET',
+    headers: { Authorization: 'Bearer token123', Accept: 'application/json' },
+    body: null
+  }
+}
+
+export const parseCurlPostResponse: ParseCurlResponse = {
+  data: {
+    url: 'https://api.example.com/users',
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: { name: 'Alice' }
+  }
+}
+
+// --- IssueDetail / IssueResponse fixtures ---
+
+export const issueDetailApiBug: IssueDetail = {
+  id: 10,
+  issueNumber: 5,
+  projectId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+  projectKey: 'BA',
+  issueType: 'api_bug' as const,
+  title: 'GET /users/123',
+  description: null,
+  method: 'GET',
+  url: 'https://api.example.com/users/123',
+  environment: 'Dev',
+  rawCurl: 'curl https://api.example.com/users/123',
+  requestHeaders: { Accept: 'application/json' },
+  requestBody: null,
+  responseBody: null,
+  responseStatus: null,
+  status: 'Open' as const,
+  createdBy: 'user-001',
+  createdAt: '2026-04-10T09:00:00.000Z',
+  updatedAt: '2026-04-10T09:00:00.000Z'
+}
+
+export const issueDetailTask: IssueDetail = {
+  id: 11,
+  issueNumber: 6,
+  projectId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+  projectKey: 'BA',
+  issueType: 'task' as const,
+  title: 'Implement rate limiting',
+  description: '## Why\nPerformance\n\n## Goal\nLimit to 100 req/s',
+  method: null,
+  url: null,
+  environment: null,
+  rawCurl: null,
+  requestHeaders: null,
+  requestBody: null,
+  responseBody: null,
+  responseStatus: null,
+  status: 'Open' as const,
+  createdBy: 'user-001',
+  createdAt: '2026-04-10T09:30:00.000Z',
+  updatedAt: '2026-04-10T09:30:00.000Z'
+}
+
+export const createApiBugResponse: IssueResponse = {
+  data: issueDetailApiBug,
+  friendlyId: 'BA-5'
+}
+
+export const createTaskResponse: IssueResponse = {
+  data: issueDetailTask,
+  friendlyId: 'BA-6'
 }

@@ -126,6 +126,38 @@ export function schemaCommand(): void {
           '--json': { type: 'boolean', description: 'Output raw JSON' }
         }
       },
+      'create-issue': {
+        description: 'Create a new issue',
+        args: [{ name: 'projectId', type: 'uuid', required: true }],
+        options: {
+          '--json': { type: 'boolean', description: 'Output raw JSON' },
+          '-t, --type': {
+            type: 'enum',
+            values: issueTypes,
+            description: 'Issue type (prompted interactively if omitted)'
+          },
+          '--curl': {
+            type: 'string',
+            description: 'Raw cURL command string (required for api_bug)'
+          },
+          '--title': {
+            type: 'string',
+            description: 'Issue title (auto-generated for api_bug from cURL if omitted)'
+          },
+          '--description': { type: 'string', description: 'Issue description (Markdown)' },
+          '--env': {
+            type: 'enum',
+            values: environments,
+            default: 'Dev',
+            description: 'Environment (api_bug only)'
+          },
+          '--status': {
+            type: 'enum',
+            values: [...VALID_STATUS_INPUTS],
+            description: 'Initial issue status'
+          }
+        }
+      },
       'delete-comment': {
         description: 'Delete a comment',
         args: [

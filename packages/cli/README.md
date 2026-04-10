@@ -28,6 +28,8 @@ ct projects
 
 On first run, you'll be prompted to enter your Curl Ticket instance URL, then a browser window will open for authentication. Your credentials are saved locally at `~/.config/curl-ticket/config.json`.
 
+For local development and manual QA, see [TESTING.md](./TESTING.md).
+
 ### Commands
 
 #### Projects
@@ -196,6 +198,8 @@ ct projects
 ```
 
 首次執行時，系統會提示你輸入 Curl Ticket 站台網址，接著開啟瀏覽器進行登入驗證。登入資訊會儲存在 `~/.config/curl-ticket/config.json`。
+
+若要進行本地開發與手動測試，請參考 [TESTING.md](./TESTING.md)。
 
 ### 指令
 
