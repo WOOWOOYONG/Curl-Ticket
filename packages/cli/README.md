@@ -12,11 +12,19 @@ CLI tool for [Curl Ticket](https://github.com/WOOWOOYONG/Curl-Ticket) — query 
 
 ### Install
 
-```bash
-npm install -g @curl-ticket/cli
-# or
-pnpm add -g @curl-ticket/cli
-```
+> [!TIP]
+> **npm**
+>
+> ```bash
+> npm install -g @curl-ticket/cli
+> ```
+
+> [!TIP]
+> **pnpm**
+>
+> ```bash
+> pnpm add -g @curl-ticket/cli
+> ```
 
 ### Quick Start
 
@@ -201,11 +209,19 @@ Authentication can be configured in two ways:
 
 ### 安裝
 
-```bash
-npm install -g @curl-ticket/cli
-# 或
-pnpm add -g @curl-ticket/cli
-```
+> [!TIP]
+> **npm**
+>
+> ```bash
+> npm install -g @curl-ticket/cli
+> ```
+
+> [!TIP]
+> **pnpm**
+>
+> ```bash
+> pnpm add -g @curl-ticket/cli
+> ```
 
 ### 快速開始
 
