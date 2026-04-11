@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, type MockInstance } from 'vitest'
 import { projectCommand } from '../commands/project.js'
 import { projectDetailResponse } from './fixtures.js'
 import type { CurlTicketClient } from '../api-client.js'
@@ -12,8 +12,8 @@ function createMockClient(response: unknown): CurlTicketClient {
 const PROJECT_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
 
 describe('projectCommand', () => {
-  let stdoutSpy: ReturnType<typeof vi.spyOn>
-  let consoleSpy: ReturnType<typeof vi.spyOn>
+  let stdoutSpy: MockInstance<typeof process.stdout.write>
+  let consoleSpy: MockInstance<typeof console.log>
 
   beforeEach(() => {
     stdoutSpy = vi.spyOn(process.stdout, 'write').mockReturnValue(true)

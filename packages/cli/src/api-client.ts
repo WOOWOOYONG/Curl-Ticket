@@ -8,7 +8,9 @@ import type {
   CommentResponse,
   DeleteResponse,
   MembersResponse,
-  CreateProjectInput
+  CreateProjectInput,
+  ParseCurlResponse,
+  CreateIssuePayload
 } from './types.js'
 import {
   DEFAULT_PAGE_SIZE,
@@ -249,5 +251,19 @@ export class CurlTicketClient {
         method: 'DELETE'
       }
     )
+  }
+
+  async parseCurl(curl: string): Promise<ParseCurlResponse> {
+    return this.request<ParseCurlResponse>('/api/curl/parse', {
+      method: 'POST',
+      body: JSON.stringify({ curl })
+    })
+  }
+
+  async createIssue(projectId: string, data: CreateIssuePayload): Promise<IssueResponse> {
+    return this.request<IssueResponse>(`/api/projects/${projectId}/issues`, {
+      method: 'POST',
+      body: JSON.stringify(data)
+    })
   }
 }

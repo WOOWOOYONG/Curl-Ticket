@@ -22,6 +22,7 @@ import { projectCommand } from './commands/project.js'
 import { createProjectCommand } from './commands/create-project.js'
 import { membersCommand } from './commands/members.js'
 import { deleteIssueCommand } from './commands/delete-issue.js'
+import { createIssueCommand } from './commands/create-issue.js'
 import { schemaCommand } from './commands/schema.js'
 import { authLoginCommand, authStatusCommand, authLogoutCommand } from './commands/auth.js'
 import { initSkillCommand } from './commands/init-skill/index.js'
@@ -212,6 +213,38 @@ program
       handleError(err, isJsonMode())
     }
   })
+
+program
+  .command('create-issue <projectId>')
+  .description('Create a new issue')
+  .option('-t, --type <type>', 'Issue type (api_bug / task)')
+  .option('--curl <curl>', 'Raw cURL command string (required for api_bug)')
+  .option('--title <title>', 'Issue title')
+  .option('--description <description>', 'Issue description (Markdown)')
+  .option(
+    '--env <env>',
+    'Environment for api_bug only (Local / Dev / Staging / Prod, defaults to Dev)'
+  )
+  .option('--status <status>', 'Initial status (Open / in-progress / Done / Close)')
+  .action(
+    async (
+      projectId: string,
+      options: {
+        type?: string
+        curl?: string
+        title?: string
+        description?: string
+        env?: string
+        status?: string
+      }
+    ) => {
+      try {
+        await withAuth((client) => createIssueCommand(client, projectId, options, isJsonMode()))
+      } catch (err) {
+        handleError(err, isJsonMode())
+      }
+    }
+  )
 
 program
   .command('members <projectId>')

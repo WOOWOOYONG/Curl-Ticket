@@ -1,15 +1,15 @@
-import { createInterface } from 'node:readline'
-import { IssueStatus, issueTypes, COMMENT_MAX_LENGTH } from '#shared/constants.js'
+import { createInterface, type Interface as ReadlineInterface } from 'node:readline'
+import {
+  confirm as inquirerConfirm,
+  editor as inquirerEditor,
+  input as inquirerInput,
+  select as inquirerSelect
+} from '@inquirer/prompts'
+import { IssueStatus, issueTypes, environments, COMMENT_MAX_LENGTH } from '#shared/constants.js'
 import type { IssueType } from '#shared/constants.js'
 
-export function confirm(message: string): Promise<boolean> {
-  const rl = createInterface({ input: process.stdin, output: process.stderr })
-  return new Promise((resolve) => {
-    rl.question(`${message} (y/N): `, (answer: string) => {
-      rl.close()
-      resolve(answer.trim().toLowerCase() === 'y')
-    })
-  })
+export async function confirm(message: string): Promise<boolean> {
+  return inquirerConfirm({ message, default: false })
 }
 
 export class ValidationError extends Error {
@@ -76,4 +76,272 @@ export function normalizeType(type: string): IssueType {
     throw new ValidationError(`Invalid type "${type}". Valid values: ${issueTypes.join(', ')}`)
   }
   return lower as IssueType
+}
+
+export function normalizeEnvironment(env: string): string {
+  const match = environments.find((e) => e.toLowerCase() === env.toLowerCase())
+  if (!match) {
+    throw new ValidationError(
+      `Invalid environment "${env}". Valid values: ${environments.join(', ')}`
+    )
+  }
+  return match
+}
+
+const MAX_PROMPT_ATTEMPTS = 3
+
+function requireTTY(): void {
+  if (!process.stdin.isTTY) {
+    throw new ValidationError('Interactive prompt requires a TTY (stdin is not a terminal).')
+  }
+}
+
+export interface PromptInputOptions {
+  /** Return a non-empty error message to reject the answer and retry (up to MAX_PROMPT_ATTEMPTS). */
+  validate?: (value: string) => string | null
+  /** Continue collecting lines while this returns true for the latest line. */
+  continueWhile?: (value: string, lines: string[]) => boolean
+  /** Prompt shown for follow-up lines when continueWhile keeps the input open. */
+  continuationPrompt?: string
+  /** Auto-submit after this many milliseconds of input idle time. */
+  submitOnIdleMs?: number
+}
+
+const DEFAULT_CONTINUATION_PROMPT = '... '
+
+/**
+ * Holds a single readline interface for the duration of an interactive flow.
+ * Callers should `close()` it in a `finally` block to release stdin.
+ */
+export class Prompter {
+  private rl: ReadlineInterface | null = null
+  private closed = false
+
+  constructor() {
+    requireTTY()
+  }
+
+  /** Temporarily close the readline so @inquirer/prompts can take over stdin. */
+  private pause(): void {
+    this.rl?.close()
+    this.rl = null
+  }
+
+  protected ensureOpen(): ReadlineInterface {
+    if (this.closed) {
+      throw new ValidationError('Prompter is already closed.')
+    }
+    if (!this.rl) {
+      if (typeof process.stdin.setRawMode === 'function') {
+        process.stdin.setRawMode(false)
+      }
+      this.rl = createInterface({ input: process.stdin, output: process.stderr })
+      this.rl.once('close', () => {
+        this.rl = null
+      })
+    }
+    return this.rl
+  }
+
+  protected ask(prompt: string): Promise<string | null> {
+    const rl = this.ensureOpen()
+    return new Promise((resolve) => {
+      let settled = false
+      const onClose = () => {
+        if (settled) return
+        settled = true
+        resolve(null)
+      }
+      rl.once('close', onClose)
+      rl.question(prompt, (ans: string) => {
+        if (settled) return
+        settled = true
+        rl.off('close', onClose)
+        resolve(ans.trim())
+      })
+    })
+  }
+
+  private collectBufferedInput(
+    question: string,
+    options: PromptInputOptions
+  ): Promise<string | null> {
+    const rl = this.ensureOpen()
+    const lines: string[] = []
+    const idleMs = options.submitOnIdleMs ?? 0
+    const continuationPrompt = options.continuationPrompt ?? DEFAULT_CONTINUATION_PROMPT
+
+    return new Promise((resolve) => {
+      let settled = false
+      let idleTimer: NodeJS.Timeout | null = null
+
+      const clearIdleTimer = () => {
+        if (!idleTimer) return
+        clearTimeout(idleTimer)
+        idleTimer = null
+      }
+
+      const cleanup = () => {
+        clearIdleTimer()
+        rl.off('line', onLine)
+        rl.off('close', onClose)
+      }
+
+      const finish = (value: string | null) => {
+        if (settled) return
+        settled = true
+        cleanup()
+        resolve(value)
+      }
+
+      const scheduleFinish = () => {
+        clearIdleTimer()
+        idleTimer = setTimeout(() => {
+          finish(lines.join('\n'))
+        }, idleMs)
+      }
+
+      const onClose = () => finish(null)
+
+      const onLine = (answer: string) => {
+        const normalized = answer.trim()
+        lines.push(normalized)
+
+        if (options.continueWhile?.(normalized, lines)) {
+          rl.setPrompt(continuationPrompt)
+          rl.prompt()
+          return
+        }
+
+        scheduleFinish()
+      }
+
+      rl.on('line', onLine)
+      rl.once('close', onClose)
+      rl.setPrompt(`${question}: `)
+      rl.prompt()
+    })
+  }
+
+  private async collectInput(
+    question: string,
+    options: PromptInputOptions
+  ): Promise<string | null> {
+    const lines: string[] = []
+
+    while (true) {
+      const prompt =
+        lines.length === 0
+          ? `${question}: `
+          : (options.continuationPrompt ?? DEFAULT_CONTINUATION_PROMPT)
+      const answer = await this.ask(prompt)
+      if (answer === null) {
+        return null
+      }
+
+      lines.push(answer)
+
+      if (!options.continueWhile?.(answer, lines)) {
+        return lines.join('\n')
+      }
+    }
+  }
+
+  async input(question: string, options: PromptInputOptions = {}): Promise<string> {
+    const needsReadline =
+      options.continueWhile || (options.submitOnIdleMs && options.submitOnIdleMs > 0)
+
+    if (!needsReadline) {
+      this.pause()
+      return inquirerInput({
+        message: question,
+        required: false,
+        validate: options.validate ? (value) => options.validate!(value) ?? true : undefined
+      })
+    }
+
+    for (let attempt = 0; attempt < MAX_PROMPT_ATTEMPTS; attempt++) {
+      const answer =
+        options.submitOnIdleMs && options.submitOnIdleMs > 0
+          ? await this.collectBufferedInput(question, options)
+          : await this.collectInput(question, options)
+      if (answer === null) {
+        throw new ValidationError('No input available (stdin closed).')
+      }
+      const errorMsg = options.validate?.(answer)
+      if (!errorMsg) return answer
+      process.stderr.write(`${errorMsg}\n`)
+    }
+    throw new ValidationError(`Too many invalid inputs (max ${MAX_PROMPT_ATTEMPTS}).`)
+  }
+
+  async select(question: string, choices: string[]): Promise<string> {
+    this.pause()
+    const result = await inquirerSelect({
+      message: question,
+      choices: choices.map((c) => ({ name: c, value: c }))
+    })
+    return result
+  }
+
+  async editor(message: string): Promise<string> {
+    this.pause()
+    const result = await inquirerEditor({ message, postfix: '.md' })
+    return result.trim()
+  }
+
+  async confirm(message: string, defaultValue = false): Promise<boolean> {
+    this.pause()
+    return inquirerConfirm({ message, default: defaultValue })
+  }
+
+  close(): void {
+    if (this.closed) return
+    this.closed = true
+    this.rl?.close()
+    this.rl = null
+  }
+}
+
+export function hasTrailingLineContinuation(value: string): boolean {
+  const trimmed = value.trimEnd()
+  let trailingSlashCount = 0
+
+  for (let index = trimmed.length - 1; index >= 0 && trimmed[index] === '\\'; index--) {
+    trailingSlashCount += 1
+  }
+
+  return trailingSlashCount % 2 === 1
+}
+
+export async function promptInput(
+  question: string,
+  options: PromptInputOptions = {}
+): Promise<string> {
+  const needsReadline =
+    options.continueWhile || (options.submitOnIdleMs && options.submitOnIdleMs > 0)
+
+  if (!needsReadline) {
+    requireTTY()
+    return inquirerInput({
+      message: question,
+      required: false,
+      validate: options.validate ? (value) => options.validate!(value) ?? true : undefined
+    })
+  }
+
+  const prompter = new Prompter()
+  try {
+    return await prompter.input(question, options)
+  } finally {
+    prompter.close()
+  }
+}
+
+export async function promptSelect(question: string, choices: string[]): Promise<string> {
+  requireTTY()
+  return inquirerSelect({
+    message: question,
+    choices: choices.map((c) => ({ name: c, value: c }))
+  })
 }
