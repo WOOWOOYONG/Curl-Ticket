@@ -74,6 +74,24 @@ ct delete-issue <projectId> <issueId>
 ct delete-issue <projectId> <issueId> --force
 ```
 
+#### Create Issue
+
+```bash
+# Interactive mode — guided prompts with arrow-key selection
+ct create-issue <projectId>
+
+# API Bug from cURL (non-interactive)
+ct create-issue <projectId> --type api_bug --curl "curl https://api.example.com/users"
+
+# Task with title and Markdown description (non-interactive)
+ct create-issue <projectId> --type task --title "Add rate limiting" --description "## Why\nToo many requests"
+
+# With environment and status options
+ct create-issue <projectId> --type api_bug --curl "..." --env Staging --status in-progress
+```
+
+In interactive mode, cURL commands and descriptions are edited in your `$EDITOR` (default: vim), supporting multiline Markdown input.
+
 #### Comments
 
 ```bash
@@ -244,6 +262,24 @@ ct delete-issue <projectId> <issueId>
 # 刪除 issue（跳過確認）
 ct delete-issue <projectId> <issueId> --force
 ```
+
+#### 建立 Issue
+
+```bash
+# 互動模式 — 方向鍵選擇，引導式操作
+ct create-issue <projectId>
+
+# 從 cURL 建立 API Bug（非互動模式）
+ct create-issue <projectId> --type api_bug --curl "curl https://api.example.com/users"
+
+# 建立 Task，附帶 Markdown 描述（非互動模式）
+ct create-issue <projectId> --type task --title "加入 Rate Limiting" --description "## Why\n請求過多"
+
+# 指定環境與狀態
+ct create-issue <projectId> --type api_bug --curl "..." --env Staging --status in-progress
+```
+
+互動模式下，cURL 指令和描述會在 `$EDITOR`（預設 vim）中編輯，支援多行 Markdown 輸入。
 
 #### Comment 相關
 
