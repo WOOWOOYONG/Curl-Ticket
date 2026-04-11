@@ -11,9 +11,7 @@ import { ValidationError } from '../utils.js'
 
 const PROJECT_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
 
-function createMockClient(
-  overrides: Partial<CurlTicketClient> = {}
-): CurlTicketClient {
+function createMockClient(overrides: Partial<CurlTicketClient> = {}): CurlTicketClient {
   return {
     parseCurl: vi.fn().mockResolvedValue(parseCurlResponse),
     createIssue: vi.fn().mockResolvedValue(createApiBugResponse),
@@ -47,9 +45,7 @@ describe('createIssueCommand', () => {
         false
       )
 
-      expect(client.parseCurl).toHaveBeenCalledWith(
-        'curl https://api.example.com/users/123'
-      )
+      expect(client.parseCurl).toHaveBeenCalledWith('curl https://api.example.com/users/123')
       expect(client.createIssue).toHaveBeenCalledWith(PROJECT_ID, {
         issueType: 'api_bug',
         title: 'GET /users/123',
@@ -167,9 +163,7 @@ describe('createIssueCommand', () => {
         issueType: 'task',
         title: 'Implement rate limiting'
       })
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Issue created: BA-6 — Implement rate limiting'
-      )
+      expect(consoleSpy).toHaveBeenCalledWith('Issue created: BA-6 — Implement rate limiting')
     })
 
     it('includes description when provided', async () => {
@@ -205,21 +199,16 @@ describe('createIssueCommand', () => {
     it('throws ValidationError without --title in non-interactive mode', async () => {
       const client = createMockClient()
       // process.stdin.isTTY is undefined in test environment (non-interactive)
-      await expect(
-        createIssueCommand(client, PROJECT_ID, { type: 'task' }, false)
-      ).rejects.toThrow(ValidationError)
+      await expect(createIssueCommand(client, PROJECT_ID, { type: 'task' }, false)).rejects.toThrow(
+        ValidationError
+      )
     })
 
     it('outputs JSON when --json is set', async () => {
       const client = createMockClient({
         createIssue: vi.fn().mockResolvedValue(createTaskResponse)
       })
-      await createIssueCommand(
-        client,
-        PROJECT_ID,
-        { type: 'task', title: 'Task A' },
-        true
-      )
+      await createIssueCommand(client, PROJECT_ID, { type: 'task', title: 'Task A' }, true)
 
       expect(stdoutSpy).toHaveBeenCalledOnce()
       const output = stdoutSpy.mock.calls[0][0] as string
@@ -271,9 +260,9 @@ describe('createIssueCommand', () => {
 
     it('throws when --type is missing in non-interactive mode', async () => {
       const client = createMockClient()
-      await expect(
-        createIssueCommand(client, PROJECT_ID, {}, false)
-      ).rejects.toThrow(ValidationError)
+      await expect(createIssueCommand(client, PROJECT_ID, {}, false)).rejects.toThrow(
+        ValidationError
+      )
     })
 
     it('normalizes type case-insensitively (API_BUG → api_bug)', async () => {

@@ -84,7 +84,7 @@ describe('Prompter.input', () => {
     const prompter = new TestPrompter([
       "curl 'https://example.com' \\",
       "-H 'accept: application/json' \\",
-      "--data-raw '{\"ok\":true}'"
+      '--data-raw \'{"ok":true}\''
     ])
 
     const value = await prompter.input('cURL command', {
@@ -95,7 +95,7 @@ describe('Prompter.input', () => {
       [
         "curl 'https://example.com' \\",
         "-H 'accept: application/json' \\",
-        "--data-raw '{\"ok\":true}'"
+        '--data-raw \'{"ok":true}\''
       ].join('\n')
     )
     expect(prompter.prompts).toEqual(['cURL command: ', '... ', '... '])
@@ -104,7 +104,9 @@ describe('Prompter.input', () => {
   it('throws when stdin closes before any answer is completed', async () => {
     const prompter = new TestPrompter([null])
 
-    await expect(prompter.input('cURL command')).rejects.toThrow(ValidationError)
+    await expect(prompter.input('cURL command', { continueWhile: () => false })).rejects.toThrow(
+      ValidationError
+    )
   })
 
   it('auto-submits a pasted multi-line cURL after input goes idle', async () => {
@@ -117,7 +119,7 @@ describe('Prompter.input', () => {
 
     rl.emit('line', "curl 'https://example.com/api/test' \\")
     rl.emit('line', "-H 'accept: application/json' \\")
-    rl.emit('line', "--data-raw '{\"ok\":true}'")
+    rl.emit('line', '--data-raw \'{"ok":true}\'')
 
     let settled = false
     valuePromise.then(() => {
@@ -133,7 +135,7 @@ describe('Prompter.input', () => {
       [
         "curl 'https://example.com/api/test' \\",
         "-H 'accept: application/json' \\",
-        "--data-raw '{\"ok\":true}'"
+        '--data-raw \'{"ok":true}\''
       ].join('\n')
     )
     expect(rl.prompts).toEqual(['cURL command: ', '... ', '... '])

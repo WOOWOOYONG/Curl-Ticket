@@ -7,8 +7,7 @@ import {
   normalizeType,
   normalizeStatus,
   normalizeEnvironment,
-  Prompter,
-  hasTrailingLineContinuation
+  Prompter
 } from '../utils.js'
 
 interface CreateIssueOptions {
@@ -43,11 +42,10 @@ async function apiBugFlow(
     if (!prompter) {
       throw new ValidationError('--curl is required for api_bug type')
     }
-    curl = await prompter.input('cURL command', {
-      validate: (v) => (v ? null : 'cURL command cannot be empty.'),
-      continueWhile: hasTrailingLineContinuation,
-      submitOnIdleMs: 120
-    })
+    curl = await prompter.editor('Paste cURL command')
+    if (!curl) {
+      throw new ValidationError('cURL command cannot be empty.')
+    }
   }
 
   const parsed = await client.parseCurl(curl)
@@ -56,6 +54,14 @@ async function apiBugFlow(
   const autoTitle = `${method} ${extractUrlPath(url)}`.slice(0, TITLE_MAX_LENGTH)
   const title = options.title ?? autoTitle
   const environment = options.env ? normalizeEnvironment(options.env) : Environment.Dev
+
+  let description = options.description
+  if (!description && prompter) {
+    const addDesc = await prompter.confirm('Add description?')
+    if (addDesc) {
+      description = await prompter.editor('Description (Markdown supported)')
+    }
+  }
 
   const input: CreateIssuePayload = {
     issueType: 'api_bug',
@@ -66,7 +72,7 @@ async function apiBugFlow(
     environment,
     requestHeaders: headers,
     requestBody: body,
-    ...(options.description && { description: options.description }),
+    ...(description && { description }),
     ...(status && { status })
   }
 
@@ -94,34 +100,22 @@ async function taskFlow(
       validate: (v) => (v ? null : 'Title is required.')
     })
 
-    const action = await prompter.select("What's next?", ['Create now', 'Add details', 'Cancel'])
-
-    if (action === 'Cancel') {
-      process.stderr.write('Cancelled.\n')
-      return
+    const addDesc = await prompter.confirm('Add description?')
+    if (addDesc) {
+      description = await prompter.editor('Description (Markdown supported)')
     }
 
-    if (action === 'Add details') {
-      const why = await prompter.input('Why (motivation)')
-      const goal = await prompter.input('Goal (expected outcome)')
+    process.stderr.write('\n--- Preview ---\n')
+    process.stderr.write(`Title: ${title}\n`)
+    if (description) {
+      process.stderr.write(`Description:\n${description}\n`)
+    }
+    process.stderr.write('--- End Preview ---\n\n')
 
-      const parts: string[] = []
-      if (why) parts.push(`## Why\n${why}`)
-      if (goal) parts.push(`## Goal\n${goal}`)
-      description = parts.join('\n\n')
-
-      process.stderr.write('\n--- Preview ---\n')
-      process.stderr.write(`Title: ${title}\n`)
-      if (description) {
-        process.stderr.write(`Description:\n${description}\n`)
-      }
-      process.stderr.write('--- End Preview ---\n\n')
-
-      const confirmed = await prompter.confirm('Create this issue?')
-      if (!confirmed) {
-        process.stderr.write('Cancelled.\n')
-        return
-      }
+    const confirmed = await prompter.confirm('Create this issue?', true)
+    if (!confirmed) {
+      process.stderr.write('Cancelled.\n')
+      return
     }
   }
 

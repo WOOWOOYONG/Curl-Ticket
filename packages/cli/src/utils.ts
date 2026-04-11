@@ -1,15 +1,15 @@
 import { createInterface, type Interface as ReadlineInterface } from 'node:readline'
+import {
+  confirm as inquirerConfirm,
+  editor as inquirerEditor,
+  input as inquirerInput,
+  select as inquirerSelect
+} from '@inquirer/prompts'
 import { IssueStatus, issueTypes, environments, COMMENT_MAX_LENGTH } from '#shared/constants.js'
 import type { IssueType } from '#shared/constants.js'
 
-export function confirm(message: string): Promise<boolean> {
-  const rl = createInterface({ input: process.stdin, output: process.stderr })
-  return new Promise((resolve) => {
-    rl.question(`${message} (y/N): `, (answer: string) => {
-      rl.close()
-      resolve(answer.trim().toLowerCase() === 'y')
-    })
-  })
+export async function confirm(message: string): Promise<boolean> {
+  return inquirerConfirm({ message, default: false })
 }
 
 export class ValidationError extends Error {
@@ -121,11 +121,20 @@ export class Prompter {
     requireTTY()
   }
 
+  /** Temporarily close the readline so @inquirer/prompts can take over stdin. */
+  private pause(): void {
+    this.rl?.close()
+    this.rl = null
+  }
+
   protected ensureOpen(): ReadlineInterface {
     if (this.closed) {
       throw new ValidationError('Prompter is already closed.')
     }
     if (!this.rl) {
+      if (typeof process.stdin.setRawMode === 'function') {
+        process.stdin.setRawMode(false)
+      }
       this.rl = createInterface({ input: process.stdin, output: process.stderr })
       this.rl.once('close', () => {
         this.rl = null
@@ -214,12 +223,17 @@ export class Prompter {
     })
   }
 
-  private async collectInput(question: string, options: PromptInputOptions): Promise<string | null> {
+  private async collectInput(
+    question: string,
+    options: PromptInputOptions
+  ): Promise<string | null> {
     const lines: string[] = []
 
     while (true) {
       const prompt =
-        lines.length === 0 ? `${question}: ` : options.continuationPrompt ?? DEFAULT_CONTINUATION_PROMPT
+        lines.length === 0
+          ? `${question}: `
+          : (options.continuationPrompt ?? DEFAULT_CONTINUATION_PROMPT)
       const answer = await this.ask(prompt)
       if (answer === null) {
         return null
@@ -234,6 +248,18 @@ export class Prompter {
   }
 
   async input(question: string, options: PromptInputOptions = {}): Promise<string> {
+    const needsReadline =
+      options.continueWhile || (options.submitOnIdleMs && options.submitOnIdleMs > 0)
+
+    if (!needsReadline) {
+      this.pause()
+      return inquirerInput({
+        message: question,
+        required: false,
+        validate: options.validate ? (value) => options.validate!(value) ?? true : undefined
+      })
+    }
+
     for (let attempt = 0; attempt < MAX_PROMPT_ATTEMPTS; attempt++) {
       const answer =
         options.submitOnIdleMs && options.submitOnIdleMs > 0
@@ -250,27 +276,23 @@ export class Prompter {
   }
 
   async select(question: string, choices: string[]): Promise<string> {
-    for (let attempt = 0; attempt < MAX_PROMPT_ATTEMPTS; attempt++) {
-      process.stderr.write(`${question}\n`)
-      choices.forEach((choice, i) => {
-        process.stderr.write(`  ${i + 1}) ${choice}\n`)
-      })
-      const answer = await this.ask('Select: ')
-      if (answer === null) {
-        throw new ValidationError('No input available (stdin closed).')
-      }
-      const index = parseInt(answer, 10)
-      if (!Number.isNaN(index) && index >= 1 && index <= choices.length) {
-        return choices[index - 1]
-      }
-      process.stderr.write(`Invalid selection. Enter a number between 1 and ${choices.length}.\n`)
-    }
-    throw new ValidationError(`Too many invalid selections (max ${MAX_PROMPT_ATTEMPTS}).`)
+    this.pause()
+    const result = await inquirerSelect({
+      message: question,
+      choices: choices.map((c) => ({ name: c, value: c }))
+    })
+    return result
   }
 
-  async confirm(message: string): Promise<boolean> {
-    const answer = await this.ask(`${message} (y/N): `)
-    return answer !== null && answer.toLowerCase() === 'y'
+  async editor(message: string): Promise<string> {
+    this.pause()
+    const result = await inquirerEditor({ message, postfix: '.md' })
+    return result.trim()
+  }
+
+  async confirm(message: string, defaultValue = false): Promise<boolean> {
+    this.pause()
+    return inquirerConfirm({ message, default: defaultValue })
   }
 
   close(): void {
@@ -296,6 +318,18 @@ export async function promptInput(
   question: string,
   options: PromptInputOptions = {}
 ): Promise<string> {
+  const needsReadline =
+    options.continueWhile || (options.submitOnIdleMs && options.submitOnIdleMs > 0)
+
+  if (!needsReadline) {
+    requireTTY()
+    return inquirerInput({
+      message: question,
+      required: false,
+      validate: options.validate ? (value) => options.validate!(value) ?? true : undefined
+    })
+  }
+
   const prompter = new Prompter()
   try {
     return await prompter.input(question, options)
@@ -305,10 +339,9 @@ export async function promptInput(
 }
 
 export async function promptSelect(question: string, choices: string[]): Promise<string> {
-  const prompter = new Prompter()
-  try {
-    return await prompter.select(question, choices)
-  } finally {
-    prompter.close()
-  }
+  requireTTY()
+  return inquirerSelect({
+    message: question,
+    choices: choices.map((c) => ({ name: c, value: c }))
+  })
 }

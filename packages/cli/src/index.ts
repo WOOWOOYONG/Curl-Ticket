@@ -221,7 +221,10 @@ program
   .option('--curl <curl>', 'Raw cURL command string (required for api_bug)')
   .option('--title <title>', 'Issue title')
   .option('--description <description>', 'Issue description (Markdown)')
-  .option('--env <env>', 'Environment for api_bug only (Local / Dev / Staging / Prod, defaults to Dev)')
+  .option(
+    '--env <env>',
+    'Environment for api_bug only (Local / Dev / Staging / Prod, defaults to Dev)'
+  )
   .option('--status <status>', 'Initial status (Open / in-progress / Done / Close)')
   .action(
     async (
@@ -236,9 +239,7 @@ program
       }
     ) => {
       try {
-        await withAuth((client) =>
-          createIssueCommand(client, projectId, options, isJsonMode())
-        )
+        await withAuth((client) => createIssueCommand(client, projectId, options, isJsonMode()))
       } catch (err) {
         handleError(err, isJsonMode())
       }
