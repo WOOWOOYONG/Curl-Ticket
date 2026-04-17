@@ -104,7 +104,7 @@ const issueBaseUpdateFields = {
   title: z.string().min(1, 'Title is required').max(200, 'Title must be 200 characters or less'),
   description: z.string().nullish(),
   status: z.enum(issueStatuses),
-  assigneeId: z.uuid().nullable()
+  assigneeId: z.uuid().nullish()
 }
 
 /** API Bug update fields — derived from apiBugFields, excluding issueType discriminator.

@@ -224,19 +224,16 @@ async function onSubmit(event: FormSubmitEvent<Record<string, unknown>>) {
       ? `/api/projects/${projectId.value}/issues/${issueId.value}`
       : `/api/projects/${projectId.value}/issues`
 
-    const normalizedAssigneeId = activeState.value.assigneeId ?? null
-
     let body: Record<string, unknown>
 
     if (isEditMode.value) {
       body = {
         ...activeSchema.value.parse(event.data),
-        assigneeId: normalizedAssigneeId
+        assigneeId: activeState.value.assigneeId ?? null
       }
     } else if (activeIssueType.value === IssueType.Task) {
       body = {
         ...event.data,
-        assigneeId: normalizedAssigneeId,
         issueType: IssueType.Task,
         projectId: projectId.value
       }
@@ -244,7 +241,6 @@ async function onSubmit(event: FormSubmitEvent<Record<string, unknown>>) {
       const rawCurl = curlInput.value.trim()
       body = {
         ...event.data,
-        assigneeId: normalizedAssigneeId,
         issueType: IssueType.ApiBug,
         projectId: projectId.value,
         rawCurl: rawCurl || null
