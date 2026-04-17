@@ -46,7 +46,8 @@ export function createTaskValidationSchema(t: Translate) {
       .min(1, t('validation.issue.title.required'))
       .max(200, t('validation.issue.title.max')),
     description: z.string().nullish(),
-    status: z.enum(issueStatuses).default(IssueStatus.Open)
+    status: z.enum(issueStatuses).default(IssueStatus.Open),
+    assigneeId: z.uuid().nullish()
   })
 }
 
@@ -72,6 +73,7 @@ export function createApiBugValidationSchema(t: Translate) {
       .max(599, t('validation.issue.responseStatus.invalid'))
       .nullish(),
     responseBody: z.unknown().nullish(),
-    status: z.enum(issueStatuses).default(IssueStatus.Open)
+    status: z.enum(issueStatuses).default(IssueStatus.Open),
+    assigneeId: z.uuid().nullish()
   })
 }

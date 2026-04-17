@@ -224,6 +224,8 @@
     "type": "Type",
     "created": "建立時間",
     "lastUpdated": "最後更新",
+    "assignee": "負責人",
+    "unassigned": "未指派",
     "description": "描述",
     "noRequestBody": "無 Request Body 記錄",
     "noHeaders": "無 Request Headers 記錄",

@@ -224,6 +224,8 @@
     "type": "Type",
     "created": "Created",
     "lastUpdated": "Last Updated",
+    "assignee": "Assignee",
+    "unassigned": "Unassigned",
     "description": "Description",
     "noRequestBody": "No request body recorded",
     "noHeaders": "No request headers recorded",

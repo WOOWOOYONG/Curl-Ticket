@@ -586,6 +586,25 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
                 </p>
               </div>
 
+              <!-- Assignee -->
+              <div class="space-y-1">
+                <span class="text-xs tracking-wider text-slate-500 uppercase dark:text-slate-400">{{
+                  $t('issues.assignee')
+                }}</span>
+                <p
+                  v-if="issue.assignee"
+                  class="text-sm font-medium text-slate-900 dark:text-white"
+                >
+                  {{ issue.assignee.name || issue.assignee.email }}
+                </p>
+                <p
+                  v-else
+                  class="text-sm text-slate-400 italic dark:text-slate-500"
+                >
+                  {{ $t('issues.unassigned') }}
+                </p>
+              </div>
+
               <!-- Edit Details Button -->
               <UButton
                 :to="`/projects/${projectId}/issues/${issueId}/edit`"

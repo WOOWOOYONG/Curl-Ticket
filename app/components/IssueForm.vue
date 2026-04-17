@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { Environment, HttpMethod, IssueStatus, IssueType } from '~~/shared/constants'
-import { formatJson } from '~/utils/issue'
-import { createApiBugValidationSchema, createTaskValidationSchema } from '~/utils/validation'
-import { issueTypeTabs } from '~/constants/issue'
 import type { FormSubmitEvent } from '@nuxt/ui'
-import type { IssueResponse } from '~/types/issue'
 import type { ApiBugFormState } from '~/components/ApiBugForm.vue'
 import type { TaskFormState } from '~/components/TaskForm.vue'
+import { issueTypeTabs } from '~/constants/issue'
+import type { IssueResponse } from '~/types/issue'
+import { formatJson } from '~/utils/issue'
+import { createApiBugValidationSchema, createTaskValidationSchema } from '~/utils/validation'
 
 const props = withDefaults(
   defineProps<{
@@ -25,9 +25,17 @@ const { t } = useI18n()
 const projectId = computed(() => route.params.id as string)
 const issueId = computed(() => route.params.issueId as string | undefined)
 
-// Fetch project info
 const { data: projectResponse } = await useProject(projectId)
 const project = computed(() => projectResponse.value?.data)
+
+const { data: membersResponse } = await useProjectMembers(projectId)
+const assigneeOptions = computed(() => {
+  const members = membersResponse.value?.data ?? []
+  return members.map((member) => ({
+    label: member.name || member.email,
+    value: member.userId
+  }))
+})
 
 const emptyIssueResponse = ref<IssueResponse | null>(null)
 const emptyIssueStatus = ref<'idle' | 'pending' | 'success' | 'error'>('success')
@@ -49,38 +57,47 @@ const isIssueMissing = computed(
   () => isEditMode.value && issueStatus.value !== 'pending' && !issue.value
 )
 
-// Issue type selection — default from query param in create mode
-const initialIssueType =
-  !isEditMode.value && route.query.type === IssueType.Task ? IssueType.Task : IssueType.ApiBug
+type IssueData = IssueResponse['data']
+
+function createEmptyApiBugState(): ApiBugFormState {
+  return {
+    title: '',
+    description: '',
+    rawCurl: null,
+    method: HttpMethod.GET,
+    url: '',
+    environment: Environment.Dev,
+    requestHeaders: null,
+    requestBody: null,
+    responseStatus: null,
+    responseBody: null,
+    status: IssueStatus.Open,
+    assigneeId: null
+  }
+}
+
+function createEmptyTaskState(): TaskFormState {
+  return {
+    title: '',
+    description: '',
+    status: IssueStatus.Open,
+    assigneeId: null
+  }
+}
+
+const initialIssueType = isEditMode.value
+  ? (issue.value?.issueType ?? IssueType.ApiBug)
+  : route.query.type === IssueType.Task
+    ? IssueType.Task
+    : IssueType.ApiBug
 const activeIssueType = ref<IssueType>(initialIssueType)
 
-// API Bug form state
-const apiBugState = ref<ApiBugFormState>({
-  title: '',
-  description: '',
-  rawCurl: null,
-  method: HttpMethod.GET,
-  url: '',
-  environment: Environment.Dev,
-  requestHeaders: null,
-  requestBody: null,
-  responseStatus: null,
-  responseBody: null,
-  status: IssueStatus.Open
-})
+const apiBugState = ref<ApiBugFormState>(createEmptyApiBugState())
+const taskState = ref<TaskFormState>(createEmptyTaskState())
 
-// Task form state
-const taskState = ref<TaskFormState>({
-  title: '',
-  description: '',
-  status: IssueStatus.Open
-})
-
-// cURL and response body input
 const curlInput = ref('')
 const responseBodyInput = ref('')
 
-// Refs to child components
 const apiBugFormRef = ref<{
   isParsed: boolean
   clearCurl: () => void
@@ -93,71 +110,78 @@ const initialApiBugState = ref<ApiBugFormState | null>(null)
 const initialTaskState = ref<TaskFormState | null>(null)
 const initialRawCurl = ref('')
 
-// Initialize from existing issue in edit mode
-watch(
-  issue,
-  (currentIssue) => {
-    if (!isEditMode.value || !currentIssue || isInitialized.value) return
+function initializeFormFromIssue(currentIssue: IssueData) {
+  activeIssueType.value = currentIssue.issueType ?? IssueType.ApiBug
 
-    activeIssueType.value = currentIssue.issueType ?? IssueType.ApiBug
-
-    if (activeIssueType.value === IssueType.Task) {
-      const nextState: TaskFormState = {
-        title: currentIssue.title ?? '',
-        description: currentIssue.description ?? '',
-        status: currentIssue.status ?? IssueStatus.Open
-      }
-      Object.assign(taskState.value, nextState)
-      initialTaskState.value = { ...nextState }
-    } else {
-      const nextState: ApiBugFormState = {
-        title: currentIssue.title ?? '',
-        description: currentIssue.description ?? '',
-        rawCurl: currentIssue.rawCurl ?? null,
-        method: currentIssue.method ?? HttpMethod.GET,
-        url: currentIssue.url ?? '',
-        environment: currentIssue.environment ?? Environment.Dev,
-        requestHeaders: currentIssue.requestHeaders ?? null,
-        requestBody: currentIssue.requestBody ?? null,
-        responseStatus: currentIssue.responseStatus ?? null,
-        responseBody: currentIssue.responseBody ?? null,
-        status: currentIssue.status ?? IssueStatus.Open
-      }
-      Object.assign(apiBugState.value, nextState)
-      initialApiBugState.value = { ...nextState }
-      const nextRawCurl = currentIssue.rawCurl ?? ''
-      curlInput.value = nextRawCurl
-      initialRawCurl.value = nextRawCurl
-      responseBodyInput.value = formatJson(currentIssue.responseBody)
+  if (activeIssueType.value === IssueType.Task) {
+    const nextState: TaskFormState = {
+      title: currentIssue.title ?? '',
+      description: currentIssue.description ?? '',
+      status: currentIssue.status ?? IssueStatus.Open,
+      assigneeId: currentIssue.assigneeId ?? null
     }
+    Object.assign(taskState.value, nextState)
+    initialTaskState.value = { ...nextState }
+    return
+  }
 
-    isInitialized.value = true
-  },
-  { immediate: true }
-)
+  const nextState: ApiBugFormState = {
+    title: currentIssue.title ?? '',
+    description: currentIssue.description ?? '',
+    rawCurl: currentIssue.rawCurl ?? null,
+    method: currentIssue.method ?? HttpMethod.GET,
+    url: currentIssue.url ?? '',
+    environment: currentIssue.environment ?? Environment.Dev,
+    requestHeaders: currentIssue.requestHeaders ?? null,
+    requestBody: currentIssue.requestBody ?? null,
+    responseStatus: currentIssue.responseStatus ?? null,
+    responseBody: currentIssue.responseBody ?? null,
+    status: currentIssue.status ?? IssueStatus.Open,
+    assigneeId: currentIssue.assigneeId ?? null
+  }
+  Object.assign(apiBugState.value, nextState)
+  initialApiBugState.value = { ...nextState }
+  const nextRawCurl = currentIssue.rawCurl ?? ''
+  curlInput.value = nextRawCurl
+  initialRawCurl.value = nextRawCurl
+  responseBodyInput.value = formatJson(currentIssue.responseBody)
+}
 
-// Sync curlInput to apiBugState.rawCurl
+if (isEditMode.value && issue.value) {
+  initializeFormFromIssue(issue.value)
+  isInitialized.value = true
+}
+
+watch(issue, (currentIssue) => {
+  if (!isEditMode.value || !currentIssue || isInitialized.value) return
+
+  initializeFormFromIssue(currentIssue)
+  isInitialized.value = true
+})
+
 watch(curlInput, (value) => {
   apiBugState.value.rawCurl = value.trim() ? value : null
 })
 
-// Dynamic schema based on issue type
-// 編輯模式也用 create schema 驗證必填欄位，.partial() 的 updateIssueSchema 只給 API PATCH 用
 const activeSchema = computed(() => {
   return activeIssueType.value === IssueType.Task
     ? createTaskValidationSchema(t)
     : createApiBugValidationSchema(t)
 })
 
-// Active form state for UForm binding
 const activeState = computed(() => {
   return activeIssueType.value === IssueType.Task ? taskState.value : apiBugState.value
 })
 
-// UForm ref for programmatic error clearing
+const assigneeSelectValue = computed<string | undefined>({
+  get: () => activeState.value.assigneeId ?? undefined,
+  set: (value) => {
+    activeState.value.assigneeId = value ?? null
+  }
+})
+
 const formRef = ref<{ clear: (path?: string) => void } | null>(null)
 
-// 當 url 被 parse 填入後，清除該欄位的驗證錯誤
 watch(
   () => apiBugState.value.url,
   (newUrl) => {
@@ -171,31 +195,18 @@ const submitLabel = computed(() =>
   isEditMode.value ? t('projects.saveChanges') : t('issues.createIssue')
 )
 const submitIcon = computed(() => (isEditMode.value ? 'i-lucide-save' : 'i-lucide-plus'))
+const hasAssignee = computed(() => Boolean(assigneeSelectValue.value))
 
 function discardChanges() {
   if (activeIssueType.value === IssueType.Task) {
     const baseState =
-      isEditMode.value && initialTaskState.value
-        ? initialTaskState.value
-        : { title: '', description: '', status: IssueStatus.Open }
+      isEditMode.value && initialTaskState.value ? initialTaskState.value : createEmptyTaskState()
     Object.assign(taskState.value, baseState)
   } else {
     const baseState =
       isEditMode.value && initialApiBugState.value
         ? initialApiBugState.value
-        : {
-            title: '',
-            description: '',
-            rawCurl: null,
-            method: HttpMethod.GET,
-            url: '',
-            environment: Environment.Dev,
-            requestHeaders: null,
-            requestBody: null,
-            responseStatus: null,
-            responseBody: null,
-            status: IssueStatus.Open
-          }
+        : createEmptyApiBugState()
     Object.assign(apiBugState.value, baseState)
     curlInput.value = isEditMode.value ? initialRawCurl.value : ''
     responseBodyInput.value = formatJson(baseState.responseBody)
@@ -215,13 +226,19 @@ async function onSubmit(event: FormSubmitEvent<Record<string, unknown>>) {
       ? `/api/projects/${projectId.value}/issues/${issueId.value}`
       : `/api/projects/${projectId.value}/issues`
 
+    const normalizedAssigneeId = activeState.value.assigneeId ?? null
+
     let body: Record<string, unknown>
 
     if (isEditMode.value) {
-      body = activeSchema.value.parse(event.data)
+      body = {
+        ...activeSchema.value.parse(event.data),
+        assigneeId: normalizedAssigneeId
+      }
     } else if (activeIssueType.value === IssueType.Task) {
       body = {
         ...event.data,
+        assigneeId: normalizedAssigneeId,
         issueType: IssueType.Task,
         projectId: projectId.value
       }
@@ -229,6 +246,7 @@ async function onSubmit(event: FormSubmitEvent<Record<string, unknown>>) {
       const rawCurl = curlInput.value.trim()
       body = {
         ...event.data,
+        assigneeId: normalizedAssigneeId,
         issueType: IssueType.ApiBug,
         projectId: projectId.value,
         rawCurl: rawCurl || null
@@ -254,6 +272,7 @@ async function onSubmit(event: FormSubmitEvent<Record<string, unknown>>) {
     if (isEditMode.value && issueId.value) {
       clearNuxtData(getIssueCacheKey(projectId.value, issueId.value))
     }
+
     navigateTo(
       isEditMode.value
         ? `/projects/${projectId.value}/issues/${issueId.value}`
@@ -305,7 +324,6 @@ async function onSubmit(event: FormSubmitEvent<Record<string, unknown>>) {
         </div>
       </template>
       <template v-else>
-        <!-- Back link -->
         <div class="mb-6">
           <NuxtLink
             :to="
@@ -328,7 +346,6 @@ async function onSubmit(event: FormSubmitEvent<Record<string, unknown>>) {
           </NuxtLink>
         </div>
 
-        <!-- Issue Type Tabs (create mode only) -->
         <div
           v-if="!isEditMode"
           class="mb-6"
@@ -348,7 +365,60 @@ async function onSubmit(event: FormSubmitEvent<Record<string, unknown>>) {
           :state="activeState"
           @submit="onSubmit"
         >
-          <!-- API Bug Form -->
+          <UFormField
+            :label="$t('issues.assignee')"
+            name="assigneeId"
+            class="mb-6 w-40"
+          >
+            <div class="group/assignee relative">
+              <USelect
+                v-model="assigneeSelectValue"
+                :items="assigneeOptions"
+                :placeholder="$t('issues.unassigned')"
+                value-key="value"
+                size="lg"
+                color="primary"
+                class="w-full"
+                :ui="{
+                  base: 'w-full rounded-xl px-3 py-2.5 pe-10 text-sm font-medium shadow-none',
+                  placeholder: 'text-muted',
+                  value: 'truncate text-default',
+                  trailing: 'pe-3',
+                  trailingIcon: 'hidden',
+                  content:
+                    'max-h-60 w-(--reka-select-trigger-width) rounded-xl border border-default bg-default shadow-lg ring-1 ring-default overflow-hidden'
+                }"
+              >
+                <template #trailing>
+                  <div class="relative flex size-5 items-center justify-center">
+                    <UIcon
+                      name="i-lucide-chevron-down"
+                      class="text-muted absolute size-4 transition-all duration-150"
+                      :class="
+                        hasAssignee
+                          ? 'opacity-100 group-focus-within/assignee:opacity-0 group-hover/assignee:opacity-0'
+                          : 'opacity-100'
+                      "
+                    />
+                    <button
+                      v-if="hasAssignee"
+                      type="button"
+                      :aria-label="$t('common.clear')"
+                      class="text-muted hover:bg-elevated hover:text-default absolute flex size-5 items-center justify-center rounded-full opacity-0 transition-all duration-150 group-focus-within/assignee:opacity-100 group-hover/assignee:opacity-100 focus-visible:opacity-100 focus-visible:outline-none"
+                      @pointerdown.prevent
+                      @click.stop.prevent="assigneeSelectValue = undefined"
+                    >
+                      <UIcon
+                        name="i-lucide-x"
+                        class="size-3.5"
+                      />
+                    </button>
+                  </div>
+                </template>
+              </USelect>
+            </div>
+          </UFormField>
+
           <ApiBugForm
             v-if="activeIssueType === IssueType.ApiBug"
             ref="apiBugFormRef"
@@ -360,14 +430,12 @@ async function onSubmit(event: FormSubmitEvent<Record<string, unknown>>) {
             @update:response-body-input="responseBodyInput = $event"
           />
 
-          <!-- Task Form -->
           <TaskForm
             v-else
             v-model:state="taskState"
             :is-edit-mode="isEditMode"
           />
 
-          <!-- Footer Actions -->
           <div class="mt-6 flex items-center justify-between rounded-xl p-4">
             <span class="text-xs text-gray-400">
               <template v-if="activeIssueType === IssueType.ApiBug && apiBugFormRef?.isParsed">

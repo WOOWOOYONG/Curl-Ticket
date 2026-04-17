@@ -165,6 +165,11 @@ const columns: TableColumn<IssueListItem>[] = [
     meta: { class: { th: 'w-24 text-center', td: 'text-center' } }
   },
   {
+    accessorKey: 'assignee',
+    header: t('issues.assignee'),
+    meta: { class: { th: 'w-40', td: 'whitespace-nowrap' } }
+  },
+  {
     accessorKey: 'updatedAt',
     header: t('issues.table.updatedAt'),
     meta: { class: { th: 'w-40 text-right', td: 'text-right whitespace-nowrap' } }
@@ -644,6 +649,22 @@ function onRowSelect(_event: Event, row: { original: IssueListItem }) {
                       class="text-slate-300 dark:text-slate-600"
                     >
                       —
+                    </span>
+                  </template>
+
+                  <!-- Assignee -->
+                  <template #assignee-cell="{ row }">
+                    <span
+                      v-if="row.original.assignee"
+                      class="text-sm text-slate-700 dark:text-slate-200"
+                    >
+                      {{ row.original.assignee.name || row.original.assignee.email }}
+                    </span>
+                    <span
+                      v-else
+                      class="text-sm text-slate-400 italic dark:text-slate-500"
+                    >
+                      {{ $t('issues.unassigned') }}
                     </span>
                   </template>
 

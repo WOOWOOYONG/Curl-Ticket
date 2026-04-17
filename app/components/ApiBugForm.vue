@@ -22,6 +22,7 @@ export interface ApiBugFormState {
   responseStatus: number | null | undefined
   responseBody: unknown
   status: IssueStatus
+  assigneeId: string | null
 }
 
 const state = defineModel<ApiBugFormState>('state', { required: true })
