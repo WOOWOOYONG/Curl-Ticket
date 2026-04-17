@@ -4,9 +4,10 @@ import { profiles, projectMembers, projects } from '~~/server/database/schema'
 import { badRequest } from '~~/server/utils/errors'
 
 /**
- * 驗證 assigneeId 是該專案的 owner 或 member。
+ * 驗證 assigneeId 是該專案的 owner 或 member，且 profile 尚未被軟刪除。
  * - null / undefined：放行（Unassigned）
- * - 否則必須匹配 projects.ownerId 或存在於 project_members
+ * - 否則必須匹配 projects.ownerId 或存在於 project_members，
+ *   且對應的 profile.deletedAt 為 null
  */
 export async function assertAssigneeAllowed(
   db: ReturnType<typeof useDB>,
@@ -17,15 +18,17 @@ export async function assertAssigneeAllowed(
 
   const [allowed] = await db
     .select({ ok: sql<number>`1` })
-    .from(projects)
+    .from(profiles)
+    .innerJoin(projects, eq(projects.id, projectId))
     .leftJoin(
       projectMembers,
-      and(eq(projectMembers.projectId, projects.id), eq(projectMembers.userId, assigneeId))
+      and(eq(projectMembers.projectId, projects.id), eq(projectMembers.userId, profiles.id))
     )
     .where(
       and(
-        eq(projects.id, projectId),
-        or(eq(projects.ownerId, assigneeId), eq(projectMembers.userId, assigneeId))
+        eq(profiles.id, assigneeId),
+        isNull(profiles.deletedAt),
+        or(eq(projects.ownerId, profiles.id), eq(projectMembers.userId, profiles.id))
       )
     )
     .limit(1)
