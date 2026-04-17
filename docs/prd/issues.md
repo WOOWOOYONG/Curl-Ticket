@@ -52,13 +52,16 @@
 - `ISSUE-030`：Footer 提供 `Discard` 與 `Create Issue / Save Changes` 兩個操作按鈕。
 - `ISSUE-031`：編輯提交 payload 不得傳送 `issueType` 欄位。
 - `ISSUE-032`：Server 端必須拒絕對 `task` 類型更新 API 專屬欄位。
+- `ISSUE-053`：表單需提供 `Assignee` 下拉（`Unassigned` + 專案成員 / owner），適用 `api_bug` 與 `task`。
+- `ISSUE-054`：任何對該專案有存取權的成員或 owner 皆可指派 / 取消指派 Issue（無額外角色限制）。
+- `ISSUE-055`：指派 / 重新指派使得新負責人與操作者不同時，系統必須透過 bell 發送 `issue_update` 通知；自我指派與取消指派不觸發通知。
 
 ### 3.6 Issue 詳細內容頁 (Issue Detail)
 
 - `ISSUE-033`：詳細頁路徑為 `/projects/[id]/issues/[issueId]`。
 - `ISSUE-034`：頁面採左右雙欄（左側主內容 + 右側 metadata）。
 - `ISSUE-035`：Header 需顯示 Friendly ID、Issue Type、Title、Description、Status 下拉。
-- `ISSUE-036`：右側 Sidebar 需顯示 Type、Created 日期、Last Updated、Edit Details 按鈕。
+- `ISSUE-036`：右側 Sidebar 需顯示 Type、Created 日期、Last Updated、Assignee（未指派時顯示 `Unassigned`）、Edit Details 按鈕。
 
 #### API Bug 詳細頁
 
