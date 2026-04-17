@@ -4,6 +4,7 @@ import { updateIssueSchema, API_BUG_ONLY_FIELDS } from '~~/shared/schemas'
 import { IssueType, NotificationType } from '~~/shared/constants'
 import { badRequest, notFound } from '~~/server/utils/errors'
 import { getAccessibleProject } from '~~/server/utils/project-access'
+import { assertAssigneeAllowed, getAssigneeSummary } from '~~/server/utils/issue-assignee'
 
 export default defineEventHandler(async (event) => {
   const projectId = getRouterParam(event, 'projectId')
@@ -32,12 +33,18 @@ export default defineEventHandler(async (event) => {
     badRequest('No fields to update')
   }
 
+  // Validate assignee outside the transaction (the check only depends on project membership).
+  if (result.data.assigneeId !== undefined) {
+    await assertAssigneeAllowed(db, projectId, result.data.assigneeId)
+  }
+
   const updatedIssue = await db.transaction(async (tx) => {
     // Lock issue row to avoid race conditions between read/check and update.
     const [existing] = await tx
       .select({
         issueType: issues.issueType,
         status: issues.status,
+        assigneeId: issues.assigneeId,
         createdBy: issues.createdBy,
         projectKey: issues.projectKey,
         issueNumber: issues.issueNumber
@@ -86,11 +93,28 @@ export default defineEventHandler(async (event) => {
       })
     }
 
+    if (
+      result.data.assigneeId !== undefined &&
+      updated.assigneeId &&
+      updated.assigneeId !== existing.assigneeId &&
+      updated.assigneeId !== userId
+    ) {
+      await tx.insert(notifications).values({
+        userId: updated.assigneeId,
+        issueId: updated.id,
+        type: NotificationType.IssueUpdate,
+        title: `Issue ${existing.projectKey}-${existing.issueNumber} assigned to you`,
+        content: updated.title
+      })
+    }
+
     return updated
   })
 
+  const assignee = await getAssigneeSummary(db, updatedIssue.assigneeId)
+
   return {
-    data: updatedIssue,
+    data: { ...updatedIssue, assignee },
     friendlyId: `${project.key}-${updatedIssue.issueNumber}`
   }
 })
