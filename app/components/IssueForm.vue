@@ -195,8 +195,6 @@ const submitLabel = computed(() =>
   isEditMode.value ? t('projects.saveChanges') : t('issues.createIssue')
 )
 const submitIcon = computed(() => (isEditMode.value ? 'i-lucide-save' : 'i-lucide-plus'))
-const hasAssignee = computed(() => Boolean(assigneeSelectValue.value))
-
 function discardChanges() {
   if (activeIssueType.value === IssueType.Task) {
     const baseState =
@@ -368,55 +366,16 @@ async function onSubmit(event: FormSubmitEvent<Record<string, unknown>>) {
           <UFormField
             :label="$t('issues.assignee')"
             name="assigneeId"
-            class="mb-6 w-40"
+            class="mb-6 w-48"
           >
-            <div class="group/assignee relative">
-              <USelect
-                v-model="assigneeSelectValue"
-                :items="assigneeOptions"
-                :placeholder="$t('issues.unassigned')"
-                value-key="value"
-                size="lg"
-                color="primary"
-                class="w-full"
-                :ui="{
-                  base: 'w-full rounded-xl px-3 py-2.5 pe-10 text-sm font-medium shadow-none',
-                  placeholder: 'text-muted',
-                  value: 'truncate text-default',
-                  trailing: 'pe-3',
-                  trailingIcon: 'hidden',
-                  content:
-                    'max-h-60 w-(--reka-select-trigger-width) rounded-xl border border-default bg-default shadow-lg ring-1 ring-default overflow-hidden'
-                }"
-              >
-                <template #trailing>
-                  <div class="relative flex size-5 items-center justify-center">
-                    <UIcon
-                      name="i-lucide-chevron-down"
-                      class="text-muted absolute size-4 transition-all duration-150"
-                      :class="
-                        hasAssignee
-                          ? 'opacity-100 group-focus-within/assignee:opacity-0 group-hover/assignee:opacity-0'
-                          : 'opacity-100'
-                      "
-                    />
-                    <button
-                      v-if="hasAssignee"
-                      type="button"
-                      :aria-label="$t('common.clear')"
-                      class="text-muted hover:bg-elevated hover:text-default absolute flex size-5 items-center justify-center rounded-full opacity-0 transition-all duration-150 group-focus-within/assignee:opacity-100 group-hover/assignee:opacity-100 focus-visible:opacity-100 focus-visible:outline-none"
-                      @pointerdown.prevent
-                      @click.stop.prevent="assigneeSelectValue = undefined"
-                    >
-                      <UIcon
-                        name="i-lucide-x"
-                        class="size-3.5"
-                      />
-                    </button>
-                  </div>
-                </template>
-              </USelect>
-            </div>
+            <USelectMenu
+              v-model="assigneeSelectValue"
+              :items="assigneeOptions"
+              :placeholder="$t('issues.unassigned')"
+              value-key="value"
+              clear
+              class="w-full"
+            />
           </UFormField>
 
           <ApiBugForm
