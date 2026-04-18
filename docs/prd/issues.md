@@ -88,6 +88,18 @@
 - `ISSUE-051`：無留言時顯示空狀態提示。
 - `ISSUE-052`：新增留言後列表即時更新。
 
+### 3.8 Assigned to me view (My Issues)
+
+- `ISSUE-053`：系統需提供跨 Project 的「指派給我」頁，路徑為 `/my-issues`。
+- `ISSUE-054`：頁面資料來自 `GET /api/me/issues`，僅回傳 `assignee_id = 目前使用者` 且 Project 仍可存取的 Issues。
+- `ISSUE-055`：預設列表排除 `status = Close`，但 `summary.close` 仍需反映真實計數。
+- `ISSUE-056`：頁面需提供 Status（多選）、Project、Environment、排序、關鍵字篩選，且篩選條件以 URL query 儲存。
+- `ISSUE-057`：頁面需顯示 `summary`（Open / In Progress / Done / Total）四張統計卡，並在零指派與零符合條件下分別顯示不同 Empty State。
+- `ISSUE-058`：Sidebar 需新增「My Issues」入口（`i-lucide-inbox`），置於 Projects 與 Admin 間，對所有已註冊使用者可見，並可顯示 `open + in-progress` 數量徽章。
+- `ISSUE-059`：Dashboard (`/`) 需新增「Assigned to me」區塊，顯示最多 5 筆最近更新的指派 Issue 與「View all」連結；若無指派則隱藏。
+
+詳見資料約束：[data-model.md](./data-model.md) 中 `issues.assignee_id` 欄位；授權條件沿用 `buildProjectAccessCondition`。
+
 ## Cross-References
 
 - 通知規則：見 [notifications.md](./notifications.md) 的 `NOTIF-005`、`NOTIF-007`、`NOTIF-009`。
