@@ -2,7 +2,7 @@
 
 - [x] 1.1 Add `assigneeId` column to `server/database/schema/issues.ts` (nullable `uuid`, FK to `profiles.id` with `onDelete: 'set null'`) plus an `issues_assignee_idx` index on `assignee_id`
 - [x] 1.2 Run `pnpm db:generate`, review the generated SQL in `server/database/migrations/`, and commit it
-- [ ] 1.3 Apply the migration locally with `pnpm db:migrate` and confirm with `node scripts/verify-schema.mjs`
+- [x] 1.3 Apply the migration locally with `pnpm db:migrate` and confirm with `node scripts/verify-schema.mjs`
 
 ## 2. Shared Validation
 
@@ -34,5 +34,5 @@
 
 ## 7. Verification
 
-- [ ] 7.1 Manually exercise: create issue with/without assignee, reassign, unassign, self-assign — verify bell firing matches the spec scenarios
+- [x] 7.1 Manually exercise: create issue with/without assignee, reassign, unassign, self-assign — verify bell firing matches the spec scenarios
 - [x] 7.2 Run `pnpm format:check`, `pnpm lint`, and `pnpm typecheck` — all pass
