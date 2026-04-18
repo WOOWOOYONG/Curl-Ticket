@@ -109,7 +109,47 @@
     "themeLight": "淺色",
     "themeSystem": "系統",
     "logout": "登出",
-    "notifications": "通知"
+    "notifications": "通知",
+    "myIssues": "我的 Issue"
+  },
+  "myIssues": {
+    "title": "我的 Issue",
+    "subtitle": "顯示跨所有 Project 指派給你的 Issue。",
+    "summary": {
+      "open": "Open",
+      "inProgress": "In Progress",
+      "done": "Done",
+      "total": "總數"
+    },
+    "filters": {
+      "status": "狀態",
+      "project": "Project",
+      "environment": "Environment",
+      "anyProject": "所有 Project",
+      "anyEnvironment": "所有 Environment",
+      "sortUpdatedAt": "更新時間",
+      "sortCreatedAt": "建立時間",
+      "sortStatus": "狀態",
+      "orderDesc": "新到舊",
+      "orderAsc": "舊到新",
+      "searchPlaceholder": "搜尋標題",
+      "reset": "清除篩選"
+    },
+    "emptyAll": {
+      "title": "目前沒有指派給你的 Issue",
+      "hint": "當成員把 Issue 指派給你時會出現在這裡。"
+    },
+    "emptyFiltered": {
+      "title": "沒有符合條件的 Issue",
+      "hint": "試著調整狀態、Project 或搜尋條件。",
+      "reset": "清除篩選"
+    },
+    "dashboard": {
+      "title": "指派給我",
+      "active": "進行中",
+      "viewAll": "檢視全部"
+    },
+    "badgeLabel": "Open + In Progress"
   },
   "projects": {
     "title": "Projects",
