@@ -23,6 +23,7 @@ const route = useRoute()
 const { copyToClipboard } = useCopy()
 const toast = useToast()
 const { t } = useI18n()
+const { formatRelative } = useRelativeTime()
 
 const projectId = computed(() => route.params.id as string)
 const issueId = computed(() => route.params.issueId as string)
@@ -83,7 +84,7 @@ const tabItems = computed(() => [
 // Last updated relative time
 const lastUpdated = computed(() => {
   if (!issue.value?.updatedAt) return ''
-  return useTimeAgo(issue.value.updatedAt).value
+  return formatRelative(issue.value.updatedAt)
 })
 
 // Copy functions
