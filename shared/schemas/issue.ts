@@ -126,9 +126,9 @@ export const updateIssueSchema = z
 
 /** Assignee profile summary attached to issue responses */
 export const assigneeSummarySchema = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
   name: z.string().nullable(),
-  email: z.string()
+  email: z.email()
 })
 
 /** Issue 資料（完整） */
@@ -149,7 +149,7 @@ export const issueSchema = z.object({
   responseStatus: z.number().int().nullable(),
   responseBody: z.unknown(),
   status: z.enum(issueStatuses),
-  assigneeId: z.string().uuid().nullable(),
+  assigneeId: z.uuid().nullable(),
   assignee: assigneeSummarySchema.nullable(),
   createdBy: z.string().uuid(),
   createdAt: z.coerce.date(),
