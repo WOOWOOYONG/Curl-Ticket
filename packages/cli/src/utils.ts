@@ -7,6 +7,8 @@ import {
 } from '@inquirer/prompts'
 import { IssueStatus, issueTypes, environments, COMMENT_MAX_LENGTH } from '#shared/constants.js'
 import type { IssueType } from '#shared/constants.js'
+import type { CurlTicketClient } from './api-client.js'
+import type { AuthMeProfile } from './types.js'
 
 export async function confirm(message: string): Promise<boolean> {
   return inquirerConfirm({ message, default: false })
@@ -52,12 +54,53 @@ export function parseIssueId(
   )
 }
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+export const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export function validateProjectId(projectId: string): void {
   if (!UUID_RE.test(projectId)) {
     throw new ValidationError(`Invalid projectId: "${projectId}" is not a valid UUID.`)
   }
+}
+
+const meCache = new WeakMap<CurlTicketClient, AuthMeProfile>()
+
+export async function resolveAssignee(params: {
+  value: string
+  projectId: string
+  client: CurlTicketClient
+}): Promise<string | null> {
+  const { value, projectId, client } = params
+
+  if (!value || value === 'none' || value === 'null') return null
+
+  if (value === 'me') {
+    const cached = meCache.get(client)
+    if (cached) return cached.id
+    const me = await client.getAuthMe()
+    if (!me?.id) {
+      throw new ValidationError(
+        'Current user profile is not ready yet. Complete registration before using "me" as an assignee.'
+      )
+    }
+    meCache.set(client, me)
+    return me.id
+  }
+
+  if (UUID_RE.test(value)) return value
+
+  if (EMAIL_RE.test(value)) {
+    const members = await client.getMembers(projectId)
+    const match = members.data.find((m) => m.email.toLowerCase() === value.toLowerCase())
+    if (match) return match.userId
+    throw new ValidationError(
+      `No member found with email "${value}" in this project. Pass a UUID directly if the member was recently added.`
+    )
+  }
+
+  throw new ValidationError(
+    `Invalid assignee "${value}". Accepted forms: me, none, <uuid>, <email>`
+  )
 }
 
 export function validateCommentContent(content: string): void {

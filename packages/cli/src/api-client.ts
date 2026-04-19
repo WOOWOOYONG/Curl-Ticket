@@ -1,5 +1,6 @@
 import type {
   AuthConfig,
+  AuthMeResponse,
   ProjectsResponse,
   ProjectDetailResponse,
   IssuesResponse,
@@ -10,7 +11,9 @@ import type {
   MembersResponse,
   CreateProjectInput,
   ParseCurlResponse,
-  CreateIssuePayload
+  CreateIssuePayload,
+  MyIssuesOptions,
+  MyIssuesResponse
 } from './types.js'
 import {
   DEFAULT_PAGE_SIZE,
@@ -64,6 +67,7 @@ interface IssuesOptions {
   status?: string
   issueType?: string
   limit?: number
+  assigneeId?: string | null
 }
 
 export class CurlTicketClient {
@@ -142,11 +146,45 @@ export class CurlTicketClient {
     return this.request<ProjectsResponse>(`/api/projects?pageSize=${PROJECTS_PAGE_SIZE}`)
   }
 
+  async getAuthMe(): Promise<AuthMeResponse> {
+    return this.request<AuthMeResponse>('/api/auth/me')
+  }
+
+  async getMyIssues(options?: MyIssuesOptions): Promise<MyIssuesResponse> {
+    const params = new URLSearchParams()
+    if (options?.status?.length) {
+      for (const s of options.status) params.append('status', s)
+    }
+    if (options?.projectId) params.set('projectId', options.projectId)
+    if (options?.environment) params.set('environment', options.environment)
+    if (options?.search) params.set('search', options.search)
+    if (options?.sort) params.set('sort', options.sort)
+    if (options?.order) params.set('order', options.order)
+    if (options?.page != null) params.set('page', String(options.page))
+    if (options?.pageSize != null) params.set('pageSize', String(options.pageSize))
+    const qs = params.toString()
+    return this.request<MyIssuesResponse>(`/api/me/issues${qs ? `?${qs}` : ''}`)
+  }
+
+  async updateIssueAssignee(
+    projectId: string,
+    issueId: string,
+    assigneeId: string | null
+  ): Promise<IssueResponse> {
+    return this.request<IssueResponse>(`/api/projects/${projectId}/issues/${issueId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ assigneeId })
+    })
+  }
+
   async getIssues(projectId: string, options?: IssuesOptions): Promise<IssuesResponse> {
     const params = new URLSearchParams()
     params.set('pageSize', String(options?.limit ?? DEFAULT_PAGE_SIZE))
     if (options?.status) params.set('status', options.status)
     if (options?.issueType) params.set('issueType', options.issueType)
+    if (options?.assigneeId !== undefined) {
+      params.set('assigneeId', options.assigneeId === null ? 'null' : options.assigneeId)
+    }
     return this.request<IssuesResponse>(`/api/projects/${projectId}/issues?${params}`)
   }
 

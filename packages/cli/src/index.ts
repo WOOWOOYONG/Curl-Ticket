@@ -23,6 +23,8 @@ import { createProjectCommand } from './commands/create-project.js'
 import { membersCommand } from './commands/members.js'
 import { deleteIssueCommand } from './commands/delete-issue.js'
 import { createIssueCommand } from './commands/create-issue.js'
+import { assignCommand } from './commands/assign.js'
+import { myIssuesCommand } from './commands/my-issues.js'
 import { schemaCommand } from './commands/schema.js'
 import { authLoginCommand, authStatusCommand, authLogoutCommand } from './commands/auth.js'
 import { initSkillCommand } from './commands/init-skill/index.js'
@@ -168,24 +170,31 @@ program
     `Max results (default ${DEFAULT_PAGE_SIZE}, max ${MAX_PAGE_SIZE})`,
     String(DEFAULT_PAGE_SIZE)
   )
-  .action(async (projectId: string, options: { status?: string; type?: string; limit: string }) => {
-    try {
-      await withAuth((client) =>
-        issuesCommand(
-          client,
-          projectId,
-          {
-            status: options.status,
-            type: options.type,
-            limit: parseInt(options.limit, 10)
-          },
-          isJsonMode()
+  .option('--assignee <value>', 'Filter by assignee (me / none / <uuid> / <email>)')
+  .action(
+    async (
+      projectId: string,
+      options: { status?: string; type?: string; limit: string; assignee?: string }
+    ) => {
+      try {
+        await withAuth((client) =>
+          issuesCommand(
+            client,
+            projectId,
+            {
+              status: options.status,
+              type: options.type,
+              limit: parseInt(options.limit, 10),
+              assignee: options.assignee
+            },
+            isJsonMode()
+          )
         )
-      )
-    } catch (err) {
-      handleError(err, isJsonMode())
+      } catch (err) {
+        handleError(err, isJsonMode())
+      }
     }
-  })
+  )
 
 program
   .command('project <projectId>')
@@ -226,6 +235,7 @@ program
     'Environment for api_bug only (Local / Dev / Staging / Prod, defaults to Dev)'
   )
   .option('--status <status>', 'Initial status (Open / in-progress / Done / Close)')
+  .option('--assignee <value>', 'Assignee (me / none / <uuid> / <email>)')
   .action(
     async (
       projectId: string,
@@ -236,6 +246,7 @@ program
         description?: string
         env?: string
         status?: string
+        assignee?: string
       }
     ) => {
       try {
@@ -256,6 +267,80 @@ program
       handleError(err, isJsonMode())
     }
   })
+
+program
+  .command('assign <projectId> <issueId> <assignee>')
+  .description('Assign an issue to a user (me / none / <uuid> / <email>)')
+  .option('--dry-run', 'Preview the assignment without applying it')
+  .action(
+    async (
+      projectId: string,
+      issueId: string,
+      assignee: string,
+      options: { dryRun?: boolean }
+    ) => {
+      try {
+        await withAuth((client) =>
+          assignCommand(client, projectId, issueId, assignee, {
+            json: isJsonMode(),
+            dryRun: options.dryRun
+          })
+        )
+      } catch (err) {
+        handleError(err, isJsonMode())
+      }
+    }
+  )
+
+program
+  .command('my-issues')
+  .description('List issues assigned to you')
+  .option(
+    '-s, --status <status>',
+    'Filter by status (repeatable: -s Open -s Done)',
+    (val, acc: string[]) => acc.concat([val]),
+    [] as string[]
+  )
+  .option('--project <projectId>', 'Filter by project UUID')
+  .option('--environment <env>', 'Filter by environment (Local / Dev / Staging / Prod)')
+  .option('--search <query>', 'Search by title')
+  .option('--sort <field>', 'Sort field (updatedAt / createdAt / status)')
+  .option('--order <order>', 'Sort order (asc / desc)')
+  .option('--page <n>', 'Page number')
+  .option('--page-size <n>', 'Page size')
+  .action(
+    async (options: {
+      status: string[]
+      project?: string
+      environment?: string
+      search?: string
+      sort?: string
+      order?: string
+      page?: string
+      pageSize?: string
+    }) => {
+      try {
+        await withAuth((client) =>
+          myIssuesCommand(
+            client,
+            {
+              status: options.status.length ? options.status : undefined,
+              project: options.project,
+              environment: options.environment,
+              search: options.search,
+              sort: options.sort,
+              order: options.order,
+              page: options.page,
+              pageSize: options.pageSize
+            },
+            isJsonMode()
+          )
+        )
+      } catch (err) {
+        handleError(err, isJsonMode())
+      }
+    }
+  )
 
 program
   .command('issue <projectId> <issueId>')
