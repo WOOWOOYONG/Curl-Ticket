@@ -65,6 +65,10 @@ ct issues <projectId>
 # Filter by status and type
 ct issues <projectId> -s Open -t api_bug -n 10
 
+# Filter by assignee
+ct issues <projectId> --assignee me
+ct issues <projectId> --assignee <uuid|email|none>
+
 # Get issue details (by ID or friendly ID like CT-42)
 ct issue <projectId> <issueId>
 ct issue <projectId> CT-42
@@ -96,9 +100,47 @@ ct create-issue <projectId> --type task --title "Add rate limiting" --descriptio
 
 # With environment and status options
 ct create-issue <projectId> --type api_bug --curl "..." --env Staging --status in-progress
+
+# Assign to self on creation
+ct create-issue <projectId> --type task --title "Add rate limiting" --assignee me
 ```
 
 In interactive mode, cURL commands and descriptions are edited in your `$EDITOR` (default: vim), supporting multiline Markdown input.
+
+#### Assign
+
+```bash
+# Assign issue to a member (me / none / <uuid> / <email>)
+ct assign <projectId> <issueId> me
+ct assign <projectId> <issueId> user@example.com
+ct assign <projectId> <issueId> <uuid>
+
+# Unassign
+ct assign <projectId> <issueId> none
+
+# Preview without applying
+ct assign <projectId> <issueId> me --dry-run
+```
+
+#### My Issues
+
+```bash
+# List all issues assigned to you (across all projects)
+ct my-issues
+
+# Filter by status (repeatable)
+ct my-issues -s Open
+ct my-issues -s Open -s "In Progress"
+
+# Filter by project or environment
+ct my-issues --project <projectId>
+ct my-issues --environment Staging
+
+# Pagination and sort
+ct my-issues --sort updatedAt --order asc --page 2
+```
+
+The response includes a `summary` block with counts per status (open, inProgress, done, close, total).
 
 #### Comments
 
@@ -262,6 +304,10 @@ ct issues <projectId>
 # 依狀態和類型過濾
 ct issues <projectId> -s Open -t api_bug -n 10
 
+# 依指派對象過濾
+ct issues <projectId> --assignee me
+ct issues <projectId> --assignee <uuid|email|none>
+
 # 取得 issue 詳情（支援 ID 或編號如 CT-42）
 ct issue <projectId> <issueId>
 ct issue <projectId> CT-42
@@ -293,9 +339,47 @@ ct create-issue <projectId> --type task --title "加入 Rate Limiting" --descrip
 
 # 指定環境與狀態
 ct create-issue <projectId> --type api_bug --curl "..." --env Staging --status in-progress
+
+# 建立時同時指派給自己
+ct create-issue <projectId> --type task --title "加入 Rate Limiting" --assignee me
 ```
 
 互動模式下，cURL 指令和描述會在 `$EDITOR`（預設 vim）中編輯，支援多行 Markdown 輸入。
+
+#### 指派 Issue
+
+```bash
+# 指派給成員（me / none / <uuid> / <email>）
+ct assign <projectId> <issueId> me
+ct assign <projectId> <issueId> user@example.com
+ct assign <projectId> <issueId> <uuid>
+
+# 取消指派
+ct assign <projectId> <issueId> none
+
+# 預覽變更，不實際執行
+ct assign <projectId> <issueId> me --dry-run
+```
+
+#### 我的 Issue
+
+```bash
+# 列出指派給你的所有 issue（跨所有專案）
+ct my-issues
+
+# 依狀態過濾（可重複使用）
+ct my-issues -s Open
+ct my-issues -s Open -s "In Progress"
+
+# 依專案或環境過濾
+ct my-issues --project <projectId>
+ct my-issues --environment Staging
+
+# 分頁與排序
+ct my-issues --sort updatedAt --order asc --page 2
+```
+
+回應包含 `summary` 區塊，顯示各狀態的 issue 數量（open、inProgress、done、close、total）。
 
 #### Comment 相關
 
