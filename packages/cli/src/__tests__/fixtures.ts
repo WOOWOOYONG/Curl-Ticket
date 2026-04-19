@@ -84,6 +84,8 @@ export const issueSummaryA: IssueSummary = {
   environment: 'Prod',
   status: 'Open' as const,
   responseStatus: 500,
+  assigneeId: 'user-001',
+  assignee: { id: 'user-001', name: 'Alice Chen', email: 'alice@example.com' },
   createdAt: '2026-03-01T09:00:00.000Z',
   updatedAt: '2026-03-02T10:00:00.000Z'
 }
@@ -99,6 +101,8 @@ export const issueSummaryB: IssueSummary = {
   environment: null,
   status: 'In Progress' as const,
   responseStatus: null,
+  assigneeId: null,
+  assignee: null,
   createdAt: '2026-03-05T11:00:00.000Z',
   updatedAt: '2026-03-06T14:00:00.000Z'
 }
@@ -205,6 +209,8 @@ export const issueDetailApiBug: IssueDetail = {
   responseBody: null,
   responseStatus: null,
   status: 'Open' as const,
+  assigneeId: 'user-001',
+  assignee: { id: 'user-001', name: 'Alice Chen', email: 'alice@example.com' },
   createdBy: 'user-001',
   createdAt: '2026-04-10T09:00:00.000Z',
   updatedAt: '2026-04-10T09:00:00.000Z'
@@ -227,6 +233,8 @@ export const issueDetailTask: IssueDetail = {
   responseBody: null,
   responseStatus: null,
   status: 'Open' as const,
+  assigneeId: null,
+  assignee: null,
   createdBy: 'user-001',
   createdAt: '2026-04-10T09:30:00.000Z',
   updatedAt: '2026-04-10T09:30:00.000Z'
