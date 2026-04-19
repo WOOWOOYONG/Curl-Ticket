@@ -21,7 +21,8 @@ export default defineEventHandler(async (event) => {
   if (!parsed.success) {
     badRequest('Invalid query parameters')
   }
-  const { page, pageSize, status, environment, issueType, method } = parsed.data
+  const { page, pageSize, status, environment, issueType, method, issueNumber, assigneeId } =
+    parsed.data
 
   const offset = (page - 1) * pageSize
 
@@ -42,6 +43,16 @@ export default defineEventHandler(async (event) => {
 
   if (method) {
     conditions.push(eq(issues.method, method))
+  }
+
+  if (issueNumber) {
+    conditions.push(eq(issues.issueNumber, issueNumber))
+  }
+
+  if (assigneeId !== undefined) {
+    conditions.push(
+      assigneeId === 'null' ? isNull(issues.assigneeId) : eq(issues.assigneeId, assigneeId)
+    )
   }
 
   const search = sanitizeSearchQuery(parsed.data.search)

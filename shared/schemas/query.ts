@@ -19,7 +19,9 @@ export const issueQuerySchema = paginationQuerySchema.extend({
   environment: z.enum(environments).optional(),
   issueType: z.enum(issueTypes).optional(),
   method: z.enum(httpMethods).optional(),
-  search: z.string().optional()
+  search: z.string().optional(),
+  issueNumber: z.coerce.number().int().min(1).optional(),
+  assigneeId: z.union([z.uuid(), z.literal('null')]).optional()
 })
 
 // ============================================
