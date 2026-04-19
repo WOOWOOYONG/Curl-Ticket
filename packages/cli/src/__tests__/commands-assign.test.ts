@@ -15,7 +15,11 @@ function mockClient(overrides: Partial<CurlTicketClient> = {}): CurlTicketClient
     getAuthMe: vi.fn().mockResolvedValue({ id: ME_UUID, email: 'me@example.com', name: 'Me' }),
     getMembers: vi.fn().mockResolvedValue(membersResponse),
     updateIssueAssignee: vi.fn().mockResolvedValue({
-      data: { ...issueDetailApiBug, assigneeId: ME_UUID, assignee: { id: ME_UUID, name: 'Me', email: 'me@example.com' } },
+      data: {
+        ...issueDetailApiBug,
+        assigneeId: ME_UUID,
+        assignee: { id: ME_UUID, name: 'Me', email: 'me@example.com' }
+      },
       friendlyId: 'BA-5'
     }),
     ...overrides

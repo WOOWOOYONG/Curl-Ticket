@@ -9,13 +9,10 @@ export const myIssuesOrderValues = ['asc', 'desc'] as const
 export type MyIssuesOrder = (typeof myIssuesOrderValues)[number]
 
 /** Coerce a single-or-array query param into string[] */
-const statusArraySchema = z.preprocess(
-  (val) => {
-    if (val === undefined || val === null) return undefined
-    return Array.isArray(val) ? val : [val]
-  },
-  z.array(z.enum(issueStatuses)).optional()
-)
+const statusArraySchema = z.preprocess((val) => {
+  if (val === undefined || val === null) return undefined
+  return Array.isArray(val) ? val : [val]
+}, z.array(z.enum(issueStatuses)).optional())
 
 export const myIssuesQuerySchema = z.object({
   status: statusArraySchema,
@@ -70,7 +67,10 @@ export interface MyIssuesResponse {
   summary: MyIssuesSummary
 }
 
-export const ISSUE_STATUS_SUMMARY_KEY: Record<(typeof issueStatuses)[number], keyof MyIssuesSummary> = {
+export const ISSUE_STATUS_SUMMARY_KEY: Record<
+  (typeof issueStatuses)[number],
+  keyof MyIssuesSummary
+> = {
   [IssueStatus.Open]: 'open',
   [IssueStatus.InProgress]: 'inProgress',
   [IssueStatus.Done]: 'done',

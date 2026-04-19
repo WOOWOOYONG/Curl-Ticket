@@ -2,11 +2,7 @@
 import type { LocationQueryValue } from 'vue-router'
 import { issueStatuses, environments } from '~~/shared/constants'
 import type { Environment, IssueStatus } from '~~/shared/constants'
-import {
-  EMPTY_MY_ISSUES_SUMMARY,
-  myIssuesSortFields,
-  myIssuesOrderValues
-} from '~~/shared/schemas'
+import { EMPTY_MY_ISSUES_SUMMARY, myIssuesSortFields, myIssuesOrderValues } from '~~/shared/schemas'
 import type { MyIssuesSortField, MyIssuesOrder } from '~~/shared/schemas'
 import { IssueStatusColor, IssueStatusLabel, EnvironmentColor } from '~/constants/issue'
 
@@ -114,7 +110,15 @@ const pagination = computed(() => data.value?.pagination)
 const summary = computed(() => data.value?.summary ?? EMPTY_MY_ISSUES_SUMMARY)
 
 watch(
-  [selectedStatuses, selectedProjectId, selectedEnvironment, debouncedSearch, selectedSort, selectedOrder, page],
+  [
+    selectedStatuses,
+    selectedProjectId,
+    selectedEnvironment,
+    debouncedSearch,
+    selectedSort,
+    selectedOrder,
+    page
+  ],
   (current, previous) => {
     if (previous) {
       const filtersChanged =
@@ -189,7 +193,9 @@ const hasZeroTotal = computed(() => summary.value.total === 0)
     <div class="relative isolate min-h-full overflow-hidden">
       <div class="relative z-10 flex flex-col gap-8 p-6 sm:p-8 lg:p-10">
         <header class="space-y-2">
-          <h1 class="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl dark:text-white">
+          <h1
+            class="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl dark:text-white"
+          >
             {{ $t('myIssues.title') }}
           </h1>
           <p class="text-sm text-slate-500 dark:text-slate-400">{{ $t('myIssues.subtitle') }}</p>

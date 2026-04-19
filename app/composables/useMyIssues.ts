@@ -52,9 +52,7 @@ export function useMyIssues(options: Ref<UseMyIssuesOptions>) {
  * Lightweight summary-only fetch for sidebar badge / dashboard block.
  * Pass an `enabled` ref to defer the call until a profile exists.
  */
-export function useMyIssuesSummary(
-  enabled?: Ref<boolean> | ComputedRef<boolean>
-) {
+export function useMyIssuesSummary(enabled?: Ref<boolean> | ComputedRef<boolean>) {
   return useFetch<MyIssuesResponse>('/api/me/issues?pageSize=1', {
     key: MY_ISSUES_SUMMARY_CACHE_KEY,
     immediate: enabled?.value ?? true,

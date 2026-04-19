@@ -20,10 +20,9 @@ export default defineEventHandler(async (event): Promise<MyIssuesResponse> => {
 
   const parsed = myIssuesQuerySchema.safeParse(getQuery(event))
   if (!parsed.success) {
-    badRequest(
-      parsed.error.issues[0]?.message ?? 'Invalid query parameters',
-      { issues: parsed.error.issues }
-    )
+    badRequest(parsed.error.issues[0]?.message ?? 'Invalid query parameters', {
+      issues: parsed.error.issues
+    })
   }
   const { page, pageSize, status, projectId, environment, sort, order } = parsed.data
 

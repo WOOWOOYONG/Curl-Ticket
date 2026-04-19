@@ -311,12 +311,7 @@ describe('createIssueCommand', () => {
 
     it('omits assigneeId from POST body when --assignee is not provided', async () => {
       const client = createMockClient()
-      await createIssueCommand(
-        client,
-        PROJECT_ID,
-        { type: 'task', title: 'Some task' },
-        false
-      )
+      await createIssueCommand(client, PROJECT_ID, { type: 'task', title: 'Some task' }, false)
       const call = vi.mocked(client.createIssue).mock.calls[0][1]
       expect(call).not.toHaveProperty('assigneeId')
     })

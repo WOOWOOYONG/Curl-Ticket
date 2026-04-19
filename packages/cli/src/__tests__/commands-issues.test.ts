@@ -9,7 +9,10 @@ import type { CurlTicketClient } from '../api-client.js'
 
 const ME_UUID = 'cccccccc-cccc-cccc-cccc-cccccccccccc'
 
-function createMockClient(response: unknown, overrides: Partial<CurlTicketClient> = {}): CurlTicketClient {
+function createMockClient(
+  response: unknown,
+  overrides: Partial<CurlTicketClient> = {}
+): CurlTicketClient {
   return {
     getIssues: vi.fn().mockResolvedValue(response),
     getAuthMe: vi.fn().mockResolvedValue({ id: ME_UUID, email: 'me@example.com', name: 'Me' }),

@@ -273,12 +273,7 @@ program
   .description('Assign an issue to a user (me / none / <uuid> / <email>)')
   .option('--dry-run', 'Preview the assignment without applying it')
   .action(
-    async (
-      projectId: string,
-      issueId: string,
-      assignee: string,
-      options: { dryRun?: boolean }
-    ) => {
+    async (projectId: string, issueId: string, assignee: string, options: { dryRun?: boolean }) => {
       try {
         await withAuth((client) =>
           assignCommand(client, projectId, issueId, assignee, {
