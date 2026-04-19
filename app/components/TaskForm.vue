@@ -5,6 +5,7 @@ export interface TaskFormState {
   title: string
   description: string | null | undefined
   status: IssueStatus
+  assigneeId: string | null
 }
 
 const state = defineModel<TaskFormState>('state', { required: true })

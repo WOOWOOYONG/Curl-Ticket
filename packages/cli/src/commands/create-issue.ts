@@ -7,6 +7,7 @@ import {
   normalizeType,
   normalizeStatus,
   normalizeEnvironment,
+  resolveAssignee,
   Prompter
 } from '../utils.js'
 
@@ -17,6 +18,7 @@ interface CreateIssueOptions {
   description?: string
   env?: string
   status?: string
+  assignee?: string
 }
 
 const TITLE_MAX_LENGTH = 200
@@ -34,6 +36,7 @@ async function apiBugFlow(
   projectId: string,
   options: CreateIssueOptions,
   status: string | undefined,
+  assigneeId: string | null | undefined,
   json: boolean,
   prompter: Prompter | null
 ): Promise<void> {
@@ -73,7 +76,8 @@ async function apiBugFlow(
     requestHeaders: headers,
     requestBody: body,
     ...(description && { description }),
-    ...(status && { status })
+    ...(status && { status }),
+    ...(assigneeId !== undefined ? { assigneeId } : {})
   }
 
   const res = await client.createIssue(projectId, input)
@@ -85,6 +89,7 @@ async function taskFlow(
   projectId: string,
   options: CreateIssueOptions,
   status: string | undefined,
+  assigneeId: string | null | undefined,
   json: boolean,
   prompter: Prompter | null
 ): Promise<void> {
@@ -123,7 +128,8 @@ async function taskFlow(
     issueType: 'task',
     title,
     ...(description && { description }),
-    ...(status && { status })
+    ...(status && { status }),
+    ...(assigneeId !== undefined ? { assigneeId } : {})
   }
 
   const res = await client.createIssue(projectId, input)
@@ -161,10 +167,15 @@ export async function createIssueCommand(
 
     const status = options.status ? normalizeStatus(options.status) : undefined
 
+    let assigneeId: string | null | undefined
+    if (options.assignee !== undefined) {
+      assigneeId = await resolveAssignee({ value: options.assignee, projectId, client })
+    }
+
     if (issueType === 'api_bug') {
-      await apiBugFlow(client, projectId, options, status, json, prompter)
+      await apiBugFlow(client, projectId, options, status, assigneeId, json, prompter)
     } else {
-      await taskFlow(client, projectId, options, status, json, prompter)
+      await taskFlow(client, projectId, options, status, assigneeId, json, prompter)
     }
   } finally {
     prompter?.close()

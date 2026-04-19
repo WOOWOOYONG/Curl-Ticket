@@ -1,4 +1,4 @@
-import { and, eq, isNull } from 'drizzle-orm'
+import { and, eq, isNull, or } from 'drizzle-orm'
 import { projectMembers, profiles } from '~~/server/database/schema'
 import { badRequest } from '~~/server/utils/errors'
 import { getAccessibleProject } from '~~/server/utils/project-access'
@@ -12,18 +12,26 @@ export default defineEventHandler(async (event) => {
   const db = useDB()
   const userId = event.context.userId as string
 
-  await getAccessibleProject(db, projectId, userId)
+  const project = await getAccessibleProject(db, projectId, userId)
 
-  const members = await db
+  const rows = await db
     .select({
-      userId: projectMembers.userId,
+      userId: profiles.id,
       createdAt: projectMembers.createdAt,
       name: profiles.name,
       email: profiles.email
     })
-    .from(projectMembers)
-    .leftJoin(profiles, eq(projectMembers.userId, profiles.id))
-    .where(and(eq(projectMembers.projectId, projectId), isNull(profiles.deletedAt)))
+    .from(profiles)
+    .leftJoin(
+      projectMembers,
+      and(eq(projectMembers.projectId, projectId), eq(projectMembers.userId, profiles.id))
+    )
+    .where(
+      and(
+        isNull(profiles.deletedAt),
+        or(eq(profiles.id, project.ownerId), eq(projectMembers.projectId, projectId))
+      )
+    )
 
-  return { data: members }
+  return { data: rows }
 })

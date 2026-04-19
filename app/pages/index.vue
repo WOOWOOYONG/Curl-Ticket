@@ -1,12 +1,21 @@
 <script setup lang="ts">
+import { EMPTY_MY_ISSUES_SUMMARY } from '~~/shared/schemas'
+
 const user = useSupabaseUser()
 const toast = useToast()
 const { t } = useI18n()
+const { formatRelative } = useRelativeTime()
 
 const searchQuery = ref('')
 const debouncedSearch = refDebounced(searchQuery, 300)
 
 const projectsOptions = ref<UseProjectsOptions>({ page: 1, pageSize: 12 })
+const myIssuesOptions = ref<UseMyIssuesOptions>({ page: 1, pageSize: 5, sort: 'updatedAt' })
+const { data: myIssuesData } = await useMyIssues(myIssuesOptions)
+const myIssues = computed(() => myIssuesData.value?.data ?? [])
+const myIssuesSummary = computed(() => myIssuesData.value?.summary ?? EMPTY_MY_ISSUES_SUMMARY)
+const myIssuesActive = computed(() => myIssuesSummary.value.open + myIssuesSummary.value.inProgress)
+const myIssuesHasVisibleItems = computed(() => myIssues.value.length > 0)
 
 watch(debouncedSearch, (val) => {
   projectsOptions.value = { ...projectsOptions.value, search: val, page: 1 }
@@ -41,7 +50,7 @@ function goToPage(page: number) {
 
 function getTimeAgo(date: string | null) {
   if (!date) return null
-  return useTimeAgo(new Date(date)).value
+  return formatRelative(date)
 }
 
 function getProgressPercentage(open: number, total: number) {
@@ -258,6 +267,61 @@ async function confirmDelete() {
           </div>
         </section>
 
+        <section
+          v-if="myIssuesHasVisibleItems"
+          class="rounded-2xl border border-white/60 bg-white/75 p-5 shadow-sm dark:border-white/10 dark:bg-gray-900/60"
+        >
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <h2 class="text-base font-semibold text-slate-900 dark:text-white">
+                {{ $t('myIssues.dashboard.title') }}
+              </h2>
+              <UBadge
+                v-if="myIssuesActive > 0"
+                color="primary"
+                variant="subtle"
+                class="font-mono text-xs"
+              >
+                {{ myIssuesActive }} {{ $t('myIssues.dashboard.active') }}
+              </UBadge>
+            </div>
+            <NuxtLink
+              to="/my-issues"
+              class="text-sm font-medium text-emerald-600 transition hover:translate-x-0.5 dark:text-emerald-400"
+            >
+              {{ $t('myIssues.dashboard.viewAll') }} →
+            </NuxtLink>
+          </div>
+          <ul class="mt-4 flex flex-col gap-2">
+            <li
+              v-for="issue in myIssues"
+              :key="issue.id"
+            >
+              <NuxtLink
+                :to="`/projects/${issue.project.id}/issues/${issue.id}`"
+                class="flex items-center gap-3 rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 text-sm shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-white/10 dark:bg-gray-900/40"
+              >
+                <UBadge
+                  color="neutral"
+                  variant="subtle"
+                  class="font-mono text-xs"
+                >
+                  {{ issue.project.key }}
+                </UBadge>
+                <span class="font-mono text-xs text-slate-500 dark:text-slate-400">
+                  #{{ issue.issueNumber }}
+                </span>
+                <span class="min-w-0 flex-1 truncate font-medium text-slate-900 dark:text-white">
+                  {{ issue.title }}
+                </span>
+                <span class="shrink-0 text-xs text-slate-500 dark:text-slate-400">
+                  {{ getTimeAgo(issue.updatedAt) }}
+                </span>
+              </NuxtLink>
+            </li>
+          </ul>
+        </section>
+
         <section class="flex flex-col gap-4">
           <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div class="flex items-center gap-3">
@@ -426,7 +490,7 @@ async function confirmDelete() {
                   >
                     <span class="text-[11px] text-slate-500 dark:text-slate-400">
                       <template v-if="project.lastUpdated">
-                        Updated {{ getTimeAgo(project.lastUpdated) }}
+                        {{ $t('projects.updatedAgo', { time: getTimeAgo(project.lastUpdated) }) }}
                       </template>
                       <template v-else>
                         {{ $t('projects.newProjectLabel') }}

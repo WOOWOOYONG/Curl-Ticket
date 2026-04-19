@@ -109,7 +109,47 @@
     "themeLight": "Light",
     "themeSystem": "System",
     "logout": "Log out",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "myIssues": "My Issues"
+  },
+  "myIssues": {
+    "title": "My Issues",
+    "subtitle": "Everything currently assigned to you across your projects.",
+    "summary": {
+      "open": "Open",
+      "inProgress": "In Progress",
+      "done": "Done",
+      "total": "Total"
+    },
+    "filters": {
+      "status": "Status",
+      "project": "Project",
+      "environment": "Environment",
+      "anyProject": "All projects",
+      "anyEnvironment": "All environments",
+      "sortUpdatedAt": "Updated",
+      "sortCreatedAt": "Created",
+      "sortStatus": "Status",
+      "orderDesc": "Newest first",
+      "orderAsc": "Oldest first",
+      "searchPlaceholder": "Search titles",
+      "reset": "Reset filters"
+    },
+    "emptyAll": {
+      "title": "Nothing assigned to you",
+      "hint": "When a teammate assigns you an issue, it will show up here."
+    },
+    "emptyFiltered": {
+      "title": "No issues match these filters",
+      "hint": "Try adjusting the status, project, or search filters.",
+      "reset": "Reset filters"
+    },
+    "dashboard": {
+      "title": "Assigned to me",
+      "active": "active",
+      "viewAll": "View all"
+    },
+    "badgeLabel": "Open + in progress"
   },
   "projects": {
     "title": "Projects",
@@ -224,6 +264,8 @@
     "type": "Type",
     "created": "Created",
     "lastUpdated": "Last Updated",
+    "assignee": "Assignee",
+    "unassigned": "Unassigned",
     "description": "Description",
     "noRequestBody": "No request body recorded",
     "noHeaders": "No request headers recorded",

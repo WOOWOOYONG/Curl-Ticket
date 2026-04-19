@@ -18,7 +18,8 @@ const issueBaseFields = {
   projectId: z.uuid(),
   title: z.string().min(1, 'Title is required').max(200, 'Title must be 200 characters or less'),
   description: z.string().nullish(),
-  status: z.enum(issueStatuses).default(IssueStatus.Open)
+  status: z.enum(issueStatuses).default(IssueStatus.Open),
+  assigneeId: z.uuid().nullish()
 }
 
 /** API Bug specific fields */
@@ -102,7 +103,8 @@ export const createTaskFormSchema = z
 const issueBaseUpdateFields = {
   title: z.string().min(1, 'Title is required').max(200, 'Title must be 200 characters or less'),
   description: z.string().nullish(),
-  status: z.enum(issueStatuses)
+  status: z.enum(issueStatuses),
+  assigneeId: z.uuid().nullish()
 }
 
 /** API Bug update fields — derived from apiBugFields, excluding issueType discriminator.
@@ -122,6 +124,13 @@ export const updateIssueSchema = z
   })
   .partial()
 
+/** Assignee profile summary attached to issue responses */
+export const assigneeSummarySchema = z.object({
+  id: z.uuid(),
+  name: z.string().nullable(),
+  email: z.email()
+})
+
 /** Issue 資料（完整） */
 export const issueSchema = z.object({
   id: z.number().int(),
@@ -140,6 +149,8 @@ export const issueSchema = z.object({
   responseStatus: z.number().int().nullable(),
   responseBody: z.unknown(),
   status: z.enum(issueStatuses),
+  assigneeId: z.uuid().nullable(),
+  assignee: assigneeSummarySchema.nullable(),
   createdBy: z.string().uuid(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date()
@@ -157,6 +168,8 @@ export const issueListItemSchema = issueSchema.pick({
   environment: true,
   status: true,
   responseStatus: true,
+  assigneeId: true,
+  assignee: true,
   createdAt: true,
   updatedAt: true
 })
@@ -173,3 +186,4 @@ export type CreateTaskFormInput = z.infer<typeof createTaskFormSchema>
 export type UpdateIssueInput = z.infer<typeof updateIssueSchema>
 export type Issue = z.infer<typeof issueSchema>
 export type IssueListItem = z.infer<typeof issueListItemSchema>
+export type AssigneeSummary = z.infer<typeof assigneeSummarySchema>

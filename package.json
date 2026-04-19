@@ -8,7 +8,8 @@
     "dev:login": "bash ./scripts/dev-login-agent.sh",
     "dev:login-required": "bash ./scripts/dev-login-required-agent.sh",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare",
+    "postinstall": "nuxt prepare && lefthook install",
+    "prepare": "lefthook install",
     "lint": "oxlint",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
@@ -48,6 +49,7 @@
     "agent-browser": "^0.13.0",
     "drizzle-kit": "^0.31.8",
     "eslint": "^10.1.0",
+    "lefthook": "^2.1.6",
     "oxfmt": "^0.42.0",
     "oxlint": "^1.57.0",
     "supabase": "^2.72.9",
@@ -55,5 +57,10 @@
     "vitest": "^4.0.18",
     "vue-tsc": "^3.2.4"
   },
-  "packageManager": "pnpm@10.28.1"
+  "packageManager": "pnpm@10.28.1",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "lefthook"
+    ]
+  }
 }

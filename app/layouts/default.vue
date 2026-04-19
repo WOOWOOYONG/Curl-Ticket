@@ -44,10 +44,30 @@ const { profile, fetchProfile } = useProfile()
 // but the await is needed so SSR renders the same nav items as the client.
 await fetchProfile().catch(() => {})
 
+const { t } = useI18n()
+
+const hasProfile = computed(() => !!profile.value)
+const { data: myIssuesSummaryData } = useMyIssuesSummary(hasProfile)
+
+const myIssuesBadge = computed(() => {
+  const s = myIssuesSummaryData.value?.summary
+  if (!s) return undefined
+  const n = s.open + s.inProgress
+  return n > 0 ? n : undefined
+})
+
 const navItems = computed<NavItem[]>(() => {
-  const items: NavItem[] = [{ to: '/', icon: 'i-lucide-folder', label: 'Projects' }]
+  const items: NavItem[] = [{ to: '/', icon: 'i-lucide-folder', label: t('nav.projects') }]
+  if (profile.value) {
+    items.push({
+      to: '/my-issues',
+      icon: 'i-lucide-inbox',
+      label: t('nav.myIssues'),
+      badge: myIssuesBadge.value
+    })
+  }
   if (profile.value?.role === UserRole.Admin) {
-    items.push({ to: '/admin', icon: 'i-lucide-shield', label: 'Invitations' })
+    items.push({ to: '/admin', icon: 'i-lucide-shield', label: t('nav.admin') })
   }
   return items
 })
@@ -123,6 +143,14 @@ const navState = computed(() => resolveNavState(route.path, navItems.value, subM
             :class="['w-full justify-start', isActive(item, route.path) && 'font-semibold']"
           >
             {{ item.label }}
+            <UBadge
+              v-if="item.badge"
+              color="primary"
+              variant="subtle"
+              class="ml-auto"
+            >
+              {{ item.badge }}
+            </UBadge>
           </UButton>
           <UButton
             v-for="menu in subMenus"

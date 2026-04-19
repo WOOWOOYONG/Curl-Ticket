@@ -6,24 +6,33 @@ export function truncate(str: string, maxLength: number): string {
   return str.slice(0, maxLength - 3) + '...'
 }
 
+function formatAssignee(issue: IssueSummary): string {
+  if (issue.assignee?.name) return issue.assignee.name
+  if (issue.assignee?.email) return issue.assignee.email
+  return 'Unassigned'
+}
+
 export function formatIssueSummary(issue: IssueSummary): string {
   const friendlyId = `${issue.projectKey}-${issue.issueNumber}`
+  const assignee = formatAssignee(issue)
   if (issue.issueType === IssueType.Task) {
-    return `#${friendlyId} [${issue.status}] (Task) 「${issue.title}」`
+    return `#${friendlyId} [${issue.status}] (Task) [${assignee}] 「${issue.title}」`
   }
   const endpoint = `${issue.method} ${issue.url}`
   const status = issue.responseStatus ?? '-'
-  return `#${friendlyId} [${issue.status}] ${endpoint} → ${status} 「${issue.title}」`
+  return `#${friendlyId} [${issue.status}] ${endpoint} → ${status} [${assignee}] 「${issue.title}」`
 }
 
 export function formatIssueDetail(issue: IssueDetail, friendlyId: string): string {
   const isApiBug = issue.issueType === IssueType.ApiBug
   const errorMsg = isApiBug ? extractErrorMessage(issue.responseBody) : null
+  const assigneeDisplay = issue.assignee?.name ?? issue.assignee?.email ?? 'Unassigned'
 
   const fields: [string, string | number | null | undefined][] = [
     [`# ${friendlyId}`, issue.title],
     ['Type', isApiBug ? 'API Bug' : 'Task'],
     ['Status', issue.status],
+    ['Assignee', assigneeDisplay],
     ['Endpoint', isApiBug && issue.method && issue.url ? `${issue.method} ${issue.url}` : null],
     ['Environment', isApiBug ? issue.environment : null],
     ['Response Status', isApiBug ? issue.responseStatus : null],

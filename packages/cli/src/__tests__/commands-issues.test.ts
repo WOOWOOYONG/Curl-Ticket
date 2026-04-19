@@ -7,9 +7,17 @@ import {
 } from './fixtures.js'
 import type { CurlTicketClient } from '../api-client.js'
 
-function createMockClient(response: unknown): CurlTicketClient {
+const ME_UUID = 'cccccccc-cccc-cccc-cccc-cccccccccccc'
+
+function createMockClient(
+  response: unknown,
+  overrides: Partial<CurlTicketClient> = {}
+): CurlTicketClient {
   return {
-    getIssues: vi.fn().mockResolvedValue(response)
+    getIssues: vi.fn().mockResolvedValue(response),
+    getAuthMe: vi.fn().mockResolvedValue({ id: ME_UUID, email: 'me@example.com', name: 'Me' }),
+    getMembers: vi.fn().mockResolvedValue({ data: [] }),
+    ...overrides
   } as unknown as CurlTicketClient
 }
 
@@ -56,5 +64,16 @@ describe('issuesCommand', () => {
 
     expect(stdoutSpy).toHaveBeenCalledOnce()
     expect(stderrSpy).not.toHaveBeenCalled()
+  })
+
+  it('resolves --assignee me and forwards the UUID as assigneeId query param', async () => {
+    const client = createMockClient(issuesResponseSinglePage)
+    await issuesCommand(client, 'a1b2c3d4-e5f6-7890-abcd-ef1234567890', { assignee: 'me' }, false)
+
+    expect(client.getAuthMe).toHaveBeenCalledOnce()
+    expect(client.getIssues).toHaveBeenCalledWith(
+      'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+      expect.objectContaining({ assigneeId: ME_UUID })
+    )
   })
 })

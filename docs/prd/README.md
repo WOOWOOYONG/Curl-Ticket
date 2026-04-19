@@ -21,7 +21,7 @@
 | --- | --- | --- |
 | [auth.md](./auth.md) | 登入、邀請註冊、角色、使用者選單 | `AUTH-*` |
 | [projects.md](./projects.md) | 專案列表、建立、成員管理、成員邀請 | `PROJ-*` |
-| [issues.md](./issues.md) | Issue 列表、新增/編輯、詳細頁 | `ISSUE-*` |
+| [issues.md](./issues.md) | Issue 列表、新增/編輯、詳細頁、指派給我頁（`ISSUE-053` 起） | `ISSUE-*` |
 | [notifications.md](./notifications.md) | 通知中心、Realtime、觸發規則 | `NOTIF-*` |
 | [data-model.md](./data-model.md) | DB Schema、資料約束、追蹤矩陣 | `DATA-*` |
 | [non-functional.md](./non-functional.md) | 效能、安全、相容性、DX | `NFR-*` |

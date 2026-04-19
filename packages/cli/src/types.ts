@@ -13,6 +13,12 @@ export interface Project {
   lastUpdated: string | null
 }
 
+export interface Assignee {
+  id: string
+  name: string | null
+  email: string
+}
+
 export interface IssueSummary {
   id: number
   issueNumber: number
@@ -24,6 +30,8 @@ export interface IssueSummary {
   environment: string | null
   status: IssueStatus
   responseStatus: number | null
+  assigneeId: string | null
+  assignee: Assignee | null
   createdAt: string
   updatedAt: string
 }
@@ -143,4 +151,56 @@ export interface CreateIssuePayload {
   requestHeaders?: Record<string, string> | null
   requestBody?: unknown | null
   status?: string
+  assigneeId?: string | null
+}
+
+export interface AuthMeProfile {
+  id: string
+  email: string
+  name: string | null
+}
+
+export type AuthMeResponse = AuthMeProfile | null
+
+export interface MyIssuesOptions {
+  status?: string[]
+  projectId?: string
+  environment?: string
+  search?: string
+  sort?: 'updatedAt' | 'createdAt' | 'status'
+  order?: 'asc' | 'desc'
+  page?: number
+  pageSize?: number
+}
+
+export interface MyIssueProjectRef {
+  id: string
+  key: string
+  name: string
+}
+
+export interface MyIssueItem {
+  id: number
+  issueNumber: number
+  title: string
+  status: string
+  environment: string | null
+  assigneeId: string | null
+  updatedAt: string
+  createdAt: string
+  project: MyIssueProjectRef
+}
+
+export interface MyIssuesSummary {
+  open: number
+  inProgress: number
+  done: number
+  close: number
+  total: number
+}
+
+export interface MyIssuesResponse {
+  data: MyIssueItem[]
+  pagination: Pagination
+  summary: MyIssuesSummary
 }

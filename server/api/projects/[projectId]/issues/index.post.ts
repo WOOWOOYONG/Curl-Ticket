@@ -1,11 +1,12 @@
 import { eq, max } from 'drizzle-orm'
-import { issues } from '~~/server/database/schema'
+import { issues, notifications } from '~~/server/database/schema'
 import { createIssueSchema, nullifyApiBugFields, pickApiBugFields } from '~~/shared/schemas'
 import type { CreateApiBugInput } from '~~/shared/schemas'
-import { IssueType } from '~~/shared/constants'
+import { IssueType, NotificationType } from '~~/shared/constants'
 import { MAX_CREATE_ATTEMPTS, UNIQUE_VIOLATION_CODE } from '~~/server/constants'
 import { badRequest, internalServerError } from '~~/server/utils/errors'
 import { getAccessibleProject } from '~~/server/utils/project-access'
+import { assertAssigneeAllowed, getAssigneeSummary } from '~~/server/utils/issue-assignee'
 
 export default defineEventHandler(async (event) => {
   // 從 middleware 取得已驗證的 userId
@@ -38,6 +39,10 @@ export default defineEventHandler(async (event) => {
 
   const data = result.data
   const isTask = data.issueType === IssueType.Task
+  const assigneeId = data.assigneeId ?? null
+
+  // Validate assignee before entering the retry loop (cheap + no DB writes yet).
+  await assertAssigneeAllowed(db, projectId, assigneeId)
 
   // 5. 計算該專案的下一個 issue_number，若遇到唯一性衝突則重試
   const issueBase = {
@@ -47,6 +52,7 @@ export default defineEventHandler(async (event) => {
     title: data.title,
     description: data.description ?? null,
     status: data.status,
+    assigneeId,
     createdBy: userId,
     ...(isTask ? nullifyApiBugFields() : pickApiBugFields(data as CreateApiBugInput))
   }
@@ -62,16 +68,34 @@ export default defineEventHandler(async (event) => {
       .where(eq(issues.projectId, projectId))
 
     nextIssueNumber = (maxResult?.maxNumber ?? 0) + 1
+    const candidateNumber = nextIssueNumber
 
     try {
-      const created = await db
-        .insert(issues)
-        .values({
-          ...issueBase,
-          issueNumber: nextIssueNumber
-        })
-        .returning()
-      newIssue = created[0]
+      newIssue = await db.transaction(async (tx) => {
+        const [created] = await tx
+          .insert(issues)
+          .values({
+            ...issueBase,
+            issueNumber: candidateNumber
+          })
+          .returning()
+
+        if (!created) {
+          internalServerError('Failed to insert issue')
+        }
+
+        if (assigneeId && assigneeId !== userId) {
+          await tx.insert(notifications).values({
+            userId: assigneeId,
+            issueId: created.id,
+            type: NotificationType.IssueUpdate,
+            title: `Issue ${project.key}-${candidateNumber} assigned to you`,
+            content: created.title
+          })
+        }
+
+        return created
+      })
       break
     } catch (error) {
       lastError = error
@@ -86,8 +110,10 @@ export default defineEventHandler(async (event) => {
     internalServerError('Failed to create issue', lastError)
   }
 
+  const assignee = await getAssigneeSummary(db, newIssue.assigneeId)
+
   return {
-    data: newIssue,
+    data: { ...newIssue, assignee },
     friendlyId: `${project.key}-${nextIssueNumber}`
   }
 })

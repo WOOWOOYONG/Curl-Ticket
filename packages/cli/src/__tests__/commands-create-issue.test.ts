@@ -15,6 +15,8 @@ function createMockClient(overrides: Partial<CurlTicketClient> = {}): CurlTicket
   return {
     parseCurl: vi.fn().mockResolvedValue(parseCurlResponse),
     createIssue: vi.fn().mockResolvedValue(createApiBugResponse),
+    getAuthMe: vi.fn().mockResolvedValue({ id: 'me-uuid', email: 'me@example.com', name: 'Me' }),
+    getMembers: vi.fn().mockResolvedValue({ data: [] }),
     ...overrides
   } as unknown as CurlTicketClient
 }
@@ -276,6 +278,42 @@ describe('createIssueCommand', () => {
 
       const call = vi.mocked(client.createIssue).mock.calls[0][1]
       expect(call.issueType).toBe('api_bug')
+    })
+  })
+
+  // ------------------------------------------------------------------
+  // --assignee flag
+  // ------------------------------------------------------------------
+  describe('--assignee flag', () => {
+    it('includes assigneeId: null in POST body when --assignee none', async () => {
+      const client = createMockClient()
+      await createIssueCommand(
+        client,
+        PROJECT_ID,
+        { type: 'task', title: 'Some task', assignee: 'none' },
+        false
+      )
+      const call = vi.mocked(client.createIssue).mock.calls[0][1]
+      expect(call).toHaveProperty('assigneeId', null)
+    })
+
+    it('resolves --assignee me to the current user UUID', async () => {
+      const client = createMockClient()
+      await createIssueCommand(
+        client,
+        PROJECT_ID,
+        { type: 'task', title: 'Some task', assignee: 'me' },
+        false
+      )
+      const call = vi.mocked(client.createIssue).mock.calls[0][1]
+      expect(call.assigneeId).toBe('me-uuid')
+    })
+
+    it('omits assigneeId from POST body when --assignee is not provided', async () => {
+      const client = createMockClient()
+      await createIssueCommand(client, PROJECT_ID, { type: 'task', title: 'Some task' }, false)
+      const call = vi.mocked(client.createIssue).mock.calls[0][1]
+      expect(call).not.toHaveProperty('assigneeId')
     })
   })
 })

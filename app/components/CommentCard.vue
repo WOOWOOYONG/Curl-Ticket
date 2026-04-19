@@ -23,6 +23,9 @@ const emit = defineEmits<{
   'update:editContent': [value: string]
 }>()
 
+const { t } = useI18n()
+const { formatRelative } = useRelativeTime()
+
 const localEditContent = computed({
   get: () => props.editContent,
   set: (val: string) => emit('update:editContent', val)
@@ -56,9 +59,11 @@ function getDisplayName(comment: Comment) {
         </span>
         <span class="shrink-0 text-xs text-slate-400 dark:text-slate-500">
           <template v-if="comment.updatedAt">
-            edited {{ useTimeAgo(comment.updatedAt).value }}
+            {{ t('comments.edited', { time: formatRelative(comment.updatedAt) }) }}
           </template>
-          <template v-else> commented {{ useTimeAgo(comment.createdAt).value }} </template>
+          <template v-else>
+            {{ t('comments.commented', { time: formatRelative(comment.createdAt) }) }}
+          </template>
         </span>
         <!-- Actions menu -->
         <div

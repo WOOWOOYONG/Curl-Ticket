@@ -11,6 +11,11 @@ import {
 import { ExitCode, ISSUE_FIELDS } from '../constants.js'
 import { VALID_STATUS_INPUTS } from '../utils.js'
 
+const ASSIGNEE_OPTION = {
+  type: 'string',
+  description: 'Assignee: me, none, <uuid>, or <email>'
+} as const
+
 export function schemaCommand(): void {
   const schema = {
     commands: {
@@ -32,7 +37,8 @@ export function schemaCommand(): void {
             description: 'Filter by status'
           },
           '-t, --type': { type: 'enum', values: issueTypes, description: 'Filter by type' },
-          '-n, --limit': { type: 'number', default: 10, max: 20, description: 'Max results' }
+          '-n, --limit': { type: 'number', default: 10, max: 20, description: 'Max results' },
+          '--assignee': ASSIGNEE_OPTION
         }
       },
       issue: {
@@ -155,7 +161,64 @@ export function schemaCommand(): void {
             type: 'enum',
             values: [...VALID_STATUS_INPUTS],
             description: 'Initial issue status'
+          },
+          '--assignee': ASSIGNEE_OPTION
+        }
+      },
+      assign: {
+        description: 'Assign an issue to a user',
+        args: [
+          { name: 'projectId', type: 'uuid', required: true },
+          {
+            name: 'issueId',
+            type: 'string',
+            required: true,
+            description: 'Numeric ID or friendly ID (e.g. CT-42)'
+          },
+          {
+            name: 'assignee',
+            type: 'string',
+            required: true,
+            description: 'me, none, <uuid>, or <email>'
           }
+        ],
+        options: {
+          '--json': { type: 'boolean', description: 'Output raw JSON' },
+          '--dry-run': { type: 'boolean', description: 'Preview assignment without applying' }
+        }
+      },
+      'my-issues': {
+        description: 'List issues assigned to you',
+        args: [],
+        options: {
+          '--json': { type: 'boolean', description: 'Output raw JSON' },
+          '-s, --status': {
+            type: 'enum',
+            values: [...VALID_STATUS_INPUTS],
+            repeatable: true,
+            description: 'Filter by status (repeatable)'
+          },
+          '--project': { type: 'uuid', description: 'Filter by project UUID' },
+          '--environment': {
+            type: 'enum',
+            values: environments,
+            description: 'Filter by environment'
+          },
+          '--search': { type: 'string', description: 'Search by title' },
+          '--sort': {
+            type: 'enum',
+            values: ['updatedAt', 'createdAt', 'status'],
+            default: 'updatedAt',
+            description: 'Sort field'
+          },
+          '--order': {
+            type: 'enum',
+            values: ['asc', 'desc'],
+            default: 'desc',
+            description: 'Sort order'
+          },
+          '--page': { type: 'number', default: 1, description: 'Page number' },
+          '--page-size': { type: 'number', default: 20, description: 'Page size' }
         }
       },
       'delete-comment': {

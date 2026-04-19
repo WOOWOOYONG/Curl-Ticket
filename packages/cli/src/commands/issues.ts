@@ -1,12 +1,13 @@
 import type { CurlTicketClient } from '../api-client.js'
 import { formatIssueSummary, formatPagination } from '../formatters.js'
-import { normalizeStatus, normalizeType, validateProjectId } from '../utils.js'
+import { normalizeStatus, normalizeType, validateProjectId, resolveAssignee } from '../utils.js'
 import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from '../constants.js'
 
 interface IssuesCommandOptions {
   status?: string
   type?: string
   limit?: number
+  assignee?: string
 }
 
 export async function issuesCommand(
@@ -20,10 +21,16 @@ export async function issuesCommand(
   const issueType = options.type ? normalizeType(options.type) : undefined
   const limit = options.limit ? Math.min(options.limit, MAX_PAGE_SIZE) : DEFAULT_PAGE_SIZE
 
+  let assigneeId: string | null | undefined
+  if (options.assignee !== undefined) {
+    assigneeId = await resolveAssignee({ value: options.assignee, projectId, client })
+  }
+
   const res = await client.getIssues(projectId, {
     status,
     issueType,
-    limit
+    limit,
+    ...(assigneeId !== undefined ? { assigneeId } : {})
   })
 
   if (json) {

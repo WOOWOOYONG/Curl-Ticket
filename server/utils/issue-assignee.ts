@@ -1,0 +1,54 @@
+import { and, eq, isNull, or, sql } from 'drizzle-orm'
+import type { useDB } from '~~/server/utils/db'
+import { profiles, projectMembers, projects } from '~~/server/database/schema'
+import { badRequest } from '~~/server/utils/errors'
+
+/**
+ * 驗證 assigneeId 是該專案的 owner 或 member，且 profile 尚未被軟刪除。
+ * - null / undefined：放行（Unassigned）
+ * - 否則必須匹配 projects.ownerId 或存在於 project_members，
+ *   且對應的 profile.deletedAt 為 null
+ */
+export async function assertAssigneeAllowed(
+  db: ReturnType<typeof useDB>,
+  projectId: string,
+  assigneeId: string | null | undefined
+) {
+  if (assigneeId == null) return
+
+  const [allowed] = await db
+    .select({ ok: sql<number>`1` })
+    .from(profiles)
+    .innerJoin(projects, eq(projects.id, projectId))
+    .leftJoin(
+      projectMembers,
+      and(eq(projectMembers.projectId, projects.id), eq(projectMembers.userId, profiles.id))
+    )
+    .where(
+      and(
+        eq(profiles.id, assigneeId),
+        isNull(profiles.deletedAt),
+        or(eq(projects.ownerId, profiles.id), eq(projectMembers.userId, profiles.id))
+      )
+    )
+    .limit(1)
+
+  if (!allowed) {
+    badRequest('Assignee must be a member or owner of this project')
+  }
+}
+
+/**
+ * 取得「非軟刪除」的 profile summary，供 issue response 組合 assignee。
+ */
+export async function getAssigneeSummary(db: ReturnType<typeof useDB>, assigneeId: string | null) {
+  if (!assigneeId) return null
+
+  const [row] = await db
+    .select({ id: profiles.id, name: profiles.name, email: profiles.email })
+    .from(profiles)
+    .where(and(eq(profiles.id, assigneeId), isNull(profiles.deletedAt)))
+    .limit(1)
+
+  return row ?? null
+}

@@ -1,6 +1,6 @@
 import type { SQL } from 'drizzle-orm'
-import { eq, desc, count, and, or, ilike, isNotNull } from 'drizzle-orm'
-import { issues } from '~~/server/database/schema'
+import { eq, desc, count, and, or, ilike, isNotNull, isNull } from 'drizzle-orm'
+import { issues, profiles } from '~~/server/database/schema'
 import { badRequest } from '~~/server/utils/errors'
 import { getAccessibleProject } from '~~/server/utils/project-access'
 import { sanitizeSearchQuery, escapeLikePattern } from '~~/server/utils/search'
@@ -21,7 +21,8 @@ export default defineEventHandler(async (event) => {
   if (!parsed.success) {
     badRequest('Invalid query parameters')
   }
-  const { page, pageSize, status, environment, issueType, method } = parsed.data
+  const { page, pageSize, status, environment, issueType, method, issueNumber, assigneeId } =
+    parsed.data
 
   const offset = (page - 1) * pageSize
 
@@ -42,6 +43,16 @@ export default defineEventHandler(async (event) => {
 
   if (method) {
     conditions.push(eq(issues.method, method))
+  }
+
+  if (issueNumber) {
+    conditions.push(eq(issues.issueNumber, issueNumber))
+  }
+
+  if (assigneeId !== undefined) {
+    conditions.push(
+      assigneeId === 'null' ? isNull(issues.assigneeId) : eq(issues.assigneeId, assigneeId)
+    )
   }
 
   const search = sanitizeSearchQuery(parsed.data.search)
@@ -73,10 +84,15 @@ export default defineEventHandler(async (event) => {
         environment: issues.environment,
         status: issues.status,
         responseStatus: issues.responseStatus,
+        assigneeId: issues.assigneeId,
+        assigneeProfileId: profiles.id,
+        assigneeName: profiles.name,
+        assigneeEmail: profiles.email,
         createdAt: issues.createdAt,
         updatedAt: issues.updatedAt
       })
       .from(issues)
+      .leftJoin(profiles, and(eq(profiles.id, issues.assigneeId), isNull(profiles.deletedAt)))
       .where(whereClause)
       .orderBy(desc(issues.createdAt))
       .limit(pageSize)
@@ -87,8 +103,18 @@ export default defineEventHandler(async (event) => {
   const total = totalResult[0]?.total ?? 0
   const totalPages = Math.ceil(total / pageSize)
 
+  const shaped = issuesList.map((row) => {
+    const { assigneeProfileId, assigneeName, assigneeEmail, ...rest } = row
+    return {
+      ...rest,
+      assignee: assigneeProfileId
+        ? { id: assigneeProfileId, name: assigneeName, email: assigneeEmail ?? '' }
+        : null
+    }
+  })
+
   return {
-    data: issuesList,
+    data: shaped,
     pagination: {
       page,
       pageSize,

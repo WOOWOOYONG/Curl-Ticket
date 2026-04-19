@@ -52,13 +52,16 @@
 - `ISSUE-030`：Footer 提供 `Discard` 與 `Create Issue / Save Changes` 兩個操作按鈕。
 - `ISSUE-031`：編輯提交 payload 不得傳送 `issueType` 欄位。
 - `ISSUE-032`：Server 端必須拒絕對 `task` 類型更新 API 專屬欄位。
+- `ISSUE-053`：表單需提供 `Assignee` 下拉（`Unassigned` + 專案成員 / owner），適用 `api_bug` 與 `task`。
+- `ISSUE-054`：任何對該專案有存取權的成員或 owner 皆可指派 / 取消指派 Issue（無額外角色限制）。
+- `ISSUE-055`：指派 / 重新指派使得新負責人與操作者不同時，系統必須透過 bell 發送 `issue_update` 通知；自我指派與取消指派不觸發通知。
 
 ### 3.6 Issue 詳細內容頁 (Issue Detail)
 
 - `ISSUE-033`：詳細頁路徑為 `/projects/[id]/issues/[issueId]`。
 - `ISSUE-034`：頁面採左右雙欄（左側主內容 + 右側 metadata）。
 - `ISSUE-035`：Header 需顯示 Friendly ID、Issue Type、Title、Description、Status 下拉。
-- `ISSUE-036`：右側 Sidebar 需顯示 Type、Created 日期、Last Updated、Edit Details 按鈕。
+- `ISSUE-036`：右側 Sidebar 需顯示 Type、Created 日期、Last Updated、Assignee（未指派時顯示 `Unassigned`）、Edit Details 按鈕。
 
 #### API Bug 詳細頁
 
@@ -84,6 +87,18 @@
 - `ISSUE-050`：使用者僅可刪除自己的留言，刪除前需確認。
 - `ISSUE-051`：無留言時顯示空狀態提示。
 - `ISSUE-052`：新增留言後列表即時更新。
+
+### 3.8 Assigned to me view (My Issues)
+
+- `ISSUE-053`：系統需提供跨 Project 的「指派給我」頁，路徑為 `/my-issues`。
+- `ISSUE-054`：頁面資料來自 `GET /api/me/issues`，僅回傳 `assignee_id = 目前使用者` 且 Project 仍可存取的 Issues。
+- `ISSUE-055`：預設列表排除 `status = Close`，但 `summary.close` 仍需反映真實計數。
+- `ISSUE-056`：頁面需提供 Status（多選）、Project、Environment、排序、關鍵字篩選，且篩選條件以 URL query 儲存。
+- `ISSUE-057`：頁面需顯示 `summary`（Open / In Progress / Done / Total）四張統計卡，並在零指派與零符合條件下分別顯示不同 Empty State。
+- `ISSUE-058`：Sidebar 需新增「My Issues」入口（`i-lucide-inbox`），置於 Projects 與 Admin 間，對所有已註冊使用者可見，並可顯示 `open + in-progress` 數量徽章。
+- `ISSUE-059`：Dashboard (`/`) 需新增「Assigned to me」區塊，顯示最多 5 筆最近更新的指派 Issue 與「View all」連結；若無指派則隱藏。
+
+詳見資料約束：[data-model.md](./data-model.md) 中 `issues.assignee_id` 欄位；授權條件沿用 `buildProjectAccessCondition`。
 
 ## Cross-References
 

@@ -75,6 +75,8 @@ const _issueFields = [
   'environment',
   'status',
   'responseStatus',
+  'assigneeId',
+  'assignee',
   'rawCurl',
   'requestHeaders',
   'requestBody',

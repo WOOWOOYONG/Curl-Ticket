@@ -13,6 +13,7 @@ import {
   check
 } from 'drizzle-orm/pg-core'
 import { projects } from './projects'
+import { profiles } from './profiles'
 import { Environment, IssueStatus, IssueType } from '../../../shared/constants'
 import type { HttpMethod } from '../../../shared/constants'
 
@@ -58,6 +59,7 @@ export const issues = pgTable(
       .notNull()
       .$type<IssueStatus>()
       .default(IssueStatus.Open),
+    assigneeId: uuid('assignee_id').references(() => profiles.id, { onDelete: 'set null' }),
     createdBy: uuid('created_by').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
@@ -70,6 +72,8 @@ export const issues = pgTable(
     index('issues_project_stats_idx').on(table.projectId, table.status, table.updatedAt),
     uniqueIndex('issues_project_issue_number_key').on(table.projectId, table.issueNumber),
     // 複合索引：加速 Issue 列表查詢（projectId + issueType 過濾 + createdAt 排序）
-    index('issues_project_list_idx').on(table.projectId, table.issueType, table.createdAt)
+    index('issues_project_list_idx').on(table.projectId, table.issueType, table.createdAt),
+    // Assignee 查詢用
+    index('issues_assignee_idx').on(table.assigneeId)
   ]
 )
