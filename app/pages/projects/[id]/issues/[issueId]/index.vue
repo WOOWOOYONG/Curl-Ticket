@@ -326,12 +326,11 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <!-- Left Column -->
           <div class="space-y-6 lg:col-span-2">
-            <!-- API Bug: Description Card -->
-            <template v-if="isApiBug">
-              <IssueDescriptionCard :description="issue.description" />
-            </template>
+            <IssueDescriptionCard
+              v-if="isApiBug || isTask"
+              :description="issue.description"
+            />
 
-            <!-- API Bug: Method + URL Row -->
             <template v-if="isApiBug && issue.method && issue.url">
               <div
                 class="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200/70 bg-white p-4 dark:border-slate-800/70 dark:bg-slate-900/50"
@@ -505,11 +504,6 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
                   </div>
                 </template>
               </UTabs>
-            </template>
-
-            <!-- Task: Description card -->
-            <template v-if="isTask">
-              <IssueDescriptionCard :description="issue.description" />
             </template>
 
             <!-- Comments Section -->
