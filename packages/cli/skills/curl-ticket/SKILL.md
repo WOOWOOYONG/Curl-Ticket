@@ -4,6 +4,8 @@ description: >
   Curl Ticket issue query and analysis tool. Fetch issue details via CLI, locate problematic code in the local codebase, and provide fix suggestions.
   Trigger when: user mentions issue, bug, ticket, error, Curl Ticket, CT- identifiers (e.g. CT-42),
   issue tracking, analyze bug, update issue status, or requests task information from the issue tracker.
+  Do NOT use this skill for *creating* a new task from a description / PRD —
+  that flow belongs to `curl-ticket-create-task`.
 ---
 
 # First-Run Introspection

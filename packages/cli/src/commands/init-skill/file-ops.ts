@@ -14,16 +14,19 @@ export async function fileExists(path: string): Promise<boolean> {
   }
 }
 
-export async function readSourceSkill(): Promise<string> {
-  // Source skill file is bundled alongside dist/
-  // In the npm package: skills/curl-ticket/SKILL.md
-  // Relative to dist/index.js: ../skills/curl-ticket/SKILL.md
-  const sourceFile = join(__dirname, '..', 'skills', 'curl-ticket', 'SKILL.md')
-
+/**
+ * Resolve a skill source file from the installed package layout:
+ *   <packageRoot>/skills/<skillId>/SKILL.md
+ * Relative to dist/index.js, that is `../skills/<skillId>/SKILL.md`.
+ */
+export async function readSkillSource(skillId: string): Promise<string> {
+  const sourceFile = join(__dirname, '..', 'skills', skillId, 'SKILL.md')
   try {
     return await readFile(sourceFile, 'utf-8')
   } catch {
-    throw new Error('Skill file not found. Please verify the CLI installation is complete.')
+    throw new Error(
+      `Skill source for "${skillId}" not found. Verify the CLI installation is complete.`
+    )
   }
 }
 

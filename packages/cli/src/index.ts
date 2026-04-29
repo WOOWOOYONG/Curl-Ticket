@@ -224,7 +224,7 @@ program
   })
 
 program
-  .command('create-issue <projectId>')
+  .command('create-issue [projectId]')
   .description('Create a new issue')
   .option('-t, --type <type>', 'Issue type (api_bug / task)')
   .option('--curl <curl>', 'Raw cURL command string (required for api_bug)')
@@ -236,9 +236,14 @@ program
   )
   .option('--status <status>', 'Initial status (Open / in-progress / Done / Close)')
   .option('--assignee <value>', 'Assignee (me / none / <uuid> / <email>)')
+  .option('-i, --interactive', 'Drive a guided 5-step task creation flow (task only)')
+  .option(
+    '--from-template <name>',
+    'Use a registered description template (e.g. task). Without --interactive, prints the template and exits.'
+  )
   .action(
     async (
-      projectId: string,
+      projectId: string | undefined,
       options: {
         type?: string
         curl?: string
@@ -247,9 +252,19 @@ program
         env?: string
         status?: string
         assignee?: string
+        interactive?: boolean
+        fromTemplate?: string
       }
     ) => {
       try {
+        // Print-only template mode short-circuits before withAuth() so that
+        // unauthenticated users can still render the template. The same mutex
+        // checks live inside createIssueCommand for direct/programmatic callers.
+        if (options.fromTemplate && !options.interactive) {
+          const { printTemplate } = await import('./commands/create-issue.js')
+          await printTemplate(options.fromTemplate, options.description)
+          return
+        }
         await withAuth((client) => createIssueCommand(client, projectId, options, isJsonMode()))
       } catch (err) {
         handleError(err, isJsonMode())

@@ -98,6 +98,16 @@ ct create-issue <projectId> --type api_bug --curl "curl https://api.example.com/
 # Task with title and Markdown description (non-interactive)
 ct create-issue <projectId> --type task --title "Add rate limiting" --description "## Why\nToo many requests"
 
+# Guided 5-step task flow (project / title / why / acceptance criteria / assignee)
+ct create-issue --type task --interactive
+ct create-issue <projectId> --type task --interactive --title "Pre-fill works too"
+
+# Print a description template to stdout (no API call)
+ct create-issue --type task --from-template task
+
+# Use a template as the starting point in interactive mode
+ct create-issue <projectId> --type task --interactive --from-template task
+
 # With environment and status options
 ct create-issue <projectId> --type api_bug --curl "..." --env Staging --status in-progress
 
@@ -105,7 +115,7 @@ ct create-issue <projectId> --type api_bug --curl "..." --env Staging --status i
 ct create-issue <projectId> --type task --title "Add rate limiting" --assignee me
 ```
 
-In interactive mode, cURL commands and descriptions are edited in your `$EDITOR` (default: vim), supporting multiline Markdown input.
+In interactive mode, cURL commands and descriptions are edited in your `$EDITOR` (default: vim), supporting multiline Markdown input. `--interactive` and `--json` are mutually exclusive; `--from-template` and `--description` are mutually exclusive; `--interactive` is currently only supported with `--type task`.
 
 #### Assign
 
@@ -214,14 +224,21 @@ ct auth logout
 
 #### Claude Code Integration
 
-This CLI ships with a [Claude Code Skill](https://docs.anthropic.com/en/docs/claude-code) that lets Claude automatically query and analyze issues from your codebase.
+This CLI ships with two [Claude Code Skills](https://docs.anthropic.com/en/docs/claude-code):
+
+| Skill                        | Use case                                                                                                        |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `curl-ticket-issue-analyzer` | Query and analyze existing issues, locate problematic code in the local codebase, suggest fixes, update status. |
+| `curl-ticket-create-task`    | Guided interactive creation of a Task (project / title / why / acceptance criteria / assignee).                 |
 
 ```bash
-# Install the skill into your project
+# Install one or more skills into your project
 ct init-skill
 ```
 
-After setup, mention any issue (e.g. "look at CT-42") in Claude Code, and it will automatically fetch the issue details and help locate the relevant code.
+`init-skill` is interactive — pick which skills to install (default: all) and which agents to target (Claude Code / Codex / GitHub Copilot / custom path). Existing files are never overwritten without confirmation.
+
+After setup, mention any issue (e.g. "look at CT-42") in Claude Code and the analyzer skill will fetch the issue and help locate the relevant code; say "create a task for …" and the create-task skill will guide you through filing it.
 
 ### Configuration
 
@@ -337,6 +354,15 @@ ct create-issue <projectId> --type api_bug --curl "curl https://api.example.com/
 # 建立 Task，附帶 Markdown 描述（非互動模式）
 ct create-issue <projectId> --type task --title "加入 Rate Limiting" --description "## Why\n請求過多"
 
+# 引導式 5 步 Task 流程（project / title / why / acceptance criteria / assignee）
+ct create-issue --type task --interactive
+
+# 印出描述樣板到 stdout，不呼叫 API
+ct create-issue --type task --from-template task
+
+# 互動模式下使用樣板作為預設值
+ct create-issue <projectId> --type task --interactive --from-template task
+
 # 指定環境與狀態
 ct create-issue <projectId> --type api_bug --curl "..." --env Staging --status in-progress
 
@@ -344,7 +370,7 @@ ct create-issue <projectId> --type api_bug --curl "..." --env Staging --status i
 ct create-issue <projectId> --type task --title "加入 Rate Limiting" --assignee me
 ```
 
-互動模式下，cURL 指令和描述會在 `$EDITOR`（預設 vim）中編輯，支援多行 Markdown 輸入。
+互動模式下，cURL 指令和描述會在 `$EDITOR`（預設 vim）中編輯，支援多行 Markdown 輸入。`--interactive` 與 `--json` 互斥；`--from-template` 與 `--description` 互斥；`--interactive` 目前僅支援 `--type task`。
 
 #### 指派 Issue
 
@@ -453,14 +479,21 @@ ct auth logout
 
 #### Claude Code 整合
 
-此 CLI 內建 [Claude Code Skill](https://docs.anthropic.com/en/docs/claude-code)，讓 Claude 能自動查詢 issue 並分析程式碼中的問題。
+此 CLI 內建兩支 [Claude Code Skill](https://docs.anthropic.com/en/docs/claude-code)：
+
+| Skill                        | 用途                                                                      |
+| ---------------------------- | ------------------------------------------------------------------------- |
+| `curl-ticket-issue-analyzer` | 查詢 / 分析既有 issue、定位本地程式碼、提供修復建議、更新狀態             |
+| `curl-ticket-create-task`    | 引導式建立 Task（project / title / why / acceptance criteria / assignee） |
 
 ```bash
 # 在專案中安裝 Skill
 ct init-skill
 ```
 
-安裝後，在 Claude Code 中提到任何 issue（例如「幫我看 CT-42」），Claude 就會自動取得 issue 詳情並協助定位相關程式碼。
+`init-skill` 會以互動方式詢問要安裝哪些 skill（預設全選）與目標 agent（Claude Code / Codex / GitHub Copilot / 自訂路徑）。已存在的檔案不會在未確認下被覆寫。
+
+安裝後，在 Claude Code 提到任何 issue（如「幫我看 CT-42」）會啟動 analyzer；說「幫我建一張 task …」則由 create-task skill 引導你逐步建立。
 
 ### 設定方式
 
