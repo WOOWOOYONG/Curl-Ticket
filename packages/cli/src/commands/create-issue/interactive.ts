@@ -111,13 +111,6 @@ async function askAssignee(defaultValue?: string): Promise<string> {
   return trimmed.length === 0 ? 'me' : trimmed
 }
 
-async function buildDescription(answers: Answers): Promise<string> {
-  return renderTemplate('task', {
-    why: answers.why,
-    acceptance_criteria: answers.acceptanceCriteria
-  })
-}
-
 function renderPreview(answers: Answers, description: string): string {
   return [
     '--- Preview ---',
@@ -151,8 +144,31 @@ export async function taskInteractiveFlow(
     assignee: await askAssignee(options.assignee)
   }
 
+  const fieldEditors: Record<(typeof FIELD_CHOICES)[number]['value'], () => Promise<void>> = {
+    project: async () => {
+      const next = await pickProject(projects, undefined, answers.projectId)
+      answers.projectId = next.id
+      answers.projectLabel = next.label
+    },
+    title: async () => {
+      answers.title = await askTitle(answers.title)
+    },
+    why: async () => {
+      answers.why = await askWhy(answers.why)
+    },
+    acceptanceCriteria: async () => {
+      answers.acceptanceCriteria = await askAcceptanceCriteria(answers.acceptanceCriteria)
+    },
+    assignee: async () => {
+      answers.assignee = await askAssignee(answers.assignee)
+    }
+  }
+
   while (true) {
-    const description = await buildDescription(answers)
+    const description = await renderTemplate('task', {
+      why: answers.why,
+      acceptance_criteria: answers.acceptanceCriteria
+    })
     process.stderr.write(renderPreview(answers, description) + '\n')
 
     const action = await select<'confirm' | 'edit' | 'cancel'>({
@@ -171,19 +187,10 @@ export async function taskInteractiveFlow(
 
     if (action === 'edit') {
       const field = await select({ message: 'Which field?', choices: FIELD_CHOICES })
-      if (field === 'project') {
-        const next = await pickProject(projects, undefined, answers.projectId)
-        answers.projectId = next.id
-        answers.projectLabel = next.label
-      } else if (field === 'title') answers.title = await askTitle(answers.title)
-      else if (field === 'why') answers.why = await askWhy(answers.why)
-      else if (field === 'acceptanceCriteria') {
-        answers.acceptanceCriteria = await askAcceptanceCriteria(answers.acceptanceCriteria)
-      } else if (field === 'assignee') answers.assignee = await askAssignee(answers.assignee)
+      await fieldEditors[field]()
       continue
     }
 
-    // Confirmed — submit
     assertValidTitle(answers.title)
     const assigneeId = await resolveAssignee({
       value: answers.assignee,
