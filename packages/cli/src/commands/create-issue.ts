@@ -10,6 +10,8 @@ import {
   resolveAssignee,
   Prompter
 } from '../utils.js'
+import { renderTemplate } from '../templates/index.js'
+import { taskInteractiveFlow } from './create-issue/interactive.js'
 
 interface CreateIssueOptions {
   type?: string
@@ -19,6 +21,8 @@ interface CreateIssueOptions {
   env?: string
   status?: string
   assignee?: string
+  interactive?: boolean
+  fromTemplate?: string
 }
 
 const TITLE_MAX_LENGTH = 200
@@ -144,12 +148,57 @@ function printResult(res: IssueResponse, json: boolean): void {
   console.log(`Issue created: ${res.friendlyId} — ${res.data.title}`)
 }
 
+export async function printTemplate(name: string, description?: string): Promise<void> {
+  if (description) {
+    throw new ValidationError('--from-template and --description are mutually exclusive.')
+  }
+  const rendered = await renderTemplate(name, {})
+  process.stdout.write(rendered)
+}
+
+function assertOptionsConsistent(options: CreateIssueOptions, json: boolean): void {
+  if (options.fromTemplate && options.description) {
+    throw new ValidationError('--from-template and --description are mutually exclusive.')
+  }
+  if (options.interactive && json) {
+    throw new ValidationError('--interactive and --json are mutually exclusive.')
+  }
+  if (options.interactive && options.type && normalizeType(options.type) !== 'task') {
+    throw new ValidationError('--interactive is only supported with --type task in v1.')
+  }
+}
+
 export async function createIssueCommand(
   client: CurlTicketClient,
-  projectId: string,
+  projectId: string | undefined,
   options: CreateIssueOptions,
   json = false
 ): Promise<void> {
+  assertOptionsConsistent(options, json)
+
+  if (options.fromTemplate && !options.interactive) {
+    await printTemplate(options.fromTemplate, options.description)
+    return
+  }
+
+  if (options.interactive) {
+    let descriptionFromTemplate: string | undefined
+    if (options.fromTemplate) {
+      descriptionFromTemplate = await renderTemplate(options.fromTemplate, {})
+    }
+    await taskInteractiveFlow(client, projectId, {
+      title: options.title,
+      description: options.description ?? descriptionFromTemplate,
+      assignee: options.assignee,
+      fromTemplate: options.fromTemplate,
+      status: options.status ? normalizeStatus(options.status) : undefined
+    })
+    return
+  }
+
+  if (!projectId) {
+    throw new ValidationError('projectId is required.')
+  }
   validateProjectId(projectId)
 
   const prompter = process.stdin.isTTY ? new Prompter() : null

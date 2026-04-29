@@ -1,9 +1,10 @@
-export type SkillFormat = 'skill-md' | 'cursor-mdc' | 'plain-md'
+export type SkillFormat = 'skill-md' | 'plain-md'
 
 export interface AgentConfig {
   id: string
   label: string
-  targetPath: string
+  /** Directory under `cwd` where each skill lives in its own `<skill>/SKILL.md`. */
+  baseDir: string
   format: SkillFormat
   postInstallHints: string[]
 }
@@ -12,7 +13,7 @@ export const AGENTS: AgentConfig[] = [
   {
     id: 'claude-code',
     label: 'Claude Code',
-    targetPath: '.claude/skills/curl-ticket/SKILL.md',
+    baseDir: '.claude/skills',
     format: 'skill-md',
     postInstallHints: [
       'Make sure .claude/settings.json permissions.allow includes:',
@@ -22,22 +23,19 @@ export const AGENTS: AgentConfig[] = [
   {
     id: 'codex',
     label: 'Codex (OpenAI)',
-    targetPath: '.agents/skills/curl-ticket/SKILL.md',
+    baseDir: '.agents/skills',
     format: 'skill-md',
     postInstallHints: ['Codex automatically detects skill files in .agents/skills/.']
   },
   {
     id: 'copilot',
     label: 'GitHub Copilot',
-    targetPath: '.github/skills/curl-ticket/SKILL.md',
+    baseDir: '.github/skills',
     format: 'skill-md',
     postInstallHints: ['Copilot automatically detects skill files in .github/skills/.']
-  },
-  {
-    id: 'cursor',
-    label: 'Cursor',
-    targetPath: '.cursor/rules/curl-ticket.mdc',
-    format: 'cursor-mdc',
-    postInstallHints: ['Cursor automatically loads rule files from .cursor/rules/.']
   }
 ]
+
+export function targetPathFor(agent: AgentConfig, skillId: string): string {
+  return `${agent.baseDir}/${skillId}/SKILL.md`
+}

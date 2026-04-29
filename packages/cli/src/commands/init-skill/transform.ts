@@ -15,7 +15,6 @@ function parseFrontmatter(source: string): ParsedSkill {
   const body = match[2]
   const frontmatter: Record<string, string> = {}
 
-  // Parse simple YAML key-value pairs (supports multi-line values with >)
   let currentKey = ''
   let currentValue = ''
 
@@ -39,18 +38,6 @@ function parseFrontmatter(source: string): ParsedSkill {
   return { frontmatter, body }
 }
 
-function toCursorMdc(source: string): string {
-  const { frontmatter, body } = parseFrontmatter(source)
-  const description = frontmatter.description || ''
-
-  return `---
-description: "${description}"
-globs:
-alwaysApply: true
----
-${body}`
-}
-
 function toPlainMd(source: string): string {
   const { body } = parseFrontmatter(source)
   return body.startsWith('\n') ? body.slice(1) : body
@@ -60,8 +47,6 @@ export function transformContent(source: string, format: SkillFormat): string {
   switch (format) {
     case 'skill-md':
       return source
-    case 'cursor-mdc':
-      return toCursorMdc(source)
     case 'plain-md':
       return toPlainMd(source)
   }

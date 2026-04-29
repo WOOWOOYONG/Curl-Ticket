@@ -22,7 +22,7 @@ import { projectCommand } from './commands/project.js'
 import { createProjectCommand } from './commands/create-project.js'
 import { membersCommand } from './commands/members.js'
 import { deleteIssueCommand } from './commands/delete-issue.js'
-import { createIssueCommand } from './commands/create-issue.js'
+import { createIssueCommand, printTemplate } from './commands/create-issue.js'
 import { assignCommand } from './commands/assign.js'
 import { myIssuesCommand } from './commands/my-issues.js'
 import { schemaCommand } from './commands/schema.js'
@@ -224,7 +224,7 @@ program
   })
 
 program
-  .command('create-issue <projectId>')
+  .command('create-issue [projectId]')
   .description('Create a new issue')
   .option('-t, --type <type>', 'Issue type (api_bug / task)')
   .option('--curl <curl>', 'Raw cURL command string (required for api_bug)')
@@ -236,9 +236,14 @@ program
   )
   .option('--status <status>', 'Initial status (Open / in-progress / Done / Close)')
   .option('--assignee <value>', 'Assignee (me / none / <uuid> / <email>)')
+  .option('-i, --interactive', 'Drive a guided 5-step task creation flow (task only)')
+  .option(
+    '--from-template <name>',
+    'Use a registered description template (e.g. task). Without --interactive, prints the template and exits.'
+  )
   .action(
     async (
-      projectId: string,
+      projectId: string | undefined,
       options: {
         type?: string
         curl?: string
@@ -247,9 +252,16 @@ program
         env?: string
         status?: string
         assignee?: string
+        interactive?: boolean
+        fromTemplate?: string
       }
     ) => {
       try {
+        // Skip auth when only printing a template — no network call needed.
+        if (options.fromTemplate && !options.interactive) {
+          await printTemplate(options.fromTemplate, options.description)
+          return
+        }
         await withAuth((client) => createIssueCommand(client, projectId, options, isJsonMode()))
       } catch (err) {
         handleError(err, isJsonMode())
