@@ -22,7 +22,7 @@ import { projectCommand } from './commands/project.js'
 import { createProjectCommand } from './commands/create-project.js'
 import { membersCommand } from './commands/members.js'
 import { deleteIssueCommand } from './commands/delete-issue.js'
-import { createIssueCommand } from './commands/create-issue.js'
+import { createIssueCommand, printTemplate } from './commands/create-issue.js'
 import { assignCommand } from './commands/assign.js'
 import { myIssuesCommand } from './commands/my-issues.js'
 import { schemaCommand } from './commands/schema.js'
@@ -257,11 +257,8 @@ program
       }
     ) => {
       try {
-        // Print-only template mode short-circuits before withAuth() so that
-        // unauthenticated users can still render the template. The same mutex
-        // checks live inside createIssueCommand for direct/programmatic callers.
+        // Skip auth when only printing a template — no network call needed.
         if (options.fromTemplate && !options.interactive) {
-          const { printTemplate } = await import('./commands/create-issue.js')
           await printTemplate(options.fromTemplate, options.description)
           return
         }

@@ -148,11 +148,6 @@ function printResult(res: IssueResponse, json: boolean): void {
   console.log(`Issue created: ${res.friendlyId} — ${res.data.title}`)
 }
 
-/**
- * Render a registered template to stdout without touching auth or the network.
- * Shared between the CLI action handler (auth-skipping fast path) and
- * `createIssueCommand` (programmatic callers).
- */
 export async function printTemplate(name: string, description?: string): Promise<void> {
   if (description) {
     throw new ValidationError('--from-template and --description are mutually exclusive.')
@@ -201,7 +196,6 @@ export async function createIssueCommand(
     return
   }
 
-  // --- Non-interactive (legacy) paths ---
   if (!projectId) {
     throw new ValidationError('projectId is required.')
   }
