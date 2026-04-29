@@ -57,6 +57,16 @@ export async function initSkillCommand(): Promise<void> {
     }
   }
 
+  const sourceCache = new Map<string, string>()
+  const loadSource = async (skillId: string): Promise<string> => {
+    let cached = sourceCache.get(skillId)
+    if (cached === undefined) {
+      cached = await readSkillSource(skillId)
+      sourceCache.set(skillId, cached)
+    }
+    return cached
+  }
+
   for (const target of targets) {
     if (await fileExists(target.path)) {
       const overwrite = await askConfirm(`${target.path} already exists. Overwrite?`)
@@ -66,7 +76,7 @@ export async function initSkillCommand(): Promise<void> {
       }
     }
 
-    const source = await readSkillSource(target.skillId)
+    const source = await loadSource(target.skillId)
     const format = target.agent?.format ?? 'plain-md'
     const content = transformContent(source, format)
     await writeSkillFile(target.path, content)

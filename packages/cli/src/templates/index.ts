@@ -36,10 +36,16 @@ export async function listTemplates(): Promise<string[]> {
   return []
 }
 
+const templateCache = new Map<string, string>()
+
 export async function loadTemplate(name: string): Promise<string> {
+  const cached = templateCache.get(name)
+  if (cached !== undefined) return cached
   for (const dir of TEMPLATE_DIR_CANDIDATES) {
     try {
-      return await readFile(join(dir, `${name}.md`), 'utf-8')
+      const content = await readFile(join(dir, `${name}.md`), 'utf-8')
+      templateCache.set(name, content)
+      return content
     } catch {
       // try next candidate
     }
