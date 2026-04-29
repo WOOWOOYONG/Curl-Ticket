@@ -286,12 +286,6 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
               >
                 {{ issue.title }}
               </h1>
-              <p
-                v-if="issue.description"
-                class="max-w-2xl text-sm leading-relaxed whitespace-pre-wrap text-slate-600 dark:text-slate-300"
-              >
-                {{ issue.description }}
-              </p>
             </div>
             <div class="flex shrink-0 items-center gap-3">
               <USelect
@@ -332,6 +326,11 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <!-- Left Column -->
           <div class="space-y-6 lg:col-span-2">
+            <!-- API Bug: Description Card -->
+            <template v-if="isApiBug">
+              <IssueDescriptionCard :description="issue.description" />
+            </template>
+
             <!-- API Bug: Method + URL Row -->
             <template v-if="isApiBug && issue.method && issue.url">
               <div
@@ -508,29 +507,9 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
               </UTabs>
             </template>
 
-            <!-- Task: Description prominently displayed -->
+            <!-- Task: Description card -->
             <template v-if="isTask">
-              <div
-                class="rounded-xl border border-slate-200/70 bg-white p-6 dark:border-slate-800/70 dark:bg-slate-900/50"
-              >
-                <h3
-                  class="mb-3 text-xs font-semibold tracking-wider text-slate-500 uppercase dark:text-slate-400"
-                >
-                  {{ $t('issues.description') }}
-                </h3>
-                <p
-                  v-if="issue.description"
-                  class="text-sm leading-relaxed whitespace-pre-wrap text-slate-700 dark:text-slate-300"
-                >
-                  {{ issue.description }}
-                </p>
-                <p
-                  v-else
-                  class="text-sm text-slate-400 italic dark:text-slate-500"
-                >
-                  {{ $t('common.noDescription') }}
-                </p>
-              </div>
+              <IssueDescriptionCard :description="issue.description" />
             </template>
 
             <!-- Comments Section -->
