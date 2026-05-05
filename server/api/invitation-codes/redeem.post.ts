@@ -21,10 +21,13 @@ export default defineEventHandler(async (event) => {
   }
 
   const code = await validateInvitationToken(db, result.data.code)
-  await markInvitationTokenAsUsed(db, code.id, userId)
 
-  // 兌換成功後建立 profile
-  await getOrCreateProfile(db, userId, userEmail, userMetadata?.full_name)
+  // 必須先建 profile 再標記 used_by，否則 invitation_codes.used_by → profiles.id
+  // FK 約束會失敗。包進 transaction 確保兩步皆成功或一起 rollback。
+  await db.transaction(async (tx) => {
+    await getOrCreateProfile(tx, userId, userEmail, userMetadata?.full_name)
+    await markInvitationTokenAsUsed(tx, code.id, userId)
+  })
 
   return { success: true }
 })

@@ -60,7 +60,9 @@ export const issues = pgTable(
       .$type<IssueStatus>()
       .default(IssueStatus.Open),
     assigneeId: uuid('assignee_id').references(() => profiles.id, { onDelete: 'set null' }),
-    createdBy: uuid('created_by').notNull(),
+    createdBy: uuid('created_by')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'restrict' }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
   },

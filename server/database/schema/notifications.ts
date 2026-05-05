@@ -1,5 +1,6 @@
 import { pgTable, uuid, varchar, timestamp, boolean, integer, index } from 'drizzle-orm/pg-core'
 import { issues } from './issues'
+import { profiles } from './profiles'
 import { projectInvitations } from './project-invitations'
 import type { NotificationType } from '~~/shared/constants'
 
@@ -7,7 +8,9 @@ export const notifications = pgTable(
   'notifications',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    userId: uuid('user_id').notNull(), // FK to auth.users (接收通知的人)
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
     issueId: integer('issue_id').references(() => issues.id, { onDelete: 'cascade' }),
 
     type: varchar('type', { length: 30 })

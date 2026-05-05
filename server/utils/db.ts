@@ -14,4 +14,10 @@ export function useDB() {
   return _db
 }
 
+type Db = ReturnType<typeof useDB>
+type Tx = Parameters<Parameters<Db['transaction']>[0]>[0]
+
+/** Accepts either the singleton DB client or a transaction handle from `db.transaction`. */
+export type DbOrTx = Db | Tx
+
 export * from '../database/schema'
