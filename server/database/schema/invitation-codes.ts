@@ -16,8 +16,5 @@ export const invitationCodes = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     usedAt: timestamp('used_at', { withTimezone: true })
   },
-  (table) => [
-    index('invitation_codes_code_idx').on(table.code),
-    index('invitation_codes_is_used_idx').on(table.isUsed)
-  ]
+  (table) => [index('invitation_codes_is_used_idx').on(table.isUsed)]
 )
