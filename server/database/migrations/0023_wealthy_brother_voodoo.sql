@@ -1,5 +1,6 @@
--- 清理孤兒資料：將 invitation_codes.used_by 中指向不存在 profile 的值設為 NULL，
--- 否則下方 invitation_codes_used_by_profiles_id_fk 約束會建立失敗。
+-- ⚠️  Manually edited: do NOT re-run `pnpm db:generate` against this migration —
+-- the cleanup UPDATE below is not produced by Drizzle and will be lost.
+-- Cleans up orphan rows so the FK on invitation_codes.used_by can be created.
 UPDATE "invitation_codes"
 SET "used_by" = NULL
 WHERE "used_by" IS NOT NULL

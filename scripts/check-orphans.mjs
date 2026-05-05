@@ -1,11 +1,8 @@
 /**
- * 孤兒資料檢查腳本（read-only）
+ * Read-only orphan check for FK candidate columns referencing profiles.id.
+ * Helps decide RESTRICT / SET NULL / CASCADE and whether to clean up before adding FKs.
  *
- * 在 PR 2「補 Foreign Key 約束」之前，列出每一個目標欄位中
- * 找不到對應 profiles.id 的資料列，幫助決定每個 FK 該用
- * RESTRICT / SET NULL / CASCADE，以及是否需要先清理資料。
- *
- * 用法：
+ * Usage:
  *   node scripts/check-orphans.mjs
  */
 import postgres from 'postgres'
@@ -18,16 +15,12 @@ if (DATABASE_URL) {
 }
 
 if (!DATABASE_URL) {
-  console.error('❌ 找不到 DATABASE_URL，請確認 .env')
+  console.error('❌ DATABASE_URL not found in .env')
   process.exit(1)
 }
 
 const sql = postgres(DATABASE_URL)
 
-/**
- * 待檢查的欄位清單。
- * - nullable=true 表示該欄位本身允許 NULL（NULL 不算孤兒）
- */
 const checks = [
   { table: 'projects', column: 'owner_id', nullable: false },
   { table: 'issues', column: 'created_by', nullable: false },
@@ -40,72 +33,73 @@ const checks = [
 ]
 
 try {
-  console.log('🔍 檢查孤兒資料（指向不存在的 profiles.id）...\n')
+  console.log('🔍 Checking orphans (rows pointing to a missing profiles.id)...\n')
 
-  const summary = []
-
-  for (const { table, column, nullable } of checks) {
-    // 找出非 NULL 但找不到對應 profile 的列
-    const orphans = await sql`
-      SELECT ${sql(column)} AS missing_id, COUNT(*) AS count
-      FROM ${sql(table)}
-      WHERE ${sql(column)} IS NOT NULL
-        AND NOT EXISTS (
-          SELECT 1 FROM profiles p WHERE p.id = ${sql(table)}.${sql(column)}
+  // One round-trip per column, all 8 in parallel.
+  const results = await Promise.all(
+    checks.map(async ({ table, column, nullable }) => {
+      const [{ table_total, orphan_total, top_missing }] = await sql`
+        WITH orphans AS (
+          SELECT ${sql(column)} AS missing_id
+          FROM ${sql(table)}
+          WHERE ${sql(column)} IS NOT NULL
+            AND NOT EXISTS (
+              SELECT 1 FROM profiles p
+              WHERE p.id = ${sql(table)}.${sql(column)}
+            )
         )
-      GROUP BY ${sql(column)}
-      ORDER BY count DESC
-      LIMIT 20
-    `
+        SELECT
+          (SELECT COUNT(*)::int FROM ${sql(table)}) AS table_total,
+          (SELECT COUNT(*)::int FROM orphans) AS orphan_total,
+          COALESCE(
+            (SELECT json_agg(row_to_json(t)) FROM (
+              SELECT missing_id, COUNT(*)::int AS count
+              FROM orphans
+              GROUP BY missing_id
+              ORDER BY count DESC
+              LIMIT 20
+            ) t),
+            '[]'::json
+          ) AS top_missing
+      `
+      return { table, column, nullable, table_total, orphan_total, top_missing }
+    })
+  )
 
-    const totalQuery = await sql`
-      SELECT COUNT(*) AS count
-      FROM ${sql(table)}
-      WHERE ${sql(column)} IS NOT NULL
-        AND NOT EXISTS (
-          SELECT 1 FROM profiles p WHERE p.id = ${sql(table)}.${sql(column)}
-        )
-    `
-    const totalOrphans = Number(totalQuery[0].count)
-
-    const tableTotalQuery = await sql`SELECT COUNT(*) AS count FROM ${sql(table)}`
-    const tableTotal = Number(tableTotalQuery[0].count)
-
-    const status = totalOrphans === 0 ? '✅' : '⚠️'
-    console.log(`${status} ${table}.${column} ${nullable ? '(nullable)' : '(not null)'}`)
-    console.log(`   total rows: ${tableTotal}, orphan rows: ${totalOrphans}`)
-    if (totalOrphans > 0) {
-      console.log(`   top missing IDs (up to 20):`)
-      for (const row of orphans) {
+  for (const r of results) {
+    const status = r.orphan_total === 0 ? '✅' : '⚠️'
+    console.log(`${status} ${r.table}.${r.column} ${r.nullable ? '(nullable)' : '(not null)'}`)
+    console.log(`   total rows: ${r.table_total}, orphan rows: ${r.orphan_total}`)
+    if (r.orphan_total > 0) {
+      console.log('   top missing IDs (up to 20):')
+      for (const row of r.top_missing) {
         console.log(`     ${row.missing_id}  → ${row.count} row(s)`)
       }
     }
     console.log()
-
-    summary.push({ table, column, nullable, totalOrphans, tableTotal })
   }
 
   console.log('───────────────────────────────────')
   console.log('Summary:')
   console.log('───────────────────────────────────')
-  for (const s of summary) {
-    const flag = s.totalOrphans === 0 ? 'OK' : 'NEEDS ACTION'
+  for (const r of results) {
+    const flag = r.orphan_total === 0 ? 'OK' : 'NEEDS ACTION'
     console.log(
-      `  [${flag}] ${s.table}.${s.column}  orphans=${s.totalOrphans} / total=${s.tableTotal}`
+      `  [${flag}] ${r.table}.${r.column}  orphans=${r.orphan_total} / total=${r.table_total}`
     )
   }
 
-  const anyOrphan = summary.some((s) => s.totalOrphans > 0)
+  const anyOrphan = results.some((r) => r.orphan_total > 0)
   if (anyOrphan) {
-    console.log('\n⚠️  發現孤兒資料。請決定每個欄位是否：')
-    console.log('   1. 刪除孤兒列')
-    console.log('   2. 補上對應 profile')
-    console.log('   3. 把欄位改成 nullable + ON DELETE SET NULL')
+    console.log('\n⚠️  Orphans found. For each affected column, decide:')
+    console.log('   1. delete the orphan rows')
+    console.log('   2. backfill the missing profiles')
+    console.log('   3. set the column nullable + ON DELETE SET NULL')
   } else {
-    console.log('\n✅ 沒有孤兒資料，可以安全加 FK 約束')
+    console.log('\n✅ No orphans — safe to add FK constraints')
   }
 } catch (error) {
-  console.error('❌ 錯誤:', error)
+  console.error('❌ Error:', error)
   process.exit(1)
 } finally {
   await sql.end()
