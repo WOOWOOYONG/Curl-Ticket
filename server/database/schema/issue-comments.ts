@@ -1,5 +1,6 @@
 import { pgTable, serial, integer, uuid, text, timestamp, index } from 'drizzle-orm/pg-core'
 import { issues } from './issues'
+import { profiles } from './profiles'
 
 export const issueComments = pgTable(
   'issue_comments',
@@ -8,7 +9,9 @@ export const issueComments = pgTable(
     issueId: integer('issue_id')
       .notNull()
       .references(() => issues.id, { onDelete: 'cascade' }),
-    authorId: uuid('author_id').notNull(),
+    authorId: uuid('author_id')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'restrict' }),
     content: text('content').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })

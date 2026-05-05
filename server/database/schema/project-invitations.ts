@@ -1,4 +1,5 @@
 import { pgTable, uuid, varchar, timestamp, index } from 'drizzle-orm/pg-core'
+import { profiles } from './profiles'
 import { projects } from './projects'
 import { InvitationStatus } from '../../../shared/constants'
 
@@ -14,7 +15,9 @@ export const projectInvitations = pgTable(
       .notNull()
       .references(() => projects.id, { onDelete: 'cascade' }),
     email: varchar('email', { length: 255 }).notNull(),
-    invitedBy: uuid('invited_by').notNull(),
+    invitedBy: uuid('invited_by')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'restrict' }),
     status: varchar('status', { length: 20 })
       .notNull()
       .$type<InvitationStatus>()

@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm'
 import { pgTable, uuid, varchar, timestamp, text, index, uniqueIndex } from 'drizzle-orm/pg-core'
+import { profiles } from './profiles'
 
 /**
  * Projects 資料表
@@ -8,7 +9,9 @@ export const projects = pgTable(
   'projects',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    ownerId: uuid('owner_id').notNull(),
+    ownerId: uuid('owner_id')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'restrict' }),
     name: varchar('name', { length: 100 }).notNull(),
     key: varchar('key', { length: 10 }).notNull(),
     description: varchar('description', { length: 1000 }),
