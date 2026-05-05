@@ -21,6 +21,10 @@ export const projects = pgTable(
       .on(table.key)
       .where(sql`${table.deletedAt} is null`),
     // 索引：加速「按建立時間排序」的查詢（最新的專案排在前面）
-    index('projects_created_at_idx').on(table.createdAt.desc())
+    index('projects_created_at_idx').on(table.createdAt.desc()),
+    // 索引：加速 buildProjectAccessCondition 的 owner 比對
+    index('projects_owner_id_active_idx')
+      .on(table.ownerId)
+      .where(sql`${table.deletedAt} is null`)
   ]
 )
