@@ -7,7 +7,7 @@ import { forbidden } from '~~/server/utils/errors'
  * 檢查用戶是否為 Admin，不是就 throw 403
  * 優先使用 event.context.profile（middleware 已查詢），避免重複查 DB
  */
-export async function requireAdmin(db: ReturnType<typeof useDB>, userId: string, event?: H3Event) {
+export async function requireAdmin(db: DbOrTx, userId: string, event?: H3Event) {
   const profile = event?.context.profile ?? (await getProfile(db, userId))
 
   if (profile?.role !== 'admin') {
@@ -18,7 +18,7 @@ export async function requireAdmin(db: ReturnType<typeof useDB>, userId: string,
 /**
  * 查詢用戶 Profile（只查詢，不建立）
  */
-export async function getProfile(db: ReturnType<typeof useDB>, userId: string) {
+export async function getProfile(db: DbOrTx, userId: string) {
   const [profile] = await db
     .select()
     .from(profiles)
@@ -31,12 +31,7 @@ export async function getProfile(db: ReturnType<typeof useDB>, userId: string) {
 /**
  * 取得或建立用戶 Profile（僅在 redeem 邀請碼時使用）
  */
-export async function getOrCreateProfile(
-  db: ReturnType<typeof useDB>,
-  userId: string,
-  email: string,
-  name?: string
-) {
+export async function getOrCreateProfile(db: DbOrTx, userId: string, email: string, name?: string) {
   const [existing] = await db.select().from(profiles).where(eq(profiles.id, userId)).limit(1)
 
   if (existing) {
@@ -70,7 +65,7 @@ export async function getOrCreateProfile(
 /**
  * 依 Email 查找 Profile
  */
-export async function getProfileByEmail(db: ReturnType<typeof useDB>, email: string) {
+export async function getProfileByEmail(db: DbOrTx, email: string) {
   const [profile] = await db
     .select()
     .from(profiles)

@@ -14,4 +14,20 @@ export function useDB() {
   return _db
 }
 
+/**
+ * Drizzle DB client（一般查詢用）
+ */
+export type DbClient = ReturnType<typeof useDB>
+
+/**
+ * Drizzle transaction object（從 db.transaction 的 callback 取出的型別）
+ */
+export type DbTransaction = Parameters<Parameters<DbClient['transaction']>[0]>[0]
+
+/**
+ * 接受一般 db 或 transaction tx 的通用型別。
+ * 共用 helper 函式應使用此型別，便於同時被 transaction 內外呼叫。
+ */
+export type DbOrTx = DbClient | DbTransaction
+
 export * from '../database/schema'

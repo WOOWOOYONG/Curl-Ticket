@@ -15,7 +15,7 @@ export function generateInvitationToken(): string {
  * 驗證邀請 token 是否有效（未使用、未過期）
  * 無效則 throw BadRequest
  */
-export async function validateInvitationToken(db: ReturnType<typeof useDB>, token: string) {
+export async function validateInvitationToken(db: DbOrTx, token: string) {
   const [code] = await db
     .select()
     .from(invitationCodes)
@@ -36,11 +36,7 @@ export async function validateInvitationToken(db: ReturnType<typeof useDB>, toke
 /**
  * 標記邀請 token 為已使用
  */
-export async function markInvitationTokenAsUsed(
-  db: ReturnType<typeof useDB>,
-  tokenId: string,
-  userId: string
-) {
+export async function markInvitationTokenAsUsed(db: DbOrTx, tokenId: string, userId: string) {
   await db
     .update(invitationCodes)
     .set({
