@@ -7,7 +7,7 @@ import { isUniqueViolation, MAX_CREATE_ATTEMPTS } from '~~/server/constants'
 import { badRequest, internalServerError } from '~~/server/utils/errors'
 import { getAccessibleProject } from '~~/server/utils/project-access'
 import { assertAssigneeAllowed } from '~~/server/utils/issue-assignee'
-import { buildProtectedIssueResponse } from '~~/server/utils/public-issue'
+import { buildProtectedIssueResponse } from '~~/server/utils/protected-issue'
 
 export default defineEventHandler(async (event) => {
   // 從 middleware 取得已驗證的 userId

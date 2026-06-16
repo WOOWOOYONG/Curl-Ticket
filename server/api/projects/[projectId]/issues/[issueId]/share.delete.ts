@@ -1,9 +1,7 @@
-import { and, eq } from 'drizzle-orm'
-import { issues } from '~~/server/database/schema'
-import { badRequest, notFound } from '~~/server/utils/errors'
+import { badRequest } from '~~/server/utils/errors'
 import { getAccessibleProject } from '~~/server/utils/project-access'
 import { parseIssueId } from '~~/server/utils/route-params'
-import { buildPublicShareStatus } from '~~/server/utils/public-issue'
+import { disablePublicSharing } from '~~/server/utils/public-sharing'
 
 export default defineEventHandler(async (event) => {
   const projectId = getRouterParam(event, 'projectId')
@@ -22,22 +20,5 @@ export default defineEventHandler(async (event) => {
   const userId = event.context.userId as string
   await getAccessibleProject(db, projectId, userId)
 
-  const [updated] = await db
-    .update(issues)
-    .set({
-      publicShareToken: null,
-      publicSharedAt: null,
-      updatedAt: new Date()
-    })
-    .where(and(eq(issues.id, parsedIssueId), eq(issues.projectId, projectId)))
-    .returning({
-      publicShareToken: issues.publicShareToken,
-      publicSharedAt: issues.publicSharedAt
-    })
-
-  if (!updated) {
-    notFound('Issue not found')
-  }
-
-  return buildPublicShareStatus(updated, getRequestURL(event).origin)
+  return disablePublicSharing(db, projectId, parsedIssueId, getRequestURL(event).origin)
 })

@@ -6,7 +6,7 @@ import {
   buildPublicShareStatus,
   canShareIssue,
   generateShareToken
-} from './public-issue'
+} from './public-sharing'
 
 type IssueRow = typeof issues.$inferSelect
 

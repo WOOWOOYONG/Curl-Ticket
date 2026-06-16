@@ -5,7 +5,7 @@ import { IssueType, NotificationType } from '~~/shared/constants'
 import { badRequest, notFound } from '~~/server/utils/errors'
 import { getAccessibleProject } from '~~/server/utils/project-access'
 import { assertAssigneeAllowed } from '~~/server/utils/issue-assignee'
-import { buildProtectedIssueResponse } from '~~/server/utils/public-issue'
+import { buildProtectedIssueResponse } from '~~/server/utils/protected-issue'
 
 export default defineEventHandler(async (event) => {
   const projectId = getRouterParam(event, 'projectId')
