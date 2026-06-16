@@ -4,8 +4,8 @@ import { updateIssueSchema, API_BUG_ONLY_FIELDS } from '~~/shared/schemas'
 import { IssueType, NotificationType } from '~~/shared/constants'
 import { badRequest, notFound } from '~~/server/utils/errors'
 import { getAccessibleProject } from '~~/server/utils/project-access'
-import { assertAssigneeAllowed, getAssigneeSummary } from '~~/server/utils/issue-assignee'
-import { buildProtectedIssueData, buildPublicShareStatus } from '~~/server/utils/public-issue'
+import { assertAssigneeAllowed } from '~~/server/utils/issue-assignee'
+import { buildProtectedIssueResponse } from '~~/server/utils/public-issue'
 
 export default defineEventHandler(async (event) => {
   const projectId = getRouterParam(event, 'projectId')
@@ -112,12 +112,5 @@ export default defineEventHandler(async (event) => {
     return updated
   })
 
-  const assignee = await getAssigneeSummary(db, updatedIssue.assigneeId)
-  const origin = getRequestURL(event).origin
-
-  return {
-    data: buildProtectedIssueData(updatedIssue, assignee),
-    friendlyId: `${project.key}-${updatedIssue.issueNumber}`,
-    publicShare: buildPublicShareStatus(updatedIssue, origin)
-  }
+  return buildProtectedIssueResponse(db, updatedIssue, project, getRequestURL(event).origin)
 })

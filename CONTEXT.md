@@ -15,6 +15,10 @@ _Avoid_: cURL Issue
 A read-only public view of an existing **API Bug** that can be opened through a share link without signing in.
 _Avoid_: Public cURL Issue Page, public ticket
 
+**Protected Issue View**:
+The full **Issue** content a **Registered User** sees inside the app, including internal workflow details (status, assignee) and **Public Sharing** state — in contrast to the public-safe **Public Issue Page**. Never exposes the **Share Token** itself.
+_Avoid_: Issue detail, internal issue
+
 **Registered User**:
 A signed-in person who has completed invitation-code registration.
 _Avoid_: User when the authentication state matters

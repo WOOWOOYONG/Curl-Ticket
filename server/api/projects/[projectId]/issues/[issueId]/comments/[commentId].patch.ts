@@ -2,12 +2,7 @@ import { eq } from 'drizzle-orm'
 import { issueComments } from '~~/server/database/schema'
 import { updateCommentSchema } from '~~/shared/schemas/issue-comment'
 import { badRequest } from '~~/server/utils/errors'
-import { getAccessibleProject } from '~~/server/utils/project-access'
-import {
-  getProjectIssue,
-  getIssueComment,
-  assertCommentAuthor
-} from '~~/server/utils/comment-access'
+import { getEditableComment } from '~~/server/utils/comment-access'
 import { sanitizeHtml } from '~~/server/utils/html'
 
 export default defineEventHandler(async (event) => {
@@ -22,10 +17,7 @@ export default defineEventHandler(async (event) => {
   const db = useDB()
   const userId = event.context.userId as string
 
-  await getAccessibleProject(db, projectId, userId)
-  await getProjectIssue(db, projectId, issueId)
-  const comment = await getIssueComment(db, issueId, commentId)
-  assertCommentAuthor(comment, userId, 'edit')
+  const comment = await getEditableComment(db, projectId, issueId, commentId, userId, 'edit')
 
   const body = await readBody(event)
   const result = updateCommentSchema.safeParse(body)

@@ -6,8 +6,8 @@ import { IssueType, NotificationType } from '~~/shared/constants'
 import { isUniqueViolation, MAX_CREATE_ATTEMPTS } from '~~/server/constants'
 import { badRequest, internalServerError } from '~~/server/utils/errors'
 import { getAccessibleProject } from '~~/server/utils/project-access'
-import { assertAssigneeAllowed, getAssigneeSummary } from '~~/server/utils/issue-assignee'
-import { buildProtectedIssueData, buildPublicShareStatus } from '~~/server/utils/public-issue'
+import { assertAssigneeAllowed } from '~~/server/utils/issue-assignee'
+import { buildProtectedIssueResponse } from '~~/server/utils/public-issue'
 
 export default defineEventHandler(async (event) => {
   // 從 middleware 取得已驗證的 userId
@@ -53,7 +53,6 @@ export default defineEventHandler(async (event) => {
     ...(isTask ? nullifyApiBugFields() : pickApiBugFields(data as CreateApiBugInput))
   }
 
-  let nextIssueNumber = 0
   let newIssue: typeof issues.$inferSelect | undefined
   let lastError: unknown
 
@@ -63,8 +62,7 @@ export default defineEventHandler(async (event) => {
       .from(issues)
       .where(eq(issues.projectId, projectId))
 
-    nextIssueNumber = (maxResult?.maxNumber ?? 0) + 1
-    const candidateNumber = nextIssueNumber
+    const candidateNumber = (maxResult?.maxNumber ?? 0) + 1
 
     try {
       newIssue = await db.transaction(async (tx) => {
@@ -106,12 +104,5 @@ export default defineEventHandler(async (event) => {
     internalServerError('Failed to create issue', lastError)
   }
 
-  const assignee = await getAssigneeSummary(db, newIssue.assigneeId)
-  const origin = getRequestURL(event).origin
-
-  return {
-    data: buildProtectedIssueData(newIssue, assignee),
-    friendlyId: `${project.key}-${nextIssueNumber}`,
-    publicShare: buildPublicShareStatus(newIssue, origin)
-  }
+  return buildProtectedIssueResponse(db, newIssue, project, getRequestURL(event).origin)
 })
