@@ -3,10 +3,11 @@ import { issues, notifications } from '~~/server/database/schema'
 import { createIssueSchema, nullifyApiBugFields, pickApiBugFields } from '~~/shared/schemas'
 import type { CreateApiBugInput } from '~~/shared/schemas'
 import { IssueType, NotificationType } from '~~/shared/constants'
-import { MAX_CREATE_ATTEMPTS, UNIQUE_VIOLATION_CODE } from '~~/server/constants'
+import { isUniqueViolation, MAX_CREATE_ATTEMPTS } from '~~/server/constants'
 import { badRequest, internalServerError } from '~~/server/utils/errors'
 import { getAccessibleProject } from '~~/server/utils/project-access'
 import { assertAssigneeAllowed, getAssigneeSummary } from '~~/server/utils/issue-assignee'
+import { buildProtectedIssueData, buildPublicShareStatus } from '~~/server/utils/public-issue'
 
 export default defineEventHandler(async (event) => {
   // 從 middleware 取得已驗證的 userId
@@ -20,11 +21,6 @@ export default defineEventHandler(async (event) => {
   }
 
   const db = useDB()
-
-  function isUniqueViolation(error: unknown) {
-    const err = error as { code?: string; cause?: { code?: string } }
-    return err?.code === UNIQUE_VIOLATION_CODE || err?.cause?.code === UNIQUE_VIOLATION_CODE
-  }
 
   // 3. 驗證使用者可存取專案，並取得專案 key
   const project = await getAccessibleProject(db, projectId, userId)
@@ -111,9 +107,11 @@ export default defineEventHandler(async (event) => {
   }
 
   const assignee = await getAssigneeSummary(db, newIssue.assigneeId)
+  const origin = getRequestURL(event).origin
 
   return {
-    data: { ...newIssue, assignee },
-    friendlyId: `${project.key}-${nextIssueNumber}`
+    data: buildProtectedIssueData(newIssue, assignee),
+    friendlyId: `${project.key}-${nextIssueNumber}`,
+    publicShare: buildPublicShareStatus(newIssue, origin)
   }
 })

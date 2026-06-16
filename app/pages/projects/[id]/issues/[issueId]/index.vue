@@ -1,15 +1,13 @@
 <script setup lang="ts">
-import { getHttpMethodColor } from '~/constants/http'
 import {
   IssueStatusColor,
   IssueStatusLabel,
-  EnvironmentColor,
   IssueTypeLabel,
   IssueTypeIcon,
   IssueTypeColor
 } from '~/constants/issue'
-import { maskValue, formatJson, buildCurlCommand, toHeadersArray } from '~/utils/issue'
-import type { IssueResponse } from '~/types/issue'
+import { buildCurlCommand } from '~/utils/issue'
+import type { IssueResponse, PublicShare } from '~/types/issue'
 import type { Issue } from '~~/shared/schemas/issue'
 import { issueStatuses, IssueType } from '~~/shared/constants'
 import type { IssueStatus } from '~~/shared/constants'
@@ -46,7 +44,14 @@ const friendlyId = computed(() => issueResponse.value?.friendlyId)
 const isApiBug = computed(
   () => !issue.value?.issueType || issue.value.issueType === IssueType.ApiBug
 )
-const isTask = computed(() => issue.value?.issueType === IssueType.Task)
+const publicShare = computed<PublicShare>(
+  () =>
+    issueResponse.value?.publicShare ?? {
+      enabled: false,
+      sharedAt: null,
+      shareUrl: null
+    }
+)
 
 const statusOptions = issueStatuses.map((status) => ({
   label: IssueStatusLabel[status],
@@ -71,16 +76,6 @@ watch(
   { immediate: true }
 )
 
-// Headers as array
-const headersArray = computed(() => toHeadersArray(issue.value?.requestHeaders))
-
-// Tab items — always show all 3 tabs (for API Bug only)
-const tabItems = computed(() => [
-  { label: t('issues.requestBody'), slot: 'request-body' as const },
-  { label: t('issues.requestHeaders'), slot: 'headers' as const },
-  { label: t('issues.response'), slot: 'response' as const }
-])
-
 // Last updated relative time
 const lastUpdated = computed(() => {
   if (!issue.value?.updatedAt) return ''
@@ -88,11 +83,6 @@ const lastUpdated = computed(() => {
 })
 
 // Copy functions
-function copyUrl() {
-  if (!issue.value?.url) return
-  copyToClipboard(issue.value.url, { description: 'URL copied to clipboard' })
-}
-
 function copyCurl() {
   if (!issue.value) return
   const curlCmd =
@@ -108,22 +98,8 @@ function copyCurl() {
         )
       : '')
   if (curlCmd) {
-    copyToClipboard(curlCmd, { description: 'cURL command copied to clipboard' })
+    copyToClipboard(curlCmd, { description: t('issues.curlCopied') })
   }
-}
-
-function copyRequestBody() {
-  if (!issue.value?.requestBody) return
-  copyToClipboard(formatJson(issue.value.requestBody), {
-    description: 'Request body copied to clipboard'
-  })
-}
-
-function copyResponseBody() {
-  if (!issue.value?.responseBody) return
-  copyToClipboard(formatJson(issue.value.responseBody), {
-    description: 'Response body copied to clipboard'
-  })
 }
 
 watch(selectedStatus, async (nextStatus) => {
@@ -135,6 +111,73 @@ watch(selectedStatus, async (nextStatus) => {
 // Delete issue
 const showDeleteModal = ref(false)
 const deleteLoading = ref(false)
+const showShareModal = ref(false)
+const shareLoading = ref(false)
+const shareAction = ref<'enable' | 'regenerate' | 'disable'>('enable')
+
+const shareModalTitle = computed(() => {
+  if (shareAction.value === 'disable') return t('issues.publicShare.disable')
+  if (shareAction.value === 'regenerate') return t('issues.publicShare.regenerate')
+  return t('issues.publicShare.enable')
+})
+
+const shareModalDescription = computed(() => {
+  if (shareAction.value === 'disable') return t('issues.publicShare.disableConfirm')
+  return t('issues.publicShare.enableConfirm')
+})
+
+const shareConfirmColor = computed<'error' | 'primary'>(() =>
+  shareAction.value === 'disable' ? 'error' : 'primary'
+)
+
+function openShareModal(action: 'enable' | 'regenerate' | 'disable') {
+  shareAction.value = action
+  showShareModal.value = true
+}
+
+function copyShareLink() {
+  if (!publicShare.value.shareUrl) return
+  copyToClipboard(publicShare.value.shareUrl, { description: t('issues.publicShare.linkCopied') })
+}
+
+function setPublicShare(nextPublicShare: PublicShare) {
+  if (!issueResponse.value) return
+  issueResponse.value = {
+    ...issueResponse.value,
+    publicShare: nextPublicShare
+  }
+}
+
+async function confirmShareChange() {
+  shareLoading.value = true
+  try {
+    const nextPublicShare = await $fetch<PublicShare>(
+      `/api/projects/${projectId.value}/issues/${issueId.value}/share`,
+      {
+        method: shareAction.value === 'disable' ? 'DELETE' : 'POST'
+      }
+    )
+
+    setPublicShare(nextPublicShare)
+    toast.add({
+      title:
+        shareAction.value === 'disable'
+          ? t('issues.publicShare.disabled')
+          : t('issues.publicShare.enabled'),
+      color: 'success'
+    })
+  } catch (err: unknown) {
+    const error = err as { data?: { message?: string } }
+    toast.add({
+      title: t('common.error'),
+      description: error.data?.message || t('issues.publicShare.updateFailed'),
+      color: 'error'
+    })
+  } finally {
+    shareLoading.value = false
+    showShareModal.value = false
+  }
+}
 
 async function deleteIssue() {
   deleteLoading.value = true
@@ -326,185 +369,7 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <!-- Left Column -->
           <div class="space-y-6 lg:col-span-2">
-            <IssueDescriptionCard
-              v-if="isApiBug || isTask"
-              :description="issue.description"
-            />
-
-            <template v-if="isApiBug && issue.method && issue.url">
-              <div
-                class="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200/70 bg-white p-4 dark:border-slate-800/70 dark:bg-slate-900/50"
-              >
-                <UBadge
-                  :color="getHttpMethodColor(issue.method)"
-                  variant="subtle"
-                  class="px-3 py-1.5 font-mono text-sm font-bold"
-                >
-                  {{ issue.method }}
-                </UBadge>
-                <code
-                  class="min-w-0 flex-1 truncate font-mono text-sm text-slate-900 dark:text-white"
-                >
-                  {{ issue.url }}
-                </code>
-                <UButton
-                  size="xs"
-                  variant="ghost"
-                  color="neutral"
-                  icon="i-lucide-copy"
-                  @click="copyUrl"
-                />
-              </div>
-
-              <!-- Info Row: Status Code | Environment -->
-              <div
-                class="flex items-center divide-x divide-slate-200/70 rounded-xl border border-slate-200/70 bg-white dark:divide-slate-800/70 dark:border-slate-800/70 dark:bg-slate-900/50"
-              >
-                <div
-                  v-if="issue.responseStatus"
-                  class="flex-1 px-5 py-3"
-                >
-                  <span
-                    class="mb-1 block text-xs font-semibold tracking-wider text-slate-400 uppercase dark:text-slate-500"
-                    >{{ $t('issues.statusCode') }}</span
-                  >
-                  <div class="flex items-center gap-2">
-                    <span
-                      class="size-2 rounded-full"
-                      :class="{
-                        'bg-emerald-500': issue.responseStatus >= 200 && issue.responseStatus < 300,
-                        'bg-blue-500': issue.responseStatus >= 300 && issue.responseStatus < 400,
-                        'bg-amber-500': issue.responseStatus >= 400 && issue.responseStatus < 500,
-                        'bg-red-500': issue.responseStatus >= 500
-                      }"
-                    />
-                    <span class="font-mono font-bold text-slate-900 dark:text-white">{{
-                      issue.responseStatus
-                    }}</span>
-                  </div>
-                </div>
-                <div
-                  v-if="issue.environment"
-                  class="flex-1 px-5 py-3"
-                >
-                  <span
-                    class="mb-1 block text-xs font-semibold tracking-wider text-slate-400 uppercase dark:text-slate-500"
-                    >{{ $t('issues.environment') }}</span
-                  >
-                  <UBadge
-                    :color="EnvironmentColor[issue.environment] || 'neutral'"
-                    variant="subtle"
-                    class="px-2.5 py-0.5 font-semibold"
-                  >
-                    {{ issue.environment }}
-                  </UBadge>
-                </div>
-              </div>
-
-              <!-- Tabs: Request Body / Request Headers / Response -->
-              <UTabs
-                :items="tabItems"
-                variant="link"
-              >
-                <!-- Request Body Tab -->
-                <template #request-body>
-                  <template v-if="issue.requestBody">
-                    <div
-                      class="relative mt-4 overflow-hidden rounded-xl border border-slate-200/70 bg-white dark:border-slate-800/70 dark:bg-slate-900/40"
-                    >
-                      <UButton
-                        size="xs"
-                        variant="ghost"
-                        color="neutral"
-                        icon="i-lucide-copy"
-                        class="absolute top-5 right-5 z-10"
-                        @click="copyRequestBody"
-                      />
-                      <div class="p-4">
-                        <JsonCodeBlock
-                          :content="formatJson(issue.requestBody)"
-                          read-only
-                          :show-header="false"
-                          line-number-offset-class="pl-10"
-                          line-number-padding-top-class="pt-4"
-                          content-padding-class="p-0"
-                        />
-                      </div>
-                    </div>
-                  </template>
-                  <div
-                    v-else
-                    class="mt-4 py-12 text-center text-sm text-slate-400 dark:text-slate-500"
-                  >
-                    {{ $t('issues.noRequestBody') }}
-                  </div>
-                </template>
-
-                <!-- Headers Tab -->
-                <template #headers>
-                  <template v-if="headersArray.length > 0">
-                    <div
-                      class="mt-4 overflow-hidden rounded-xl border border-slate-200/70 bg-white p-4 dark:border-slate-800/70 dark:bg-slate-900/40"
-                    >
-                      <div class="space-y-2">
-                        <div
-                          v-for="header in headersArray"
-                          :key="header.key"
-                          class="flex items-start gap-2 font-mono text-sm"
-                        >
-                          <span class="min-w-50 font-medium text-emerald-600 dark:text-emerald-400"
-                            >{{ header.key }}:</span
-                          >
-                          <span class="flex-1 break-all text-slate-600 dark:text-slate-400">{{
-                            maskValue(header.key, header.value)
-                          }}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </template>
-                  <div
-                    v-else
-                    class="mt-4 py-12 text-center text-sm text-slate-400 dark:text-slate-500"
-                  >
-                    {{ $t('issues.noHeaders') }}
-                  </div>
-                </template>
-
-                <!-- Response Tab -->
-                <template #response>
-                  <template v-if="issue.responseBody">
-                    <div
-                      class="relative mt-4 overflow-hidden rounded-xl border border-slate-200/70 bg-white dark:border-slate-800/70 dark:bg-slate-900/40"
-                    >
-                      <UButton
-                        size="xs"
-                        variant="ghost"
-                        color="neutral"
-                        icon="i-lucide-copy"
-                        class="absolute top-5 right-5 z-10"
-                        @click="copyResponseBody"
-                      />
-                      <div class="p-4">
-                        <JsonCodeBlock
-                          :content="formatJson(issue.responseBody)"
-                          read-only
-                          :show-header="false"
-                          line-number-offset-class="pl-10"
-                          line-number-padding-top-class="pt-4"
-                          content-padding-class="p-0"
-                        />
-                      </div>
-                    </div>
-                  </template>
-                  <div
-                    v-else
-                    class="mt-4 py-12 text-center text-sm text-slate-400 dark:text-slate-500"
-                  >
-                    {{ $t('issues.noResponse') }}
-                  </div>
-                </template>
-              </UTabs>
-            </template>
+            <IssueReadOnlyDetails :issue="issue" />
 
             <!-- Comments Section -->
             <IssueComments
@@ -579,6 +444,77 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
                 </p>
               </div>
 
+              <div
+                v-if="isApiBug"
+                class="space-y-3 border-t border-slate-200/70 pt-5 dark:border-slate-800/70"
+              >
+                <div class="flex items-center justify-between gap-3">
+                  <span class="text-xs tracking-wider text-slate-500 uppercase dark:text-slate-400">
+                    {{ $t('issues.publicShare.title') }}
+                  </span>
+                  <UBadge
+                    :color="publicShare.enabled ? 'success' : 'neutral'"
+                    variant="subtle"
+                  >
+                    {{
+                      publicShare.enabled
+                        ? $t('issues.publicShare.enabledStatus')
+                        : $t('issues.publicShare.disabledStatus')
+                    }}
+                  </UBadge>
+                </div>
+
+                <template v-if="publicShare.enabled && publicShare.shareUrl">
+                  <UInput
+                    :model-value="publicShare.shareUrl"
+                    readonly
+                    size="sm"
+                  >
+                    <template #trailing>
+                      <UButton
+                        size="xs"
+                        variant="ghost"
+                        color="neutral"
+                        icon="i-lucide-copy"
+                        :aria-label="$t('common.copy')"
+                        @click="copyShareLink"
+                      />
+                    </template>
+                  </UInput>
+                  <div class="grid grid-cols-2 gap-2">
+                    <UButton
+                      color="neutral"
+                      variant="outline"
+                      icon="i-lucide-refresh-cw"
+                      block
+                      @click="openShareModal('regenerate')"
+                    >
+                      {{ $t('issues.publicShare.regenerate') }}
+                    </UButton>
+                    <UButton
+                      color="error"
+                      variant="outline"
+                      icon="i-lucide-link-2-off"
+                      block
+                      @click="openShareModal('disable')"
+                    >
+                      {{ $t('issues.publicShare.disable') }}
+                    </UButton>
+                  </div>
+                </template>
+
+                <UButton
+                  v-else
+                  color="primary"
+                  variant="soft"
+                  icon="i-lucide-link"
+                  block
+                  @click="openShareModal('enable')"
+                >
+                  {{ $t('issues.publicShare.enable') }}
+                </UButton>
+              </div>
+
               <!-- Edit Details Button -->
               <UButton
                 :to="`/projects/${projectId}/issues/${issueId}/edit`"
@@ -617,6 +553,21 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
       :on-cancel="
         () => {
           showDeleteModal = false
+        }
+      "
+    />
+
+    <ConfirmModal
+      v-model:open="showShareModal"
+      :title="shareModalTitle"
+      :description="shareModalDescription"
+      :confirm-label="shareModalTitle"
+      :confirm-color="shareConfirmColor"
+      :loading="shareLoading"
+      :on-confirm="confirmShareChange"
+      :on-cancel="
+        () => {
+          showShareModal = false
         }
       "
     />

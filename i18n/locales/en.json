@@ -248,6 +248,24 @@
     "deleteFailed": "Failed to delete issue",
     "editDetails": "Edit Details",
     "parsedFromCurl": "Parsed from cURL",
+    "urlCopied": "URL copied to clipboard",
+    "curlCopied": "cURL command copied to clipboard",
+    "requestBodyCopied": "Request body copied to clipboard",
+    "responseBodyCopied": "Response body copied to clipboard",
+    "publicShare": {
+      "title": "Public Sharing",
+      "enable": "Enable Sharing",
+      "enabled": "Public sharing enabled",
+      "disabled": "Public sharing disabled",
+      "regenerate": "Regenerate Link",
+      "disable": "Disable Sharing",
+      "enabledStatus": "Enabled",
+      "disabledStatus": "Disabled",
+      "enableConfirm": "Anyone with the share link can view this API Bug. Sensitive request headers are masked, but request and response bodies are shown as-is.",
+      "disableConfirm": "This will immediately invalidate the current share link.",
+      "linkCopied": "Share link copied to clipboard",
+      "updateFailed": "Failed to update public sharing"
+    },
     "status": {
       "open": "Open",
       "inProgress": "In Progress",
@@ -331,6 +349,11 @@
     "deleteConfirm": "Are you sure you want to delete this comment? This action cannot be undone.",
     "edited": "edited {time}",
     "commented": "commented {time}"
+  },
+  "publicIssue": {
+    "notFound": "Shared issue not found",
+    "notFoundHint": "The share link is invalid, disabled, or no longer available.",
+    "readOnly": "Read only"
   },
   "settings": {
     "profile": "Profile",

@@ -3,6 +3,7 @@ import { issues } from '~~/server/database/schema'
 import { badRequest, notFound } from '~~/server/utils/errors'
 import { getAccessibleProject } from '~~/server/utils/project-access'
 import { getAssigneeSummary } from '~~/server/utils/issue-assignee'
+import { buildProtectedIssueData, buildPublicShareStatus } from '~~/server/utils/public-issue'
 
 export default defineEventHandler(async (event) => {
   // 1. 取得路由參數
@@ -33,10 +34,12 @@ export default defineEventHandler(async (event) => {
   }
 
   const assignee = await getAssigneeSummary(db, issue.assigneeId)
+  const origin = getRequestURL(event).origin
 
   // 4. 回傳完整的 Issue 資料
   return {
-    data: { ...issue, assignee },
-    friendlyId: `${project.key}-${issue.issueNumber}`
+    data: buildProtectedIssueData(issue, assignee),
+    friendlyId: `${project.key}-${issue.issueNumber}`,
+    publicShare: buildPublicShareStatus(issue, origin)
   }
 })

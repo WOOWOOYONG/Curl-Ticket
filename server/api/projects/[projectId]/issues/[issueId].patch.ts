@@ -5,6 +5,7 @@ import { IssueType, NotificationType } from '~~/shared/constants'
 import { badRequest, notFound } from '~~/server/utils/errors'
 import { getAccessibleProject } from '~~/server/utils/project-access'
 import { assertAssigneeAllowed, getAssigneeSummary } from '~~/server/utils/issue-assignee'
+import { buildProtectedIssueData, buildPublicShareStatus } from '~~/server/utils/public-issue'
 
 export default defineEventHandler(async (event) => {
   const projectId = getRouterParam(event, 'projectId')
@@ -112,9 +113,11 @@ export default defineEventHandler(async (event) => {
   })
 
   const assignee = await getAssigneeSummary(db, updatedIssue.assigneeId)
+  const origin = getRequestURL(event).origin
 
   return {
-    data: { ...updatedIssue, assignee },
-    friendlyId: `${project.key}-${updatedIssue.issueNumber}`
+    data: buildProtectedIssueData(updatedIssue, assignee),
+    friendlyId: `${project.key}-${updatedIssue.issueNumber}`,
+    publicShare: buildPublicShareStatus(updatedIssue, origin)
   }
 })

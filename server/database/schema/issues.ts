@@ -54,6 +54,10 @@ export const issues = pgTable(
     responseStatus: integer('response_status'),
     responseBody: jsonb('response_body'),
 
+    // Public Sharing（nullable = 未公開）
+    publicShareToken: text('public_share_token'),
+    publicSharedAt: timestamp('public_shared_at', { withTimezone: true }),
+
     // 狀態管理
     status: varchar('status', { length: 20 })
       .notNull()
@@ -76,6 +80,9 @@ export const issues = pgTable(
     // 複合索引：加速 Issue 列表查詢（projectId + issueType 過濾 + createdAt 排序）
     index('issues_project_list_idx').on(table.projectId, table.issueType, table.createdAt),
     // Assignee 查詢用
-    index('issues_assignee_idx').on(table.assigneeId)
+    index('issues_assignee_idx').on(table.assigneeId),
+    uniqueIndex('issues_public_share_token_key')
+      .on(table.publicShareToken)
+      .where(sql`${table.publicShareToken} is not null`)
   ]
 )
