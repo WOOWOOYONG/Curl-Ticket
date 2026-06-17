@@ -259,6 +259,7 @@
       "disabled": "Public sharing disabled",
       "regenerate": "Regenerate Link",
       "disable": "Disable Sharing",
+      "manage": "Manage sharing",
       "enabledStatus": "Enabled",
       "disabledStatus": "Disabled",
       "enableConfirm": "Anyone with the share link can view this API Bug. Sensitive request headers are masked, but request and response bodies are shown as-is.",
