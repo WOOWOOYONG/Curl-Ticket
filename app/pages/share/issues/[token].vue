@@ -22,6 +22,29 @@ const lastUpdated = computed(() => {
   if (!issue.value?.updatedAt) return ''
   return formatRelative(issue.value.updatedAt)
 })
+
+const FALLBACK_TITLE = 'Curl Ticket'
+const OG_DESCRIPTION_MAX = 160
+
+const seoTitle = computed(() => {
+  if (!issue.value) return FALLBACK_TITLE
+  return `${issue.value.friendlyId} · ${issue.value.title}`
+})
+
+const seoDescription = computed(() => {
+  if (!issue.value) return ''
+  const raw = issue.value.description?.trim() || `${issue.value.method} ${issue.value.url}`
+  return raw.length > OG_DESCRIPTION_MAX ? `${raw.slice(0, OG_DESCRIPTION_MAX - 1)}…` : raw
+})
+
+useSeoMeta({
+  title: seoTitle,
+  ogTitle: seoTitle,
+  description: seoDescription,
+  ogDescription: seoDescription,
+  ogType: 'article',
+  robots: 'noindex, nofollow'
+})
 </script>
 
 <template>
