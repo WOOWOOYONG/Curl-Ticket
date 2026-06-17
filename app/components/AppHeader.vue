@@ -31,39 +31,41 @@ const themePreferenceLabel = computed(() => {
   return t('nav.themeSystem')
 })
 
+const themeMenuItems = computed(() => [
+  {
+    type: 'checkbox' as const,
+    label: t('nav.themeLight'),
+    icon: 'i-lucide-sun',
+    checked: colorMode.preference === 'light',
+    onSelect: () => {
+      colorMode.preference = 'light'
+    }
+  },
+  {
+    type: 'checkbox' as const,
+    label: t('nav.themeDark'),
+    icon: 'i-lucide-moon',
+    checked: colorMode.preference === 'dark',
+    onSelect: () => {
+      colorMode.preference = 'dark'
+    }
+  },
+  {
+    type: 'checkbox' as const,
+    label: t('nav.themeSystem'),
+    icon: 'i-lucide-monitor',
+    checked: colorMode.preference === 'system',
+    onSelect: () => {
+      colorMode.preference = 'system'
+    }
+  }
+])
+
 const items = computed(() => [
   {
     label: `${t('nav.theme')} (${themePreferenceLabel.value})`,
     icon: 'i-lucide-palette',
-    children: [
-      {
-        type: 'checkbox' as const,
-        label: t('nav.themeLight'),
-        icon: 'i-lucide-sun',
-        checked: colorMode.preference === 'light',
-        onSelect: () => {
-          colorMode.preference = 'light'
-        }
-      },
-      {
-        type: 'checkbox' as const,
-        label: t('nav.themeDark'),
-        icon: 'i-lucide-moon',
-        checked: colorMode.preference === 'dark',
-        onSelect: () => {
-          colorMode.preference = 'dark'
-        }
-      },
-      {
-        type: 'checkbox' as const,
-        label: t('nav.themeSystem'),
-        icon: 'i-lucide-monitor',
-        checked: colorMode.preference === 'system',
-        onSelect: () => {
-          colorMode.preference = 'system'
-        }
-      }
-    ]
+    children: themeMenuItems.value
   },
   {
     type: 'separator' as const
@@ -127,6 +129,17 @@ const items = computed(() => [
             :alt="user.user_metadata?.full_name"
             size="sm"
             class="cursor-pointer"
+          />
+        </UDropdownMenu>
+        <UDropdownMenu
+          v-else
+          :items="themeMenuItems"
+        >
+          <UButton
+            icon="i-lucide-palette"
+            color="neutral"
+            variant="ghost"
+            :aria-label="`${t('nav.theme')} (${themePreferenceLabel})`"
           />
         </UDropdownMenu>
       </template>
