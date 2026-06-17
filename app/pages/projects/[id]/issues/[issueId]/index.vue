@@ -135,6 +135,21 @@ function openShareModal(action: 'enable' | 'regenerate' | 'disable') {
   showShareModal.value = true
 }
 
+const shareMenuItems = computed(() => [
+  {
+    label: t('issues.publicShare.regenerate'),
+    icon: 'i-lucide-refresh-cw',
+    onSelect: () => openShareModal('regenerate')
+  },
+  { type: 'separator' as const },
+  {
+    label: t('issues.publicShare.disable'),
+    icon: 'i-lucide-link-2-off',
+    color: 'error' as const,
+    onSelect: () => openShareModal('disable')
+  }
+])
+
 function copyShareLink() {
   if (!publicShare.value.shareUrl) return
   copyToClipboard(publicShare.value.shareUrl, { description: t('issues.publicShare.linkCopied') })
@@ -448,20 +463,34 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
                 v-if="isApiBug"
                 class="space-y-3 border-t border-slate-200/70 pt-5 dark:border-slate-800/70"
               >
-                <div class="flex items-center justify-between gap-3">
+                <div class="flex items-center justify-between gap-2">
                   <span class="text-xs tracking-wider text-slate-500 uppercase dark:text-slate-400">
                     {{ $t('issues.publicShare.title') }}
                   </span>
-                  <UBadge
-                    :color="publicShare.enabled ? 'success' : 'neutral'"
-                    variant="subtle"
-                  >
-                    {{
-                      publicShare.enabled
-                        ? $t('issues.publicShare.enabledStatus')
-                        : $t('issues.publicShare.disabledStatus')
-                    }}
-                  </UBadge>
+                  <div class="flex items-center gap-1.5">
+                    <UBadge
+                      :color="publicShare.enabled ? 'success' : 'neutral'"
+                      variant="subtle"
+                    >
+                      {{
+                        publicShare.enabled
+                          ? $t('issues.publicShare.enabledStatus')
+                          : $t('issues.publicShare.disabledStatus')
+                      }}
+                    </UBadge>
+                    <UDropdownMenu
+                      v-if="publicShare.enabled && publicShare.shareUrl"
+                      :items="shareMenuItems"
+                    >
+                      <UButton
+                        size="xs"
+                        variant="ghost"
+                        color="neutral"
+                        icon="i-lucide-ellipsis-vertical"
+                        :aria-label="$t('issues.publicShare.manage')"
+                      />
+                    </UDropdownMenu>
+                  </div>
                 </div>
 
                 <template v-if="publicShare.enabled && publicShare.shareUrl">
@@ -469,6 +498,7 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
                     :model-value="publicShare.shareUrl"
                     readonly
                     size="sm"
+                    class="w-full"
                   >
                     <template #trailing>
                       <UButton
@@ -481,26 +511,6 @@ async function updateIssueStatus(nextStatus: IssueStatus) {
                       />
                     </template>
                   </UInput>
-                  <div class="grid grid-cols-2 gap-2">
-                    <UButton
-                      color="neutral"
-                      variant="outline"
-                      icon="i-lucide-refresh-cw"
-                      block
-                      @click="openShareModal('regenerate')"
-                    >
-                      {{ $t('issues.publicShare.regenerate') }}
-                    </UButton>
-                    <UButton
-                      color="error"
-                      variant="outline"
-                      icon="i-lucide-link-2-off"
-                      block
-                      @click="openShareModal('disable')"
-                    >
-                      {{ $t('issues.publicShare.disable') }}
-                    </UButton>
-                  </div>
                 </template>
 
                 <UButton

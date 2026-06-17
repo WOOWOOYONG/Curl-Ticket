@@ -259,6 +259,7 @@
       "disabled": "Public Sharing 已關閉",
       "regenerate": "重新產生連結",
       "disable": "關閉分享",
+      "manage": "管理分享",
       "enabledStatus": "已開啟",
       "disabledStatus": "已關閉",
       "enableConfirm": "知道 Share Link 的任何人都能檢視此 API Bug。敏感 Request Headers 會被遮罩，但 Request Body 與 Response Body 會原樣顯示。",
