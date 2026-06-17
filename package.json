@@ -33,7 +33,6 @@
     "@vueuse/nuxt": "14.1.0",
     "curlconverter": "^4.12.0",
     "drizzle-orm": "^0.45.1",
-    "isomorphic-dompurify": "^3.10.0",
     "markdown-it": "^14.1.1",
     "nuxt": "^4.2.2",
     "postgres": "^3.4.8",

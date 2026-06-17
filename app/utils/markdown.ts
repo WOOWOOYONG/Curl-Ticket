@@ -1,5 +1,5 @@
 import MarkdownIt from 'markdown-it'
-import DOMPurify from 'isomorphic-dompurify'
+import sanitizeHtml from 'sanitize-html'
 
 const ALLOWED_PROTOCOL = /^(https?:|mailto:|\/)/i
 const HTTP_LINK = /^https?:\/\//i
@@ -24,5 +24,13 @@ md.renderer.rules.link_open = (tokens, idx, options, env, self) => {
 export function renderMarkdown(source: string | null | undefined): string {
   const raw = source?.trim()
   if (!raw) return ''
-  return DOMPurify.sanitize(md.render(raw))
+  return sanitizeHtml(md.render(raw), {
+    allowedTags: [...sanitizeHtml.defaults.allowedTags, 'img'],
+    allowedAttributes: {
+      ...sanitizeHtml.defaults.allowedAttributes,
+      a: ['href', 'target', 'rel'],
+      img: ['src', 'alt', 'title']
+    },
+    allowedSchemes: ['http', 'https', 'mailto']
+  })
 }
