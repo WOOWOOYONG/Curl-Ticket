@@ -90,7 +90,11 @@ const items = computed(() => [
       }"
     >
       <template #title>
-        <NuxtLink to="/">
+        <NuxtLink
+          to="/"
+          class="flex items-center gap-2"
+        >
+          <AppLogo class="size-7 text-[#10b981]" />
           <span class="text-lg font-bold">Curl Ticket</span>
         </NuxtLink>
       </template>
@@ -137,8 +141,9 @@ const items = computed(() => [
         >
           <NuxtLink
             to="/"
-            class="text-lg font-bold"
+            class="flex items-center gap-2 text-lg font-bold"
           >
+            <AppLogo class="size-7 text-[#10b981]" />
             Curl Ticket
           </NuxtLink>
         </div>

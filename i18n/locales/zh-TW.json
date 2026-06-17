@@ -248,6 +248,24 @@
     "deleteFailed": "刪除 Issue 失敗",
     "editDetails": "編輯詳情",
     "parsedFromCurl": "已從 cURL 解析",
+    "urlCopied": "URL 已複製到剪貼簿",
+    "curlCopied": "cURL 指令已複製到剪貼簿",
+    "requestBodyCopied": "Request Body 已複製到剪貼簿",
+    "responseBodyCopied": "Response Body 已複製到剪貼簿",
+    "publicShare": {
+      "title": "Public Sharing",
+      "enable": "開啟分享",
+      "enabled": "Public Sharing 已開啟",
+      "disabled": "Public Sharing 已關閉",
+      "regenerate": "重新產生連結",
+      "disable": "關閉分享",
+      "enabledStatus": "已開啟",
+      "disabledStatus": "已關閉",
+      "enableConfirm": "知道 Share Link 的任何人都能檢視此 API Bug。敏感 Request Headers 會被遮罩，但 Request Body 與 Response Body 會原樣顯示。",
+      "disableConfirm": "這會立即讓目前的 Share Link 失效。",
+      "linkCopied": "Share Link 已複製到剪貼簿",
+      "updateFailed": "更新 Public Sharing 失敗"
+    },
     "status": {
       "open": "Open",
       "inProgress": "In Progress",
@@ -331,6 +349,11 @@
     "deleteConfirm": "確定要刪除此留言嗎？此操作無法復原。",
     "edited": "{time}前編輯",
     "commented": "{time}前留言"
+  },
+  "publicIssue": {
+    "notFound": "找不到分享的 Issue",
+    "notFoundHint": "此 Share Link 無效、已停用或已無法使用。",
+    "readOnly": "唯讀"
   },
   "settings": {
     "profile": "個人資料",

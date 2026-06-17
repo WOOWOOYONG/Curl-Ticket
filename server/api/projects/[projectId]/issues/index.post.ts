@@ -3,10 +3,11 @@ import { issues, notifications } from '~~/server/database/schema'
 import { createIssueSchema, nullifyApiBugFields, pickApiBugFields } from '~~/shared/schemas'
 import type { CreateApiBugInput } from '~~/shared/schemas'
 import { IssueType, NotificationType } from '~~/shared/constants'
-import { MAX_CREATE_ATTEMPTS, UNIQUE_VIOLATION_CODE } from '~~/server/constants'
+import { isUniqueViolation, MAX_CREATE_ATTEMPTS } from '~~/server/constants'
 import { badRequest, internalServerError } from '~~/server/utils/errors'
 import { getAccessibleProject } from '~~/server/utils/project-access'
-import { assertAssigneeAllowed, getAssigneeSummary } from '~~/server/utils/issue-assignee'
+import { assertAssigneeAllowed } from '~~/server/utils/issue-assignee'
+import { buildProtectedIssueResponse } from '~~/server/utils/protected-issue'
 
 export default defineEventHandler(async (event) => {
   // 從 middleware 取得已驗證的 userId
@@ -20,11 +21,6 @@ export default defineEventHandler(async (event) => {
   }
 
   const db = useDB()
-
-  function isUniqueViolation(error: unknown) {
-    const err = error as { code?: string; cause?: { code?: string } }
-    return err?.code === UNIQUE_VIOLATION_CODE || err?.cause?.code === UNIQUE_VIOLATION_CODE
-  }
 
   // 3. 驗證使用者可存取專案，並取得專案 key
   const project = await getAccessibleProject(db, projectId, userId)
@@ -57,7 +53,6 @@ export default defineEventHandler(async (event) => {
     ...(isTask ? nullifyApiBugFields() : pickApiBugFields(data as CreateApiBugInput))
   }
 
-  let nextIssueNumber = 0
   let newIssue: typeof issues.$inferSelect | undefined
   let lastError: unknown
 
@@ -67,8 +62,7 @@ export default defineEventHandler(async (event) => {
       .from(issues)
       .where(eq(issues.projectId, projectId))
 
-    nextIssueNumber = (maxResult?.maxNumber ?? 0) + 1
-    const candidateNumber = nextIssueNumber
+    const candidateNumber = (maxResult?.maxNumber ?? 0) + 1
 
     try {
       newIssue = await db.transaction(async (tx) => {
@@ -110,10 +104,5 @@ export default defineEventHandler(async (event) => {
     internalServerError('Failed to create issue', lastError)
   }
 
-  const assignee = await getAssigneeSummary(db, newIssue.assigneeId)
-
-  return {
-    data: { ...newIssue, assignee },
-    friendlyId: `${project.key}-${nextIssueNumber}`
-  }
+  return buildProtectedIssueResponse(db, newIssue, project, getRequestURL(event).origin)
 })

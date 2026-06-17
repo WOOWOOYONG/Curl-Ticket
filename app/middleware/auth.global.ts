@@ -11,7 +11,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
   const publicPages = ['/login', '/register', '/confirm']
 
-  if (publicPages.includes(to.path)) return
+  if (publicPages.includes(to.path) || to.path.startsWith('/share/')) return
 
   const user = useSupabaseUser()
 

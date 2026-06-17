@@ -98,9 +98,31 @@
 - `ISSUE-058`：Sidebar 需新增「My Issues」入口（`i-lucide-inbox`），置於 Projects 與 Admin 間，對所有已註冊使用者可見，並可顯示 `open + in-progress` 數量徽章。
 - `ISSUE-059`：Dashboard (`/`) 需新增「Assigned to me」區塊，顯示最多 5 筆最近更新的指派 Issue 與「View all」連結；若無指派則隱藏。
 
-詳見資料約束：[data-model.md](./data-model.md) 中 `issues.assignee_id` 欄位；授權條件沿用 `buildProjectAccessCondition`。
+### 3.9 Public Issue Page
+
+- `ISSUE-060`：Public Issue Page 提供既有 `api_bug` Issue 的 read-only 分享頁，路徑為 `/share/issues/[token]`。
+- `ISSUE-061`：未登入訪問 Public Issue Page 不得被 Client-side auth middleware 重導到 `/login`。
+- `ISSUE-062`：Public Issue Page 僅能透過不可猜測的 Share Token 存取，不得在公開 URL 暴露 Project ID、Issue ID 或 Friendly ID 作為查詢識別。
+- `ISSUE-063`：Public Sharing 預設關閉，需由具備 Project access 的已註冊使用者在 Issue 詳細頁手動開啟。
+- `ISSUE-064`：Public Sharing 僅適用 `api_bug` Issue；`task` Issue 不可開啟 Public Sharing。
+- `ISSUE-065`：開啟 Public Sharing 時需產生新的 Share Token，並回傳 Share Link 供使用者複製。
+- `ISSUE-066`：關閉 Public Sharing 時需清除 Share Token；舊 Share Link 必須立即失效。
+- `ISSUE-067`：已開啟 Public Sharing 的 Issue 可重新產生 Share Token；舊 Share Link 必須立即失效，新 Share Link 可用。
+- `ISSUE-068`：不存在、已停用、或已刪除 Issue 對應的 Share Token 一律回傳相同的 not found 狀態，不揭露失效原因。
+- `ISSUE-069`：Public Issue Page 顯示 live Issue 內容，不保存啟用分享當下的 snapshot。
+- `ISSUE-070`：Public Issue Page 顯示重現 API Bug 所需內容：Friendly ID、Title、Description、Method、URL、Environment、Request Headers、Request Body、Response Status、Response Body、Created/Updated time。
+- `ISSUE-071`：Public Issue Page 不顯示內部管理資訊：Status 下拉、Assignee、Comments、Edit/Delete 操作、Project members、Owner、internal numeric Issue ID、Project ID、Created By user ID。
+- `ISSUE-072`：Public API (`GET /api/public/issues/[token]`) 必須回傳 public-safe DTO；敏感 request headers 必須在 server response 前遮罩，不得把 raw secret values 回傳給匿名瀏覽器。
+- `ISSUE-073`：Public Issue Page 不自動清洗 Request Body 或 Response Body；開啟 Public Sharing 前需以 confirmation 提醒使用者 body 內容會對知道 Share Link 的人可見。
+- `ISSUE-074`：Public Issue Page header 僅顯示左側 `Curl Ticket` 與右側語言選單，不顯示 sidebar、登入 CTA 或管理導航。
+- `ISSUE-075`：Public Issue Page 需沿用現有 i18n 機制與語言選單，新增文案不得硬寫單一語言。
+- `ISSUE-076`：已登入 Issue Detail GET 需回傳 `publicShare` 狀態，供右側 metadata sidebar 渲染分享管理 UI。
+- `ISSUE-077`：Public Sharing 管理 API 只回傳 share 狀態 DTO，不回傳完整 Issue payload。
+- `ISSUE-078`：Public API 不得設定長時間快取；關閉或重新產生 Share Token 後，舊 Share Link 下一次請求必須回傳 not found。
+
+詳見資料約束：[data-model.md](./data-model.md) 中 `issues.assignee_id`、`issues.public_share_token`、`issues.public_shared_at` 欄位；授權條件沿用 `buildProjectAccessCondition`。
 
 ## Cross-References
 
 - 通知規則：見 [notifications.md](./notifications.md) 的 `NOTIF-005`、`NOTIF-007`、`NOTIF-009`。
-- 資料欄位與約束：見 [data-model.md](./data-model.md) 的 `DATA-006`、`DATA-007`、`DATA-012`。
+- 資料欄位與約束：見 [data-model.md](./data-model.md) 的 `DATA-006`、`DATA-007`、`DATA-012`、`DATA-014`。

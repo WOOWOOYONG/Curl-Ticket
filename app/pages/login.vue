@@ -54,6 +54,7 @@ async function signInWithGoogle() {
   <UContainer class="py-16">
     <UCard class="mx-auto max-w-md text-center">
       <div class="space-y-4">
+        <AppLogo class="mx-auto size-14 text-[#10b981]" />
         <h1 class="text-2xl font-bold">
           {{ $t('auth.welcome') }}
         </h1>

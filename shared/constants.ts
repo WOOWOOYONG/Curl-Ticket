@@ -109,10 +109,12 @@ export const PROFILE_NAME_MAX_LENGTH = 50
 // ============================================
 export const SensitiveHeaderKeywords = [
   'authorization',
+  'bearer',
   'x-api-key',
   'api-key',
   'token',
-  'secret'
+  'secret',
+  'password'
 ] as const
 
 export type SensitiveHeaderKeyword = (typeof SensitiveHeaderKeywords)[number]

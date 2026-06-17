@@ -2,6 +2,7 @@ import { and, eq } from 'drizzle-orm'
 import type { useDB } from '~~/server/utils/db'
 import { issues, issueComments } from '~~/server/database/schema'
 import { notFound, forbidden } from '~~/server/utils/errors'
+import { getAccessibleProject } from '~~/server/utils/project-access'
 
 type DB = ReturnType<typeof useDB>
 
@@ -59,4 +60,28 @@ export function assertCommentAuthor(
   if (comment.authorId !== userId) {
     forbidden(`You can only ${action} your own comments`)
   }
+}
+
+/**
+ * 載入使用者有權編輯的 Comment。
+ *
+ * 集中編輯/刪除 Comment 的完整存取檢查：確認 Project 存取權、確認 Issue 屬於該 Project、
+ * 確認 Comment 屬於該 Issue，最後確認使用者是 Comment 作者。
+ *
+ * @throws 404 Project / Issue / Comment 不存在或無權限
+ * @throws 403 使用者不是 Comment 作者
+ */
+export async function getEditableComment(
+  db: DB,
+  projectId: string,
+  issueId: string,
+  commentId: string,
+  userId: string,
+  action: string = 'modify'
+) {
+  await getAccessibleProject(db, projectId, userId)
+  await getProjectIssue(db, projectId, issueId)
+  const comment = await getIssueComment(db, issueId, commentId)
+  assertCommentAuthor(comment, userId, action)
+  return comment
 }

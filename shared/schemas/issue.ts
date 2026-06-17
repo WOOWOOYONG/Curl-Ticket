@@ -131,6 +131,13 @@ export const assigneeSummarySchema = z.object({
   email: z.email()
 })
 
+/** Public Sharing state returned by protected issue APIs */
+export const publicShareSchema = z.object({
+  enabled: z.boolean(),
+  sharedAt: z.coerce.date().nullable(),
+  shareUrl: z.string().nullable()
+})
+
 /** Issue 資料（完整） */
 export const issueSchema = z.object({
   id: z.number().int(),
@@ -154,6 +161,32 @@ export const issueSchema = z.object({
   createdBy: z.string().uuid(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date()
+})
+
+/** Public-safe API Bug DTO for anonymous Public Viewers */
+export const publicIssueSchema = z.object({
+  friendlyId: z.string(),
+  title: z.string(),
+  description: z.string().nullable(),
+  method: z.enum(httpMethods),
+  url: z.string(),
+  environment: z.enum(environments).nullable(),
+  requestHeaders: z.record(z.string(), z.string()).nullable(),
+  requestBody: z.unknown(),
+  responseStatus: z.number().int().nullable(),
+  responseBody: z.unknown(),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date()
+})
+
+export const issueResponseSchema = z.object({
+  data: issueSchema,
+  friendlyId: z.string(),
+  publicShare: publicShareSchema.optional()
+})
+
+export const publicIssueResponseSchema = z.object({
+  data: publicIssueSchema
 })
 
 /** Issue 列表項目（用於列表顯示） */
@@ -187,3 +220,7 @@ export type UpdateIssueInput = z.infer<typeof updateIssueSchema>
 export type Issue = z.infer<typeof issueSchema>
 export type IssueListItem = z.infer<typeof issueListItemSchema>
 export type AssigneeSummary = z.infer<typeof assigneeSummarySchema>
+export type PublicShare = z.infer<typeof publicShareSchema>
+export type IssueResponse = z.infer<typeof issueResponseSchema>
+export type PublicIssue = z.infer<typeof publicIssueSchema>
+export type PublicIssueResponse = z.infer<typeof publicIssueResponseSchema>

@@ -17,6 +17,7 @@ _基於 Supabase (PostgreSQL) + Drizzle ORM_
 - `DATA-011`：`notifications` 表需啟用 Supabase Realtime publication。
 - `DATA-012`：系統需有 `issue_comments` 表支援 Issue 留言功能，留言隨 Issue 級聯刪除。
 - `DATA-013`：系統需有 `api_tokens` 表儲存 API Token 的 hash、名稱、使用紀錄，供 CLI 與外部整合使用。
+- `DATA-014`：`issues` 表需支援 `api_bug` 的 Public Sharing 狀態；一個 Issue 最多有一個有效 Share Token。
 
 ## Tables
 
@@ -106,6 +107,8 @@ _(Supabase 內建 `auth.users`，本文件不重複定義欄位)_
 | `response_status` | int |  | HTTP Status Code |
 | `response_body` | jsonb |  | Response Body |
 | `status` | varchar(20) | Not Null, Default `'Open'` | 狀態 |
+| `public_share_token` | text | Unique, Nullable | Public Issue Page 的不可猜測 Share Token（null = 未公開） |
+| `public_shared_at` | timestamptz | Nullable | Public Sharing 啟用或重新產生連結的時間 |
 | `created_by` | uuid | Not Null | 建立者 |
 | `created_at` | timestamp | Default `now()` | 建立時間 |
 | `updated_at` | timestamp | Default `now()` | 更新時間 |
@@ -114,6 +117,7 @@ _(Supabase 內建 `auth.users`，本文件不重複定義欄位)_
 > - `issues_type_check`: `issue_type IN ('api_bug', 'task')`
 > - `issues_status_check`: `status IN ('Open', 'In Progress', 'Done', 'Close')`
 > - 複合唯一索引：`(project_id, issue_number)`
+> - 唯一索引：`public_share_token`（非 null token 不可重複）
 > - 複合索引：`(project_id, status, updated_at)`
 
 ### notifications
@@ -170,6 +174,7 @@ _(Supabase 內建 `auth.users`，本文件不重複定義欄位)_
 | `ISSUE-004` `ISSUE-013` | `issues` 索引 `(project_id, status, updated_at)` | 專案範圍查詢與列表效能 |
 | `ISSUE-017` `ISSUE-032` | `issues.issue_type` + API 專屬欄位 | `task` 禁止更新 API 專屬欄位（Server 驗證） |
 | `ISSUE-006` `ISSUE-035` | `issues.issue_number`, `issues.project_key` | Friendly ID 來源欄位 |
+| `ISSUE-060` ~ `ISSUE-078` | `issues.public_share_token`, `issues.public_shared_at` | Public Sharing opt-in、不可猜測 Share Link、停用後 token 清除 |
 | `NOTIF-003` `NOTIF-004` | `notifications` | 最新 50 筆 + Realtime 訂閱 |
 | `NOTIF-007` | `issues` + `notifications` | 狀態更新通知規則（DB Trigger 尚未落地，規格保留） |
 | `NOTIF-008` | `project_invitations` + `notifications` | 專案邀請建立時產生通知 |
