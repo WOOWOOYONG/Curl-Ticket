@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
 
     return {
       data: {
-        url: curlData.url || '',
+        url: curlData.raw_url || curlData.url || '',
         method: curlData.method?.toUpperCase() || HttpMethod.GET,
         headers: curlData.headers || null,
         body: curlData.data || curlData.json || null
