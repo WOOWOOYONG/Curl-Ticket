@@ -43,9 +43,10 @@ async function onSubmit() {
     await navigateTo('/')
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : t('projects.createFailed')
+    const fetchError = err as { data?: { message?: string } }
     toast.add({
       title: t('common.error'),
-      description: message,
+      description: fetchError.data?.message || message,
       color: 'error'
     })
 

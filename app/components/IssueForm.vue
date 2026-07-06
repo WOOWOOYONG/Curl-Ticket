@@ -276,9 +276,10 @@ async function onSubmit(event: FormSubmitEvent<Record<string, unknown>>) {
   } catch (err: unknown) {
     const fallback = isEditMode.value ? t('issues.updateFailed') : t('issues.createFailed')
     const message = err instanceof Error ? err.message : fallback
+    const fetchError = err as { data?: { message?: string } }
     toast.add({
       title: t('common.error'),
-      description: message,
+      description: fetchError.data?.message || message,
       color: 'error'
     })
   } finally {
