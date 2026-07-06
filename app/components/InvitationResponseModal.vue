@@ -30,9 +30,9 @@ async function respond() {
     const toast = useToast()
     const { t } = useI18n()
     const message = error instanceof Error ? error.message : t('invitation.failed')
-    const fetchError = error as { data?: { statusMessage?: string } }
+    const fetchError = error as { data?: { message?: string } }
     toast.add({
-      title: fetchError.data?.statusMessage || message,
+      title: fetchError.data?.message || message,
       color: 'error'
     })
   } finally {

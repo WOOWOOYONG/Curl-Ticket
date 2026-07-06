@@ -68,7 +68,7 @@ async function deleteAccount() {
     const owned = e.data?.data?.ownedProjects as { name: string }[] | undefined
     deleteError.value = owned?.length
       ? `Please transfer or delete the following projects first: ${owned.map((p) => p.name).join(', ')}`
-      : (e.statusMessage ?? 'Failed to delete account')
+      : (e.data?.message ?? 'Failed to delete account')
   } finally {
     isDeleting.value = false
   }

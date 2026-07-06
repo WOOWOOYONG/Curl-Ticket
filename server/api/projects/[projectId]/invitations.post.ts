@@ -3,6 +3,8 @@ import { projectInvitations, projectMembers, notifications } from '~~/server/dat
 import { createProjectInvitationSchema } from '~~/shared/schemas'
 import { InvitationStatus, NotificationType } from '~~/shared/constants'
 import { badRequest, forbidden } from '~~/server/utils/errors'
+import { validateBody } from '~~/server/utils/validate'
+import { isUniqueViolation } from '~~/server/constants'
 import { getAccessibleProject } from '~~/server/utils/project-access'
 import { getProfileByEmail } from '~~/server/utils/profile'
 
@@ -21,13 +23,7 @@ export default defineEventHandler(async (event) => {
     forbidden('只有專案擁有者可以邀請成員')
   }
 
-  const body = await readBody(event)
-  const result = createProjectInvitationSchema.safeParse(body)
-  if (!result.success) {
-    badRequest('Validation Error', result.error.issues)
-  }
-
-  const { email } = result.data
+  const { email } = await validateBody(event, createProjectInvitationSchema)
 
   // 將已過期但仍為 pending 的邀請落地為 expired，避免卡住重邀
   await db
@@ -83,31 +79,40 @@ export default defineEventHandler(async (event) => {
   }
 
   // Transaction: 建立邀請 + 通知
-  const invitation = await db.transaction(async (tx) => {
-    const expiresAt = new Date()
-    expiresAt.setDate(expiresAt.getDate() + 7)
+  let invitation: typeof projectInvitations.$inferSelect | undefined
+  try {
+    invitation = await db.transaction(async (tx) => {
+      const expiresAt = new Date()
+      expiresAt.setDate(expiresAt.getDate() + 7)
 
-    const [newInvitation] = await tx
-      .insert(projectInvitations)
-      .values({
-        projectId,
-        email,
-        invitedBy: userId,
-        status: InvitationStatus.Pending,
-        expiresAt
+      const [newInvitation] = await tx
+        .insert(projectInvitations)
+        .values({
+          projectId,
+          email,
+          invitedBy: userId,
+          status: InvitationStatus.Pending,
+          expiresAt
+        })
+        .returning()
+
+      await tx.insert(notifications).values({
+        userId: targetProfile.id,
+        type: NotificationType.ProjectInvite,
+        projectInvitationId: newInvitation!.id,
+        title: '專案邀請',
+        content: `你被邀請加入專案「${project.name}」`
       })
-      .returning()
 
-    await tx.insert(notifications).values({
-      userId: targetProfile.id,
-      type: NotificationType.ProjectInvite,
-      projectInvitationId: newInvitation!.id,
-      title: '專案邀請',
-      content: `你被邀請加入專案「${project.name}」`
+      return newInvitation
     })
-
-    return newInvitation
-  })
+  } catch (error) {
+    // 併發下 partial unique index 兜底：同一專案 + email 已有 pending 邀請
+    if (isUniqueViolation(error)) {
+      badRequest('已有待處理的邀請')
+    }
+    throw error
+  }
 
   return { data: invitation }
 })

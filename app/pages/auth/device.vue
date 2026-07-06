@@ -37,11 +37,11 @@ async function verifyCode() {
     })
     status.value = 'success'
   } catch (e: unknown) {
-    const err = e as { statusCode?: number; data?: { statusMessage?: string } }
+    const err = e as { statusCode?: number; data?: { message?: string } }
     if (err.statusCode === HttpStatus.Forbidden) {
       errorMessage.value = t('device.registerFirst')
     } else {
-      errorMessage.value = err?.data?.statusMessage ?? t('device.verifyError')
+      errorMessage.value = err?.data?.message ?? t('device.verifyError')
     }
     status.value = 'error'
   }

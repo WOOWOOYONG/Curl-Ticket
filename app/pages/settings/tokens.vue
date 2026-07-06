@@ -47,8 +47,8 @@ async function createToken() {
     createForm.expiresInDays = null
     await refresh()
   } catch (e: unknown) {
-    const err = e as { data?: { statusMessage?: string } }
-    createError.value = err?.data?.statusMessage ?? t('tokens.createFailed')
+    const err = e as { data?: { message?: string } }
+    createError.value = err?.data?.message ?? t('tokens.createFailed')
   } finally {
     isCreating.value = false
   }

@@ -8,6 +8,7 @@ import {
 import { respondProjectInvitationSchema } from '~~/shared/schemas'
 import { InvitationStatus } from '~~/shared/constants'
 import { badRequest, notFound, forbidden } from '~~/server/utils/errors'
+import { validateBody } from '~~/server/utils/validate'
 
 export default defineEventHandler(async (event) => {
   const invitationId = getRouterParam(event, 'invitationId')
@@ -18,11 +19,7 @@ export default defineEventHandler(async (event) => {
   const db = useDB()
   const userId = event.context.userId as string
 
-  const body = await readBody(event)
-  const result = respondProjectInvitationSchema.safeParse(body)
-  if (!result.success) {
-    badRequest('Validation Error', result.error.issues)
-  }
+  await validateBody(event, respondProjectInvitationSchema)
 
   // 取得邀請
   const [invitation] = await db

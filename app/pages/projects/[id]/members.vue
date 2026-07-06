@@ -25,10 +25,7 @@ const project = computed(() => response.value?.data)
 const isOwner = computed(() => project.value?.ownerId === user.value?.sub)
 
 // 成員列表
-const { data: membersResponse, refresh: refreshMembers } = useFetch<{ data: ProjectMember[] }>(
-  () => `/api/projects/${projectId.value}/members`,
-  { key: `project-members-${projectId.value}` }
-)
+const { data: membersResponse, refresh: refreshMembers } = useProjectMembers(projectId)
 const members = computed(() => membersResponse.value?.data ?? [])
 
 // 邀請列表
@@ -55,9 +52,9 @@ async function sendInvitation(event: FormSubmitEvent<CreateProjectInvitationInpu
     refreshInvitations()
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : t('members.invitationFailed')
-    const fetchError = error as { data?: { statusMessage?: string } }
+    const fetchError = error as { data?: { message?: string } }
     toast.add({
-      title: fetchError.data?.statusMessage || message,
+      title: fetchError.data?.message || message,
       color: 'error'
     })
   } finally {
@@ -87,9 +84,9 @@ async function removeMember() {
     refreshMembers()
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : t('members.removeFailed')
-    const fetchError = error as { data?: { statusMessage?: string } }
+    const fetchError = error as { data?: { message?: string } }
     toast.add({
-      title: fetchError.data?.statusMessage || message,
+      title: fetchError.data?.message || message,
       color: 'error'
     })
   } finally {

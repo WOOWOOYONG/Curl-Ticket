@@ -34,7 +34,7 @@ const backToListUrl = computed(() => {
 const { data: issueResponse, status } = await useFetch<IssueResponse>(
   () => `/api/projects/${projectId.value}/issues/${issueId.value}`,
   {
-    key: getIssueCacheKey(projectId.value, issueId.value)
+    key: () => getIssueCacheKey(projectId.value, issueId.value)
   }
 )
 
@@ -200,7 +200,7 @@ async function deleteIssue() {
     await $fetch(`/api/projects/${projectId.value}/issues/${issueId.value}`, {
       method: 'DELETE'
     })
-    clearNuxtData(getIssuesCacheKey(projectId.value))
+    clearNuxtData((key) => key.startsWith(getIssuesCacheKey(projectId.value)))
     clearNuxtData(getIssueCacheKey(projectId.value, issueId.value))
     toast.add({
       title: t('issues.deleteSuccess'),

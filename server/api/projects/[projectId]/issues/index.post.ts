@@ -5,6 +5,7 @@ import type { CreateApiBugInput } from '~~/shared/schemas'
 import { IssueType, NotificationType } from '~~/shared/constants'
 import { isUniqueViolation, MAX_CREATE_ATTEMPTS } from '~~/server/constants'
 import { badRequest, internalServerError } from '~~/server/utils/errors'
+import { validate } from '~~/server/utils/validate'
 import { getAccessibleProject } from '~~/server/utils/project-access'
 import { assertAssigneeAllowed } from '~~/server/utils/issue-assignee'
 import { buildProtectedIssueResponse } from '~~/server/utils/protected-issue'
@@ -27,13 +28,8 @@ export default defineEventHandler(async (event) => {
 
   // 4. 讀取並驗證 request body
   const body = await readBody(event)
-  const result = createIssueSchema.safeParse({ ...body, projectId })
+  const data = validate(createIssueSchema, { ...body, projectId })
 
-  if (!result.success) {
-    badRequest('Validation Error', result.error.issues)
-  }
-
-  const data = result.data
   const isTask = data.issueType === IssueType.Task
   const assigneeId = data.assigneeId ?? null
 

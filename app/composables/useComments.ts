@@ -15,7 +15,7 @@ export function useComments(
   return useFetch<CommentsResponse>(
     () => `/api/projects/${projectId.value}/issues/${issueId.value}/comments`,
     {
-      key: getCommentsCacheKey(projectId.value, issueId.value)
+      key: () => getCommentsCacheKey(projectId.value, issueId.value)
     }
   )
 }

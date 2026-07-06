@@ -32,7 +32,7 @@ const { data: membersResponse } = await useProjectMembers(projectId)
 const assigneeOptions = computed(() => {
   const members = membersResponse.value?.data ?? []
   return members.map((member) => ({
-    label: member.name || member.email,
+    label: member.name || member.email || member.userId,
     value: member.userId
   }))
 })
@@ -44,7 +44,7 @@ const issueFetch = isEditMode.value
   ? await useFetch<IssueResponse>(
       () => `/api/projects/${projectId.value}/issues/${issueId.value}`,
       {
-        key: getIssueCacheKey(projectId.value, issueId.value || '')
+        key: () => getIssueCacheKey(projectId.value, issueId.value || '')
       }
     )
   : { data: emptyIssueResponse, status: emptyIssueStatus }
@@ -260,7 +260,8 @@ async function onSubmit(event: FormSubmitEvent<Record<string, unknown>>) {
       color: 'success'
     })
 
-    clearNuxtData(getIssuesCacheKey(projectId.value))
+    // Issues 列表已依篩選/分頁參數分成多個 cache entry，用前綴 predicate 一次清除所有變體
+    clearNuxtData((key) => key.startsWith(getIssuesCacheKey(projectId.value)))
     clearNuxtData(getProjectCacheKey(projectId.value))
     clearNuxtData(PROJECTS_CACHE_KEY)
     if (isEditMode.value && issueId.value) {

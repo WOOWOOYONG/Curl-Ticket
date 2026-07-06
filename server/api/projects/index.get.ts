@@ -3,14 +3,15 @@ import { projects, issues } from '~~/server/database/schema'
 import { IssueStatus } from '~~/shared/constants'
 import { buildAccessibleActiveProjectCondition } from '~~/server/utils/project-access'
 import { sanitizeSearchQuery, escapeLikePattern } from '~~/server/utils/search'
+import { validateQuery } from '~~/server/utils/validate'
 import { projectQuerySchema } from '~~/shared/schemas/query'
 
 export default defineEventHandler(async (event) => {
   const db = useDB()
   const userId = event.context.userId as string
 
-  // 1. 驗證並讀取查詢參數（parse 失敗會直接拋出 ZodError，由 Nuxt error handler 處理）
-  const { page, pageSize, search: rawSearch } = projectQuerySchema.parse(getQuery(event))
+  // 1. 驗證並讀取查詢參數（驗證失敗回 400）
+  const { page, pageSize, search: rawSearch } = validateQuery(event, projectQuerySchema)
   const search = sanitizeSearchQuery(rawSearch)
 
   // 2. 計算 offset

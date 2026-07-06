@@ -1,7 +1,7 @@
 import type { SQL } from 'drizzle-orm'
 import { and, asc, count, desc, eq, ilike, inArray, ne } from 'drizzle-orm'
 import { issues, projects } from '~~/server/database/schema'
-import { badRequest } from '~~/server/utils/errors'
+import { validateQuery } from '~~/server/utils/validate'
 import { buildAccessibleActiveProjectCondition } from '~~/server/utils/project-access'
 import { sanitizeSearchQuery, escapeLikePattern } from '~~/server/utils/search'
 import { IssueStatus } from '~~/shared/constants'
@@ -18,13 +18,8 @@ import {
 export default defineEventHandler(async (event): Promise<MyIssuesResponse> => {
   const userId = event.context.userId as string
 
-  const parsed = myIssuesQuerySchema.safeParse(getQuery(event))
-  if (!parsed.success) {
-    badRequest(parsed.error.issues[0]?.message ?? 'Invalid query parameters', {
-      issues: parsed.error.issues
-    })
-  }
-  const { page, pageSize, status, projectId, environment, sort, order } = parsed.data
+  const parsed = validateQuery(event, myIssuesQuerySchema)
+  const { page, pageSize, status, projectId, environment, sort, order } = parsed
 
   const baseConditions: SQL[] = [
     eq(issues.assigneeId, userId),
@@ -62,7 +57,7 @@ export default defineEventHandler(async (event): Promise<MyIssuesResponse> => {
     listConditions.push(eq(issues.environment, environment))
   }
 
-  const search = sanitizeSearchQuery(parsed.data.search)
+  const search = sanitizeSearchQuery(parsed.search)
   if (search) {
     const escaped = escapeLikePattern(search)
     listConditions.push(ilike(issues.title, `%${escaped}%`))

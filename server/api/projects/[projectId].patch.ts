@@ -1,6 +1,7 @@
 import { eq } from 'drizzle-orm'
 import { projects } from '~~/server/database/schema'
 import { badRequest, forbidden, notFound } from '~~/server/utils/errors'
+import { validate } from '~~/server/utils/validate'
 import { getAccessibleProject } from '~~/server/utils/project-access'
 import { updateProjectSchema } from '~~/shared/schemas'
 
@@ -25,19 +26,15 @@ export default defineEventHandler(async (event) => {
     badRequest('Project key cannot be updated')
   }
 
-  const result = updateProjectSchema.safeParse(body)
+  const data = validate(updateProjectSchema, body)
 
-  if (!result.success) {
-    badRequest('Validation Error', result.error.issues)
-  }
-
-  if (Object.keys(result.data).length === 0) {
+  if (Object.keys(data).length === 0) {
     badRequest('No fields to update')
   }
 
   const [updatedProject] = await db
     .update(projects)
-    .set(result.data)
+    .set(data)
     .where(eq(projects.id, projectId))
     .returning()
 

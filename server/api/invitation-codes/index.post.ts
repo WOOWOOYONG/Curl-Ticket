@@ -1,6 +1,6 @@
 import { invitationCodes } from '~~/server/database/schema'
 import { createInvitationCodeSchema } from '~~/shared/schemas'
-import { badRequest } from '~~/server/utils/errors'
+import { validateBody } from '~~/server/utils/validate'
 import { requireAdmin } from '~~/server/utils/profile'
 import { generateInvitationToken } from '~~/server/utils/invitation-code'
 
@@ -14,12 +14,7 @@ export default defineEventHandler(async (event) => {
 
   await requireAdmin(db, userId, event)
 
-  const body = await readBody(event)
-  const result = createInvitationCodeSchema.safeParse(body)
-
-  if (!result.success) {
-    badRequest('Validation Error', result.error.issues)
-  }
+  const data = await validateBody(event, createInvitationCodeSchema)
 
   const token = generateInvitationToken()
 
@@ -28,7 +23,7 @@ export default defineEventHandler(async (event) => {
     .values({
       code: token,
       createdBy: userId,
-      expiresAt: result.data.expiresAt ?? null
+      expiresAt: data.expiresAt ?? null
     })
     .returning()
 

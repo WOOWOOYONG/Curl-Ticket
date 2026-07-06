@@ -1,5 +1,5 @@
 import { validateInvitationCodeSchema } from '~~/shared/schemas'
-import { badRequest } from '~~/server/utils/errors'
+import { validateBody } from '~~/server/utils/validate'
 import { validateInvitationToken } from '~~/server/utils/invitation-code'
 
 /**
@@ -8,14 +8,10 @@ import { validateInvitationToken } from '~~/server/utils/invitation-code'
  */
 export default defineEventHandler(async (event) => {
   const db = useDB()
-  const body = await readBody(event)
 
-  const result = validateInvitationCodeSchema.safeParse(body)
-  if (!result.success) {
-    badRequest('Validation Error', result.error.issues)
-  }
+  const data = await validateBody(event, validateInvitationCodeSchema)
 
-  await validateInvitationToken(db, result.data.code)
+  await validateInvitationToken(db, data.code)
 
   return { valid: true }
 })

@@ -3,6 +3,7 @@ import { issues, notifications } from '~~/server/database/schema'
 import { updateIssueSchema, API_BUG_ONLY_FIELDS } from '~~/shared/schemas'
 import { IssueType, NotificationType } from '~~/shared/constants'
 import { badRequest, notFound } from '~~/server/utils/errors'
+import { validateBody } from '~~/server/utils/validate'
 import { getAccessibleProject } from '~~/server/utils/project-access'
 import { assertAssigneeAllowed } from '~~/server/utils/issue-assignee'
 import { buildProtectedIssueResponse } from '~~/server/utils/protected-issue'
@@ -23,20 +24,15 @@ export default defineEventHandler(async (event) => {
   const userId = event.context.userId as string
   const project = await getAccessibleProject(db, projectId, userId)
 
-  const body = await readBody(event)
-  const result = updateIssueSchema.safeParse(body)
+  const data = await validateBody(event, updateIssueSchema)
 
-  if (!result.success) {
-    badRequest('Validation Error', result.error.issues)
-  }
-
-  if (Object.keys(result.data).length === 0) {
+  if (Object.keys(data).length === 0) {
     badRequest('No fields to update')
   }
 
   // Validate assignee outside the transaction (the check only depends on project membership).
-  if (result.data.assigneeId !== undefined) {
-    await assertAssigneeAllowed(db, projectId, result.data.assigneeId)
+  if (data.assigneeId !== undefined) {
+    await assertAssigneeAllowed(db, projectId, data.assigneeId)
   }
 
   const updatedIssue = await db.transaction(async (tx) => {
@@ -60,7 +56,7 @@ export default defineEventHandler(async (event) => {
 
     // Reject API-only fields for task type
     if (existing.issueType === IssueType.Task) {
-      const invalidFields = API_BUG_ONLY_FIELDS.filter((f) => result.data[f] !== undefined)
+      const invalidFields = API_BUG_ONLY_FIELDS.filter((f) => data[f] !== undefined)
       if (invalidFields.length > 0) {
         badRequest(`Cannot set API fields on a Task issue: ${invalidFields.join(', ')}`)
       }
@@ -69,7 +65,7 @@ export default defineEventHandler(async (event) => {
     const [updated] = await tx
       .update(issues)
       .set({
-        ...result.data,
+        ...data,
         updatedAt: new Date()
       })
       .where(and(eq(issues.id, Number(issueId)), eq(issues.projectId, projectId)))
@@ -80,7 +76,7 @@ export default defineEventHandler(async (event) => {
     }
 
     if (
-      result.data.status !== undefined &&
+      data.status !== undefined &&
       existing.status !== updated.status &&
       existing.createdBy &&
       existing.createdBy !== userId
@@ -95,7 +91,7 @@ export default defineEventHandler(async (event) => {
     }
 
     if (
-      result.data.assigneeId !== undefined &&
+      data.assigneeId !== undefined &&
       updated.assigneeId &&
       updated.assigneeId !== existing.assigneeId &&
       updated.assigneeId !== userId

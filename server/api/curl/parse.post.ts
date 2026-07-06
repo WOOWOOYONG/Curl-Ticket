@@ -1,18 +1,14 @@
 import { toJsonString } from 'curlconverter'
 import { badRequest } from '~~/server/utils/errors'
+import { validateBody } from '~~/server/utils/validate'
 import { HttpMethod } from '~~/shared/constants'
 import { parseCurlSchema } from '~~/shared/schemas/curl'
 
 export default defineEventHandler(async (event) => {
-  const body = await readBody(event)
-
-  const parsed = parseCurlSchema.safeParse(body)
-  if (!parsed.success) {
-    badRequest('cURL command is required')
-  }
+  const { curl } = await validateBody(event, parseCurlSchema)
 
   try {
-    const jsonString = toJsonString(parsed.data.curl)
+    const jsonString = toJsonString(curl)
     const curlData = JSON.parse(jsonString)
 
     return {
@@ -23,7 +19,7 @@ export default defineEventHandler(async (event) => {
         body: curlData.data || curlData.json || null
       }
     }
-  } catch (err) {
-    badRequest(err instanceof Error ? err.message : 'Failed to parse cURL command')
+  } catch {
+    badRequest('Invalid cURL command')
   }
 })

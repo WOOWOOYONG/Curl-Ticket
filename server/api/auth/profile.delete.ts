@@ -33,16 +33,14 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // 清理活躍資源（先清理再軟刪除，避免中途失敗導致不一致）
-  await Promise.all([
-    db.delete(projectMembers).where(eq(projectMembers.userId, userId)),
-    db.delete(notifications).where(eq(notifications.userId, userId)),
-    db.delete(apiTokens).where(eq(apiTokens.userId, userId)),
-    db.delete(deviceCodes).where(eq(deviceCodes.userId, userId))
-  ])
-
-  // 軟刪除 profile
-  await db.update(profiles).set({ deletedAt: new Date() }).where(eq(profiles.id, userId))
+  // 清理活躍資源 + 軟刪除 profile 包在同一 transaction，避免中途失敗留下不一致狀態
+  await db.transaction(async (tx) => {
+    await tx.delete(projectMembers).where(eq(projectMembers.userId, userId))
+    await tx.delete(notifications).where(eq(notifications.userId, userId))
+    await tx.delete(apiTokens).where(eq(apiTokens.userId, userId))
+    await tx.delete(deviceCodes).where(eq(deviceCodes.userId, userId))
+    await tx.update(profiles).set({ deletedAt: new Date() }).where(eq(profiles.id, userId))
+  })
 
   return { success: true }
 })

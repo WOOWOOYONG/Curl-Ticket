@@ -1,6 +1,7 @@
 import { eq } from 'drizzle-orm'
 import { apiTokens } from '~~/server/database/schema'
 import { createTokenSchema } from '~~/shared/schemas/api-token'
+import { validateBody } from '~~/server/utils/validate'
 import { generateApiToken } from '~~/server/utils/api-token'
 
 const MAX_TOKENS_PER_USER = 5
@@ -12,7 +13,7 @@ export default defineEventHandler(async (event) => {
 
   const userId = event.context.profile!.id
   const db = useDB()
-  const body = await readValidatedBody(event, createTokenSchema.parse)
+  const body = await validateBody(event, createTokenSchema)
 
   // 檢查 Token 數量上限（TOKEN-017）
   const existing = await db

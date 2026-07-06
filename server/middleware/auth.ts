@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto'
 import { serverSupabaseClient } from '#supabase/server'
 import { eq } from 'drizzle-orm'
 import { getProfile } from '~~/server/utils/profile'
-import { unauthorized } from '~~/server/utils/errors'
+import { unauthorized, forbidden } from '~~/server/utils/errors'
 import { apiTokens } from '~~/server/database/schema'
 
 /**
@@ -87,10 +87,7 @@ export default defineEventHandler(async (event) => {
   } = await supabase.auth.getUser()
 
   if (error || !user) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: 'Unauthorized'
-    })
+    unauthorized('Unauthorized')
   }
 
   // 將用戶資訊存到 context

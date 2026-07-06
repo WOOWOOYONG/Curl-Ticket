@@ -18,6 +18,7 @@ export interface UseIssuesOptions {
   search?: string
 }
 
+/** Issues 列表的 cache key 前綴（同一專案的所有篩選/分頁變體共用此前綴，供失效時用 predicate 一次清除）。 */
 export const getIssuesCacheKey = (projectId: string) => `project-${projectId}-issues`
 export const getIssueCacheKey = (projectId: string, issueId: string) =>
   `project-${projectId}-issue-${issueId}`
@@ -31,33 +32,33 @@ export function useIssues(
   projectId: Ref<string> | ComputedRef<string>,
   options: Ref<UseIssuesOptions>
 ) {
-  return useFetch<IssuesResponse>(
-    () => {
-      const {
-        page = 1,
-        pageSize = 20,
-        status,
-        environment,
-        issueType,
-        method,
-        search
-      } = options.value
-      const params = new URLSearchParams()
-      params.set('page', String(page))
-      params.set('pageSize', String(pageSize))
+  const buildQuery = () => {
+    const {
+      page = 1,
+      pageSize = 20,
+      status,
+      environment,
+      issueType,
+      method,
+      search
+    } = options.value
+    const params = new URLSearchParams()
+    params.set('page', String(page))
+    params.set('pageSize', String(pageSize))
 
-      if (status) params.set('status', status)
-      if (environment) params.set('environment', environment)
-      if (issueType) params.set('issueType', issueType)
-      if (method) params.set('method', method)
-      if (search) params.set('search', search)
+    if (status) params.set('status', status)
+    if (environment) params.set('environment', environment)
+    if (issueType) params.set('issueType', issueType)
+    if (method) params.set('method', method)
+    if (search) params.set('search', search)
 
-      return `/api/projects/${projectId.value}/issues?${params.toString()}`
-    },
-    {
-      key: getIssuesCacheKey(projectId.value),
-      watch: [projectId, options],
-      deep: true
-    }
-  )
+    return params.toString()
+  }
+
+  return useFetch<IssuesResponse>(() => `/api/projects/${projectId.value}/issues?${buildQuery()}`, {
+    // key 隨 projectId + 篩選/分頁參數變動，讓每種組合各有獨立 cache entry，避免互相覆蓋或 SSR 還原錯誤資料
+    key: () => `${getIssuesCacheKey(projectId.value)}?${buildQuery()}`,
+    watch: [projectId, options],
+    deep: true
+  })
 }

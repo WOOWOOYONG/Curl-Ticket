@@ -79,10 +79,10 @@ export function useCommentCrud(
       newComment.value = ''
       await refresh()
     } catch (err: unknown) {
-      const error = err as { data?: { statusMessage?: string } }
+      const error = err as { data?: { message?: string } }
       toast.add({
         title: 'Error',
-        description: error.data?.statusMessage || 'Failed to add comment',
+        description: error.data?.message || 'Failed to add comment',
         color: 'error'
       })
     } finally {
@@ -136,10 +136,10 @@ export function useCommentCrud(
       editContent.value = ''
       await refresh()
     } catch (err: unknown) {
-      const error = err as { data?: { statusMessage?: string } }
+      const error = err as { data?: { message?: string } }
       toast.add({
         title: 'Error',
-        description: error.data?.statusMessage || 'Failed to update comment',
+        description: error.data?.message || 'Failed to update comment',
         color: 'error'
       })
     } finally {
@@ -173,10 +173,10 @@ export function useCommentCrud(
         color: 'success'
       })
     } catch (err: unknown) {
-      const error = err as { data?: { statusMessage?: string } }
+      const error = err as { data?: { message?: string } }
       toast.add({
         title: 'Error',
-        description: error.data?.statusMessage || 'Failed to delete comment',
+        description: error.data?.message || 'Failed to delete comment',
         color: 'error'
       })
     } finally {

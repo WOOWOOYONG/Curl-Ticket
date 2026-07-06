@@ -106,9 +106,9 @@ async function confirmDelete() {
     refresh()
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : t('projects.deleteFailed')
-    const fetchError = error as { data?: { statusMessage?: string } }
+    const fetchError = error as { data?: { message?: string } }
     toast.add({
-      title: fetchError.data?.statusMessage || message,
+      title: fetchError.data?.message || message,
       color: 'error'
     })
   } finally {

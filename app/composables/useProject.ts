@@ -13,6 +13,7 @@ export const getProjectCacheKey = (id: string) => `project-${id}`
  */
 export function useProject(projectId: Ref<string> | ComputedRef<string>) {
   return useFetch<ProjectResponse>(() => `/api/projects/${projectId.value}`, {
-    key: getProjectCacheKey(projectId.value)
+    // key 隨 projectId 響應變動，避免專案間切換時沿用舊 cache
+    key: () => getProjectCacheKey(projectId.value)
   })
 }

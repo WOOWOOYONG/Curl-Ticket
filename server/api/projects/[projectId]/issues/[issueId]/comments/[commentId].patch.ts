@@ -2,6 +2,7 @@ import { eq } from 'drizzle-orm'
 import { issueComments } from '~~/server/database/schema'
 import { updateCommentSchema } from '~~/shared/schemas/issue-comment'
 import { badRequest } from '~~/server/utils/errors'
+import { validateBody } from '~~/server/utils/validate'
 import { getEditableComment } from '~~/server/utils/comment-access'
 import { sanitizeHtml } from '~~/server/utils/html'
 
@@ -19,14 +20,9 @@ export default defineEventHandler(async (event) => {
 
   const comment = await getEditableComment(db, projectId, issueId, commentId, userId, 'edit')
 
-  const body = await readBody(event)
-  const result = updateCommentSchema.safeParse(body)
+  const data = await validateBody(event, updateCommentSchema)
 
-  if (!result.success) {
-    badRequest('Validation Error', result.error.issues)
-  }
-
-  const sanitizedContent = sanitizeHtml(result.data.content)
+  const sanitizedContent = sanitizeHtml(data.content)
 
   const [updated] = await db
     .update(issueComments)

@@ -1,23 +1,19 @@
 import { projectMembers, projects } from '~~/server/database/schema'
 import { createProjectSchema } from '~~/shared/schemas'
-import { badRequest, internalServerError } from '~~/server/utils/errors'
+import { internalServerError } from '~~/server/utils/errors'
+import { validateBody } from '~~/server/utils/validate'
 
 export default defineEventHandler(async (event) => {
   const db = useDB()
   const userId = event.context.userId as string
 
-  const body = await readBody(event)
-  const result = createProjectSchema.safeParse(body)
-
-  if (!result.success) {
-    badRequest('Validation Error', result.error.issues)
-  }
+  const data = await validateBody(event, createProjectSchema)
 
   const newProject = await db.transaction(async (transaction) => {
     const createdProjects = await transaction
       .insert(projects)
       .values({
-        ...result.data,
+        ...data,
         ownerId: userId
       })
       .returning()
