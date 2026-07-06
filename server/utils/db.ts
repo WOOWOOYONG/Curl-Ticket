@@ -8,7 +8,13 @@ let _db: ReturnType<typeof drizzle<typeof schema>> | null = null
 export function useDB() {
   if (!_db) {
     const env = useEnv()
-    const client = postgres(env.databaseUrl, { prepare: false })
+    // Serverless（Vercel）：每個 function instance 只需一條連線，避免大量 instance 同時握連線撞 pooler 上限
+    const client = postgres(env.databaseUrl, {
+      prepare: false,
+      max: 1,
+      idle_timeout: 20,
+      connect_timeout: 10
+    })
     _db = drizzle(client, { schema })
   }
   return _db
