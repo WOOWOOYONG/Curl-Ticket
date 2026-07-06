@@ -176,6 +176,13 @@
       "when": 1781580251642,
       "tag": "0024_wet_proteus",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1783306281560,
+      "tag": "0025_smiling_speed_demon",
+      "breakpoints": true
     }
   ]
 }

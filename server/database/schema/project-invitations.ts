@@ -1,4 +1,5 @@
-import { pgTable, uuid, varchar, timestamp, index } from 'drizzle-orm/pg-core'
+import { pgTable, uuid, varchar, timestamp, index, uniqueIndex } from 'drizzle-orm/pg-core'
+import { sql } from 'drizzle-orm'
 import { profiles } from './profiles'
 import { projects } from './projects'
 import { InvitationStatus } from '../../../shared/constants'
@@ -29,6 +30,10 @@ export const projectInvitations = pgTable(
   (table) => [
     index('project_invitations_project_id_idx').on(table.projectId),
     index('project_invitations_email_idx').on(table.email),
-    index('project_invitations_status_idx').on(table.status)
+    index('project_invitations_status_idx').on(table.status),
+    // 同一專案 + email 至多一筆 pending 邀請，防併發產生重複 pending
+    uniqueIndex('project_invitations_pending_unique_idx')
+      .on(table.projectId, table.email)
+      .where(sql`${table.status} = 'pending'`)
   ]
 )

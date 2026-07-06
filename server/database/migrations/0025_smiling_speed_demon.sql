@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "project_invitations_pending_unique_idx" ON "project_invitations" USING btree ("project_id","email") WHERE "project_invitations"."status" = 'pending';
