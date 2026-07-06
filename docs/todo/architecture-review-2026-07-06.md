@@ -14,23 +14,23 @@
 
 ### P0
 
-- [ ] **A. 收斂錯誤處理層**
+- [x] **A. 收斂錯誤處理層**
   - [x] `errors.ts`：訊息改放 `message`，`statusMessage` 只放 ASCII reason phrase
   - [x] 新增 `server/utils/validate.ts`（`validate` / `validateBody` / `validateQuery`）
   - [x] 全部 `server/api/**` 改用驗證封裝，消滅五種驗證寫法（含 `projects/index.get.ts` 由 raw `.parse()` 改回 400）
   - [x] `internalServerError()` 不再把 raw error 塞進 `data`，改為 server-side log
   - [x] `curl/parse.post.ts` 回固定訊息「Invalid cURL command」
   - [x] `middleware/auth.ts` 改用 `unauthorized` / `forbidden` helper
-  - [ ] 前端統一改讀 `error.data?.message`：`IssueForm.vue:278`、`projects/[id]/edit.vue:81`、`projects/create.vue:45` 仍用 `err.message`（Codex 指出，會顯示通用字串）
+  - [x] 前端統一改讀 `error.data?.message`：`IssueForm.vue`、`projects/[id]/edit.vue`、`projects/create.vue` 已補上 `fetchError.data?.message`（Codex 指出）
 - [x] **C. 修正 useFetch key 與快取失效**
   - [x] `useIssues` / `useProject` / `useComments` / `useProjectMembers` key 含參數
   - [x] `members.vue` 改用 `useProjectMembers`，移除自建 fetch 與重複型別
   - [x] 快取失效收斂
-- [ ] **D. 補齊 transaction 與併發防護**
+- [x] **D. 補齊 transaction 與併發防護**
   - [x] `comments.post.ts` 留言 + 通知包進 transaction
   - [x] `profile.delete.ts` 清理 + 軟刪除包進 transaction
   - [x] `project_invitations` 加 partial unique index（`projectId + email WHERE status='pending'`）
-  - [ ] migration 建立唯一索引前，先清理既有重複 pending 邀請（Codex 指出，否則舊資料會讓 migration 失敗）
+  - [x] migration 建立唯一索引前，先清理既有重複 pending 邀請（每組保留最新一筆、其餘標記 expired；Codex 指出）
 - [x] **H. Serverless DB 連線設定**
   - [x] `db.ts` 加上 `max: 1` / `idle_timeout` / `connect_timeout`
 
@@ -208,9 +208,9 @@
 
 | 級別 | 項目 | 狀態 |
 |------|------|------|
-| **P0** | A 錯誤處理層收斂（外洩 + 400/500 不一致 + statusMessage） | 🔶 前端 3 處待收尾 |
+| **P0** | A 錯誤處理層收斂（外洩 + 400/500 不一致 + statusMessage） | ✅ 已完成 |
 | **P0** | C useFetch key 修正 | ✅ 已完成 |
-| **P0** | D 補 transaction 與 unique constraint | 🔶 migration 需清理既有重複資料 |
+| **P0** | D 補 transaction 與 unique constraint | ✅ 已完成 |
 | **P0** | H serverless DB 連線設定 | ✅ 已完成 |
 | **P1** | B CLI 型別單源化（已確認可自由修改） | ⬜ 未開始 |
 | **P1** | E access helper 貫徹 + RLS 註記 | ⬜ 未開始 |
